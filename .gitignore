@@ -34,3 +34,10 @@
 # Ignore build directories
 build/
 *-build/
+.benchmark_stage/
+
+# Ignore log files
+*.log
+
+# Ignore MacOS files
+.DS_Store
