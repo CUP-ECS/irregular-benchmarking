@@ -18,7 +18,8 @@ class Parameter:
         self.stride = []
         self.comm_partners = []
 
-        for line in param_file:
+        for param_line in param_file:
+            line = param_line.lower()
             if "nowned" in line:
                 line = line.split("-")
                 if line[1].strip().isdigit():
@@ -34,8 +35,11 @@ class Parameter:
             elif "blocksize" in line:
                 line = line.split("-")
                 if line[1].strip().isdigit():
-                    self.block_sizes.append(int(line[1]))
-
+                    self.blocksize.append(int(line[1]))
+            elif "stride" in line:
+                line = line.split("-")
+                if line[1].strip().isdigit():
+                    self.stride.append(int(line[1]))
 
     def nowned_mean(self):
         if len(self.nowned) == 0:
@@ -157,7 +161,9 @@ def run_benchmark_with_params(params, results_dir="results/"):
         str(10),
     ]
 
-    output = subprocess.run(cmd, capture_output=False, encoding="UTF-8", cwd=results_dir).stdout
+    output = subprocess.run(
+        cmd, capture_output=False, encoding="UTF-8", cwd=results_dir
+    ).stdout
 
 
 if __name__ == "__main__":
