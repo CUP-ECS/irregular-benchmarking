@@ -29,8 +29,30 @@ cmake ..
 make -j 8
 ```
 
-## Parameter Data Formatting
-TODO: describe how the parameter data needs to be structured to be properly parsed by the scripts.
+## Parameter Data File Formatting
+Creating a parameter file is extremely simple, however it is important that formatting is correct or it will be unable to be parsed by the scripts.
+The currently supported parameters are as follows:
+- nowned
+- nremote
+- num_comm_partners
+- blocksize
+- stride
+
+In your application, have the application print the desired parameters in the format:
+```bash
+PARAMETER_NAME - PARAMETER_VALUE
+```
+For example, if you wanted to print that the `stride` parameter has a value of `12`, you would print the following to your log file:
+```bash
+stride - 12
+```
+You can print the value as often as you deem appropriate.
+The parser takes all instances of a parameter in a file and averages it to get the value used for the benchmark.
+Failing to report a parameter results in the default value of 0.
+Obviously, this could cause failures depending on the parameter so be sure to check that your values are being parsed correctly.
+Write all of this data to a **single** text file and save it in a location the scripts can read from.
+For an example parameter file, see `examples/example_clamr_parameter.txt`.
+You can run any of the scripts in the repository on this parameter file to see how it behaves.
 
 ## Scripts
 There are a few scripts available.

@@ -11,14 +11,35 @@ from pathlib import Path
 
 
 class Parameter:
-    def __init__(
-        self, nowned=[], nremote=[], blocksize=[], stride=[], comm_partners=[]
-    ):
-        self.nowned = nowned
-        self.nremote = nremote
-        self.blocksize = blocksize
-        self.stride = stride
-        self.comm_partners = comm_partners
+    def __init__(self, param_file):
+        self.nowned = []
+        self.nremote = []
+        self.blocksize = []
+        self.stride = []
+        self.comm_partners = []
+
+        for param_line in param_file:
+            line = param_line.lower()
+            if "nowned" in line:
+                line = line.split("-")
+                if line[1].strip().isdigit():
+                    self.nowned.append(int(line[1]))
+            elif "nremote" in line:
+                line = line.split("-")
+                if line[1].strip().isdigit():
+                    self.nremote.append(int(line[1]))
+            elif "num_comm_partners" in line:
+                line = line.split("-")
+                if line[1].strip().isdigit():
+                    self.comm_partners.append(int(line[1]))
+            elif "blocksize" in line:
+                line = line.split("-")
+                if line[1].strip().isdigit():
+                    self.blocksize.append(int(line[1]))
+            elif "stride" in line:
+                line = line.split("-")
+                if line[1].strip().isdigit():
+                    self.stride.append(int(line[1]))
 
     def nowned_mean(self):
         if len(self.nowned) == 0:
@@ -110,11 +131,8 @@ def bootstrap_results(results_dir=Path("results"), stage_dir=Path(".benchmark_st
     """
     Setup where results are stored
     """
-    print("Setting up results store.")
-
     # delete previously created results if exists
     if os.path.exists(results_dir):
-        print("Cleaning old results.")
         shutil.rmtree(results_dir)
 
     # create new results directory
@@ -125,52 +143,6 @@ def bootstrap_results(results_dir=Path("results"), stage_dir=Path(".benchmark_st
         shutil.copy(os.path.join(stage_dir, "l7_update_perf"), results_dir)
     except:
         raise SystemExit("Error: could not move benchmark binary to results directory")
-
-
-def process_params(param_output):
-    """
-    param_output: parameter output from application to process
-    """
-    params = Parameter()
-
-    for line in param_output:
-        if "nowned" in line:
-            line = line.split("-")
-            if line[1].strip().isdigit():
-                params.nowned.append(int(line[1]))
-        elif "nremote" in line:
-            line = line.split("-")
-            if line[1].strip().isdigit():
-                params.nremote.append(int(line[1]))
-        elif "num_comm_partners" in line:
-            line = line.split("-")
-            if line[1].strip().isdigit():
-                params.comm_partners.append(int(line[1]))
-        elif "blocksize" in line:
-            line = line.split("-")
-            if line[1].strip().isdigit():
-                params.block_sizes.append(int(line[1]))
-
-    print("nowned: " + str(params.nowned_mean()))
-    print("nowned stdev: " + str(params.nowned_stdev()))
-
-    print("nremote: " + str(params.nremote_mean()))
-    print("nremote stdev: " + str(params.nremote_stdev()))
-
-    print("block_sizes: " + str(params.blocksize_mean()))
-    print("block_sizes stdev: " + str(params.blocksize_stdev()))
-
-    print("num_comm_partners: " + str(params.comm_partners_mean()))
-
-    return [
-        params.nowned_mean(),
-        params.nowned_stdev(),
-        params.nremote_mean(),
-        params.nremote_stdev(),
-        params.comm_partners_mean(),
-        params.blocksize_mean(),
-        params.blocksize_stdev(),
-    ]
 
 
 def run_benchmark_with_params(params, results_dir="results/"):
@@ -189,7 +161,9 @@ def run_benchmark_with_params(params, results_dir="results/"):
         str(10),
     ]
 
-    output = subprocess.run(cmd, capture_output=False, encoding="UTF-8", cwd=results_dir).stdout
+    output = subprocess.run(
+        cmd, capture_output=False, encoding="UTF-8", cwd=results_dir
+    ).stdout
 
 
 if __name__ == "__main__":
@@ -245,7 +219,14 @@ if __name__ == "__main__":
         )
 
     # run analysis on parameter data
-    params = process_params(param_output)
+    params = Parameter(param_output)
+    print("nowned: " + str(params.nowned_mean()))
+    print("nowned stdev: " + str(params.nowned_stdev()))
+    print("nremote: " + str(params.nremote_mean()))
+    print("nremote stdev: " + str(params.nremote_stdev()))
+    print("block_sizes: " + str(params.blocksize_mean()))
+    print("block_sizes stdev: " + str(params.blocksize_stdev()))
+    print("num_comm_partners: " + str(params.comm_partners_mean()))
 
     # run benchmark with parameter data
     run_benchmark_with_params(params, args.rpath)
