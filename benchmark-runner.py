@@ -173,54 +173,23 @@ def process_params(param_output):
     ]
 
 
-def run_benchmark_with_params(
-    nodes,
-    nowned_avg,
-    nowned_stdv,
-    nremote_avg,
-    nremote_stdv,
-    comm_partners,
-    block_size_avg=3,
-    block_size_stdv=3,
-):
-    if "quartz" in platform.node():
-        cmd = [
-            "srun",
-            "./l7_update_perf",
-            "-o",
-            str(nowned_avg),
-            "-r",
-            str(nremote_avg),
-            "-n",
-            str(comm_partners),
-            "-b",
-            str(block_size_avg),
-            "-I",
-            str(10),
-        ]
-    elif "lassen" in platform.node():
-        cmd = [
-            "lrun",
-            "-N",
-            nodes,
-            "-T",
-            "40",
-            "./l7_update_perf",
-            "-o",
-            str(nowned_avg),
-            "-r",
-            str(nremote_avg),
-            "-n",
-            str(comm_partners),
-            "-b",
-            str(block_size_avg),
-            "-I",
-            str(10),
-        ]
-    else:
-        print("Error: unsupported system")
-        exit()
-    output = subprocess.run(cmd, capture_output=False, encoding="UTF-8").stdout
+def run_benchmark_with_params(params, results_dir="results/"):
+    cmd = [
+        "srun",
+        "./l7_update_perf",
+        "-o",
+        str(params.nowned_mean()),
+        "-r",
+        str(params.nremote_mean()),
+        "-n",
+        str(params.comm_partners_mean()),
+        "-b",
+        str(params.blocksize_mean()),
+        "-I",
+        str(10),
+    ]
+
+    output = subprocess.run(cmd, capture_output=False, encoding="UTF-8", cwd=results_dir).stdout
 
 
 if __name__ == "__main__":
@@ -231,15 +200,6 @@ if __name__ == "__main__":
         nargs="?",
         type=str,
         help="Specify path to file where parameter data is stored",
-    )
-    parser.add_argument(
-        "-n",
-        dest="nodes",
-        default=1,
-        action="store",
-        nargs="?",
-        type=int,
-        help="Specify node count",
     )
     parser.add_argument(
         "-b",
@@ -262,7 +222,6 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    nodes = str(args.nodes)
 
     # parameter path must be specified
     if not args.param_path:
@@ -289,13 +248,4 @@ if __name__ == "__main__":
     params = process_params(param_output)
 
     # run benchmark with parameter data
-    # run_benchmark_with_params(
-    #     nodes=nodes,
-    #     nowned_avg=params.nowned_mean(),
-    #     nowned_stdv=params.nowned_stdev(),
-    #     nremote_avg=params.nremote_mean(),
-    #     nremote_stdv=params.nremote_stdev(),
-    #     comm_partners=params.comm_partners_mean(),
-    #     block_size_avg=params.blocksize_mean(),
-    #     block_size_stdv=params.blocksize_stdev(),
-    # )
+    run_benchmark_with_params(params, args.rpath)
