@@ -35,6 +35,7 @@
 build/
 *-build/
 .benchmark_stage/
+results/
 
 # Ignore log files
 *.log
