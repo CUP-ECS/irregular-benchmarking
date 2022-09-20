@@ -96,6 +96,23 @@ class Parameter:
             return round(statistics.mean(self.comm_partners))
 
 
+def identify_launcher(name=""):
+    """
+    Checks if launcher program is available.
+    Returns when first launcher is found.
+    """
+    if name == "":
+        possible_launchers = ["srun", "lrun", "mpirun"]
+    else:
+        possible_launchers = [name]
+
+    for launcher in possible_launchers:
+        if shutil.which(launcher) is not None:
+            return launcher
+
+    raise SystemExit("Error: valid launcher not found")
+
+
 def bootstrap_benchmark(stage_dir=Path(".benchmark_stage")):
     """
     Bootstraps benchmark binary
@@ -147,16 +164,16 @@ def bootstrap_results(results_dir=Path("results"), stage_dir=Path(".benchmark_st
 
 def run_benchmark_with_params(params, results_dir="results/"):
     cmd = [
-        "srun",
+        identify_launcher(),
         "./l7_update_perf",
         "-o",
         str(params.nowned_mean()),
-        "-O",
-        str(params.nowned_stdev()),
+        # "-O",
+        # str(params.nowned_stdev()),
         "-r",
         str(params.nremote_mean()),
-        "-R",
-        str(params.nremote_stdev()),
+        # "-R",
+        # str(params.nremote_stdev()),
         "-n",
         str(params.comm_partners_mean()),
         "-b",
@@ -166,6 +183,9 @@ def run_benchmark_with_params(params, results_dir="results/"):
         "-I",
         str(10),
     ]
+
+    for x in cmd:
+        print(x, end=" ")
 
     output = subprocess.run(
         cmd, capture_output=False, encoding="UTF-8", cwd=results_dir

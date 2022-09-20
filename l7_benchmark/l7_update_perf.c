@@ -243,7 +243,7 @@ void parse_arguments(int argc, char **argv, int penum)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, ":h:t:i:I:n:o:r:b:s:S:m:u:",
+        c = getopt_long (argc, argv, ":h:t:i:I:n:o:O:r:R:b:B:s:S:m:u:",
                        long_options, &option_index);
         if (c == -1) {
             break;
