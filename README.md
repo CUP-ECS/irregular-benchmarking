@@ -58,7 +58,7 @@ You can run any of the scripts in the repository on this parameter file to see h
 There are a few scripts available.
 Their functionality, and how to use them, are listed below.
 
-### Benchmark Runner
+### benchmark-runner.py
 This script runs the benchmark after your parameters are extracted from a target application.
 This application will bootstrap the benchmark for you, so building the benchmark manually is not required.
 
@@ -88,7 +88,29 @@ You must specify a path to a file where your parameter data is stored.
 
 Currently, the runner script is designed for machines running slurm.
 
+### analysis.py
+This scripts performs statistical analysis on the parameters extracted from applications.
+It does not require that you have the benchmark dependencies, only that you have the required python packages.
 
+#### Dependencies
+Before running the `benchmark-runner.py` script, you will need the following:
+- Python 3
+- matplotlib
+- scipy
 
+#### Running the Benchmark
+To run the benchmark, you will use the following command:
 
+```bash
+$ python3 analysis.py --help
+usage: analysis.py [-h] [-r [RPATH]] [-c] [param_path]
 
+positional arguments:
+  param_path   Specify path to file where parameter data is stored
+
+options:
+  -h, --help   show this help message and exit
+  -r [RPATH]   Overrides where results are stored
+  -c, --clean  Removes previously generated files
+```
+You must specify a path to a file where your parameter data is stored.
