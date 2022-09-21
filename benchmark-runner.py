@@ -1,12 +1,9 @@
-import sys
 import subprocess
 import argparse
 import statistics
 import os
-import glob
 import shutil
 import math
-import platform
 from pathlib import Path
 
 
@@ -144,16 +141,19 @@ def bootstrap_benchmark(stage_dir=Path(".benchmark_stage")):
         print("Benchmark bootstrapping complete.")
 
 
-def bootstrap_results(results_dir=Path("results"), stage_dir=Path(".benchmark_stage")):
+def bootstrap_results(
+    results_dir=Path("results"), stage_dir=Path(".benchmark_stage"), clean=False
+):
     """
     Setup where results are stored
     """
     # delete previously created results if exists
-    if os.path.exists(results_dir):
+    if os.path.exists(results_dir) and clean:
         shutil.rmtree(results_dir)
 
     # create new results directory
-    os.mkdir(results_dir)
+    if not os.path.exists(results_dir):
+        os.mkdir(results_dir)
 
     # copy benchmark
     try:
@@ -168,12 +168,12 @@ def run_benchmark_with_params(params, results_dir="results/"):
         "./l7_update_perf",
         "-o",
         str(params.nowned_mean()),
-        # "-O",
-        # str(params.nowned_stdev()),
+        "-O",
+        str(params.nowned_stdev()),
         "-r",
         str(params.nremote_mean()),
-        # "-R",
-        # str(params.nremote_stdev()),
+        "-R",
+        str(params.nremote_stdev()),
         "-n",
         str(params.comm_partners_mean()),
         "-b",
@@ -183,9 +183,6 @@ def run_benchmark_with_params(params, results_dir="results/"):
         "-I",
         str(10),
     ]
-
-    for x in cmd:
-        print(x, end=" ")
 
     output = subprocess.run(
         cmd, capture_output=False, encoding="UTF-8", cwd=results_dir
@@ -220,6 +217,12 @@ if __name__ == "__main__":
         type=str,
         help="Overrides where results are stored",
     )
+    parser.add_argument(
+        "-c",
+        "--clean",
+        action="store_true",
+        help="Removes previously generated results",
+    )
 
     args = parser.parse_args()
 
@@ -231,7 +234,7 @@ if __name__ == "__main__":
     bootstrap_benchmark(Path(args.bpath))
 
     # bootstrap results directory
-    bootstrap_results(Path(args.rpath), Path(args.bpath))
+    bootstrap_results(Path(args.rpath), Path(args.bpath), args.clean)
 
     # tries to read file containing parameter data
     # fails if file does not exist, cannot be read, etc.
