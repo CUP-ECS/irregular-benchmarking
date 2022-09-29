@@ -114,8 +114,8 @@ def analysis(params, results_dir="results"):
     else:
         print("Distribution: Not Normal\n")
     plt.hist(params.nowned, bins=20)
-    plt.title("nowned size")
-    plt.xlabel("size (bytes)")
+    plt.title("Distribution of nowned Size")
+    plt.xlabel("size (in bytes)")
     plt.ylabel("frequency")
     plt.savefig(results_dir + "/nowned.png")
     plt.clf()
@@ -127,8 +127,8 @@ def analysis(params, results_dir="results"):
     else:
         print("Distribution: Not Normal\n")
     plt.hist(params.nremote, bins=20)
-    plt.title("nremote size")
-    plt.xlabel("size (bytes)")
+    plt.title("Distribution of nremote Size")
+    plt.xlabel("size (in bytes)")
     plt.ylabel("frequency")
     plt.savefig(results_dir + "/nremote.png")
     plt.clf()
