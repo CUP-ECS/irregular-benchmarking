@@ -7,6 +7,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from scipy.stats import shapiro
 
+
 class Parameter:
     def __init__(self, param_file):
         self.nowned = []
@@ -109,7 +110,7 @@ def bootstrap_results(results_dir=Path("results"), clean=False):
 def analysis(params, results_dir="results"):
     print("nowned: " + str(params.nowned_mean()))
     print("nowned stdev: " + str(params.nowned_stdev()))
-    if shapiro(params.nowned).pvalue > .05:
+    if shapiro(params.nowned).pvalue > 0.05:
         print("Distribution: Normal\n")
     else:
         print("Distribution: Not Normal\n")
@@ -122,7 +123,7 @@ def analysis(params, results_dir="results"):
 
     print("nremote: " + str(params.nremote_mean()))
     print("nremote stdev: " + str(params.nremote_stdev()))
-    if shapiro(params.nremote).pvalue > .05:
+    if shapiro(params.nremote).pvalue > 0.05:
         print("Distribution: Normal\n")
     else:
         print("Distribution: Not Normal\n")
@@ -146,7 +147,7 @@ def analysis(params, results_dir="results"):
     else:
         print("blocksize: " + str(params.blocksize_mean()))
         print("blocksize stdev: " + str(params.blocksize_stdev()))
-        if shapiro(params.blocksize).pvalue > .05:
+        if shapiro(params.blocksize).pvalue > 0.05:
             print("Distribution: Normal\n")
         else:
             print("Distribution: Not Normal\n")
