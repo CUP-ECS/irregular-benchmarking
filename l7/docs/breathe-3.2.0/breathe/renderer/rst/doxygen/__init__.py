@@ -190,7 +190,7 @@ class DoxygenToRstRendererFactory(object):
 
         if node_type == "param":
             return Renderer(
-                    parent_data_object.node_type != "templateparamlist", 
+                    parent_data_object.node_type != "templateparamlist",
                     *common_args
                     )
 

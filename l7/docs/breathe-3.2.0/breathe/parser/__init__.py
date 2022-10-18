@@ -40,7 +40,7 @@ class DoxygenIndexParser(Parser):
 
         self.file_state_cache.update(filename)
 
-        try: 
+        try:
             # Try to get from our cache
             return self.cache[filename]
         except KeyError:
@@ -71,7 +71,7 @@ class DoxygenCompoundParser(Parser):
 
         self.file_state_cache.update(filename)
 
-        try: 
+        try:
             # Try to get from our cache
             return self.cache[filename]
         except KeyError:

@@ -4,12 +4,12 @@
  *
  *  CLAMR -- LA-CC-11-094
  *
- *  Copyright 2011-2019. Triad National Security, LLC. This software was produced 
- *  under U.S. Government contract 89233218CNA000001 for Los Alamos National 
- *  Laboratory (LANL), which is operated by Triad National Security, LLC 
- *  for the U.S. Department of Energy. The U.S. Government has rights to use, 
+ *  Copyright 2011-2019. Triad National Security, LLC. This software was produced
+ *  under U.S. Government contract 89233218CNA000001 for Los Alamos National
+ *  Laboratory (LANL), which is operated by Triad National Security, LLC
+ *  for the U.S. Department of Energy. The U.S. Government has rights to use,
  *  reproduce, and distribute this software.  NEITHER THE GOVERNMENT NOR
- *  TRIAD NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR 
+ *  TRIAD NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR
  *  ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE.  If software is modified
  *  to produce derivative works, such modified software should be clearly marked,
  *  so as not to confuse it with the version available from LANL.
@@ -21,13 +21,13 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Triad National Security, LLC, Los Alamos 
- *       National Laboratory, LANL, the U.S. Government, nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the Triad National Security, LLC, Los Alamos
+ *       National Laboratory, LANL, the U.S. Government, nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- *  
- *  THIS SOFTWARE IS PROVIDED BY THE TRIAD NATIONAL SECURITY, LLC AND 
- *  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT 
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE TRIAD NATIONAL SECURITY, LLC AND
+ *  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
  *  NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL TRIAD NATIONAL
  *  SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
@@ -37,7 +37,7 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
- */  
+ */
 #include <stdlib.h>
 #include "l7.h"
 #include "l7p.h"
@@ -57,7 +57,7 @@ int L7_Dev_Update(
     * =======
     * L7_Dev_Update collects into array data_buffer data located off-process,
     * appending it to owned (on-process) data data_buffer.
-    * 
+    *
     * Arguments
     * =========
     * data_buffer        (input/output) void*
@@ -67,21 +67,21 @@ int L7_Dev_Update(
     *                    On output,
     *                    data_buffer[num_indices_owned, num_indices_needed-1]
     *                    contains the data collected from off-process.
-    * 
+    *
     * l7_datatype        (input) const int*
     *                    The type of data contained in array data_buffer.
-    * 
+    *
     * l7_id              (input) const int
     *                    Handle to database containing conmmunication
     *                    requirements.
-    * 
+    *
     * Notes:
     * =====
     * 1) Serial compilation creates a no-op
-    * 
+    *
     */
 #if defined HAVE_MPI
-   
+
    /*
     * Local variables
     */
@@ -90,7 +90,7 @@ int L7_Dev_Update(
 
    l7_id_database
      *l7_id_db;            /* database associated with l7_id.    */
-   
+
    /*
     * Executable Statements
     */
@@ -98,33 +98,33 @@ int L7_Dev_Update(
    if (! l7.mpi_initialized){
       return(0);
    }
-    
+
    if (l7.initialized !=1){
       ierr = 1;
       L7_ASSERT(l7.initialized == 1, "L7 not initialized", ierr);
    }
-   
+
    /*
     * Check input.
     */
-   
+
 /*
    if (data_buffer == NULL){
       ierr = -1;
       L7_ASSERT( data_buffer != NULL, "data_buffer != NULL", ierr);
    }
 */
-   
+
    if (l7_id <= 0){
       ierr = -1;
       L7_ASSERT( l7_id > 0, "l7_id <= 0", ierr);
    }
-   
+
    if (l7.numpes == 1){
       ierr = L7_OK;
       return(ierr);
    }
-   
+
    /*
     * Alias database associated with input l7_id
     */
@@ -134,14 +134,14 @@ int L7_Dev_Update(
       ierr = -1;
       L7_ASSERT(l7_id_db != NULL, "Failed to find database.", ierr);
    }
-   
+
    l7.penum = l7_id_db->penum;
-   
+
    if (l7_id_db->numpes == 1){ /* No-op */
       ierr = L7_OK;
       return(ierr);
    }
-   
+
    /*
     * Setup parameters and data for compact device read
     */
@@ -186,7 +186,7 @@ int L7_Dev_Update(
 
          packed_short_data = (short *)malloc(num_indices_have*sizeof(short));
          ezcl_enqueue_read_buffer(command_queue, dev_packed_data, CL_TRUE, 0, num_indices_have*sizeof(cl_short), &packed_short_data[0], NULL);
-   
+
          short_data_buffer = (short *)malloc((num_indices_owned+num_indices_needed)*sizeof(short));
          for (unsigned int ii = 0; ii < num_indices_have; ii++){
             short_data_buffer[l7_id_db->indices_have[ii]] = packed_short_data[ii];
@@ -199,7 +199,7 @@ int L7_Dev_Update(
          /*
           * Do the regular L7_Update across processor.
           */
-   
+
          L7_Update (short_data_buffer, l7_datatype, l7_id);
 
          dev_data_buffer_add    = ezcl_malloc(NULL, "dev_data_buffer_add",    &num_indices_needed,     sizeof(cl_short), CL_MEM_READ_WRITE, 0);
@@ -252,7 +252,7 @@ int L7_Dev_Update(
          /*
           * Do the regular L7_Update across processor.
           */
-   
+
 #ifdef _L7_DEBUG
 	 printf("[pe %d] Calling underlying L7_Update.\n", l7.penum);
 #endif
@@ -292,7 +292,7 @@ int L7_Dev_Update(
 
          packed_float_data = (float *)malloc(num_indices_have*sizeof(float));
          ezcl_enqueue_read_buffer(command_queue, dev_packed_data, CL_TRUE, 0, num_indices_have*sizeof(cl_float), &packed_float_data[0], NULL);
-   
+
          float_data_buffer = (float *)malloc((num_indices_owned+num_indices_needed)*sizeof(float));
          for (unsigned int ii = 0; ii < num_indices_have; ii++){
             float_data_buffer[l7_id_db->indices_have[ii]] = packed_float_data[ii];
@@ -305,7 +305,7 @@ int L7_Dev_Update(
          /*
           * Do the regular L7_Update across processor.
           */
-   
+
          L7_Update (float_data_buffer, l7_datatype, l7_id);
 
          dev_data_buffer_add    = ezcl_malloc(NULL, "dev_data_buffer_add",    &num_indices_needed,     sizeof(cl_float), CL_MEM_READ_WRITE, 0);
@@ -336,7 +336,7 @@ int L7_Dev_Update(
 
          packed_double_data = (double *)malloc(num_indices_have*sizeof(double));
          ezcl_enqueue_read_buffer(command_queue, dev_packed_data, CL_TRUE, 0, num_indices_have*sizeof(cl_double), &packed_double_data[0], NULL);
-   
+
          double_data_buffer = (double *)malloc((num_indices_owned+num_indices_needed)*sizeof(double));
          for (unsigned int ii = 0; ii < num_indices_have; ii++){
             double_data_buffer[l7_id_db->indices_have[ii]] = packed_double_data[ii];
@@ -349,7 +349,7 @@ int L7_Dev_Update(
          /*
           * Do the regular L7_Update across processor.
           */
-   
+
          L7_Update (double_data_buffer, l7_datatype, l7_id);
 
          dev_data_buffer_add    = ezcl_malloc(NULL, "dev_data_buffer_add",    &num_indices_needed,     sizeof(cl_double), CL_MEM_READ_WRITE, 0);
@@ -371,11 +371,11 @@ int L7_Dev_Update(
       default:
          break;
    }
-   
+
 #endif /* HAVE_MPI */
-   
+
    return(L7_OK);
-    
+
 } /* End L7_Update */
 
 void L7_DEV_UPDATE(
@@ -411,10 +411,10 @@ int L7_Get_Num_Indices(const int l7_id)
    int num_indices = 0;
 
    int num_sends = l7_id_db->num_sends;
-   
+
    for (int i=0; i<num_sends; i++){
       /* Load data to be sent. */
-      
+
       num_indices += l7_id_db->send_counts[i];
    }
 
@@ -442,12 +442,12 @@ int L7_Get_Local_Indices(const int l7_id, int *local_indices)
    //int num_indices = 0;
 
    int num_sends = l7_id_db->num_sends;
-   
+
    int offset = 0;
 
    for (int i=0; i<num_sends; i++){
       /* Load data to be sent. */
-      
+
       int send_count = l7_id_db->send_counts[i];
       for (int j=0; j<send_count; j++){
           local_indices[offset] = l7_id_db->indices_local_to_send[offset];

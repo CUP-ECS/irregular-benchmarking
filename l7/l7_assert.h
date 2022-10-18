@@ -12,7 +12,7 @@ extern "C"
 	/*
 	 * define L7_ASSERT (mainly used for checking return status)
 	 */
-	
+
 #define L7_PRINT(                                                    \
 	EXPRESSION,                                                      \
 	ERROR_MESSAGE,                                                   \
@@ -30,7 +30,7 @@ extern "C"
 			(RETURN_VALUE)                                           \
 			);                                                       \
 	fflush(l7.assert_out_file ? l7.assert_out_file:stderr);
-	
+
 #if defined(L7_NO_ASSERT_PRINT) /* L7_NO_ASSERT_PRINT */
 #define L7_ASSERT(                                                   \
 		EXPRESSION,                                                  \
@@ -70,11 +70,11 @@ extern "C"
 	      return;                                                    \
         }
 #endif /* ! L7_NO_ASSERT_PRINT */
-	
+
 	/*
 	 * remove typesafe linkage if compiling under c++
 	 */
-	
+
 #ifdef __cpluscplus
 }
 #endif

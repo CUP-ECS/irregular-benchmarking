@@ -6,7 +6,7 @@ void reduction_test()
    int mype,
        numpes,
        ierr;
-   
+
    int i, iout, ivalout;
    long ilong, ilongout;
    long long ilonglong, ilonglongout;
@@ -29,7 +29,7 @@ void reduction_test()
           printf("  PASSED L7_Sum of int type\n");
        }
    }
-   
+
    ilong = 1L;
    L7_Sum(&ilong, 1, L7_LONG, &ilongout);
    if (mype == 0){
@@ -40,7 +40,7 @@ void reduction_test()
           printf("  PASSED L7_Sum of long type\n");
        }
    }
-   
+
    ilonglong = 1L;
    L7_Sum(&ilonglong, 1, L7_LONG_LONG_INT, &ilonglongout);
    if (mype == 0){
@@ -51,7 +51,7 @@ void reduction_test()
           printf("  PASSED L7_Sum of long long type\n");
        }
    }
-   
+
    xfloat = 1.0;
    L7_Sum(&xfloat, 1, L7_FLOAT, &xfloatout);
    if (mype == 0){
@@ -73,7 +73,7 @@ void reduction_test()
           printf("  PASSED L7_Sum of double type\n");
        }
    }
-   
+
    i = 1;
    if (mype == numpes-1) i = 5;
    ierr = L7_Max(&i, 1, L7_INT, &iout);
@@ -315,7 +315,7 @@ void reduction_test()
        }
    }
 
-   
+
    i = 1;
    if (mype == numpes-1) i = 0;
    ierr = L7_MinLoc(&i, 1, L7_INT, &iout);
@@ -365,7 +365,7 @@ void reduction_test()
        }
    }
 
-   
+
    i = 0;
    if (mype == numpes-1) i = 1;
    ierr = L7_MaxValLoc(&i, 1, L7_INT, &ivalout, &iout);

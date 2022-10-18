@@ -4,12 +4,12 @@
  *
  *  CLAMR -- LA-CC-11-094
  *
- *  Copyright 2011-2019. Triad National Security, LLC. This software was produced 
- *  under U.S. Government contract 89233218CNA000001 for Los Alamos National 
- *  Laboratory (LANL), which is operated by Triad National Security, LLC 
- *  for the U.S. Department of Energy. The U.S. Government has rights to use, 
+ *  Copyright 2011-2019. Triad National Security, LLC. This software was produced
+ *  under U.S. Government contract 89233218CNA000001 for Los Alamos National
+ *  Laboratory (LANL), which is operated by Triad National Security, LLC
+ *  for the U.S. Department of Energy. The U.S. Government has rights to use,
  *  reproduce, and distribute this software.  NEITHER THE GOVERNMENT NOR
- *  TRIAD NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR 
+ *  TRIAD NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR
  *  ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE.  If software is modified
  *  to produce derivative works, such modified software should be clearly marked,
  *  so as not to confuse it with the version available from LANL.
@@ -21,13 +21,13 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Triad National Security, LLC, Los Alamos 
- *       National Laboratory, LANL, the U.S. Government, nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the Triad National Security, LLC, Los Alamos
+ *       National Laboratory, LANL, the U.S. Government, nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- *  
- *  THIS SOFTWARE IS PROVIDED BY THE TRIAD NATIONAL SECURITY, LLC AND 
- *  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT 
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE TRIAD NATIONAL SECURITY, LLC AND
+ *  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
  *  NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL TRIAD NATIONAL
  *  SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
@@ -37,7 +37,7 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
- */  
+ */
 #ifndef L7_H_
 #define L7_H_
 #ifdef HAVE_OPENCL
@@ -50,7 +50,7 @@
 extern "C"
 {
 #endif
-	
+
 /*
  * Some L7 parameters.
  */
@@ -62,7 +62,7 @@ enum  L7_Datatype
    L7_GENERIC8  = 0,
    L7_BYTE,
    L7_PACKED,
-   
+
    L7_CHAR,
    L7_SHORT,
    L7_INT,
@@ -70,7 +70,7 @@ enum  L7_Datatype
    L7_LONG_LONG_INT,
    L7_FLOAT,
    L7_DOUBLE,
-   
+
    L7_CHARACTER,
    L7_LOGICAL,
    L7_INTEGER4,
@@ -89,7 +89,7 @@ enum L7_DiskPatternType
    L7_ALL_PROCS,
    L7_BUFFERED_ONE_PROC,
    L7_BUFFERED_ALL_PROCS,
-   
+
    L7_DISK_PATTERN_MIN = L7_ONE_PROC,
    L7_DISK_PATTERN_MAX = L7_BUFFERED_ALL_PROCS
 };
@@ -102,9 +102,9 @@ enum L7_DataPatternType
 {
    L7_REPLICATED  = 1001,
    L7_DISTRIBUTED,
-   
+
    L7_DATA_PATTERN_MIN = L7_REPLICATED,
-   L7_DATA_PATTERN_MAX = L7_DISTRIBUTED   
+   L7_DATA_PATTERN_MAX = L7_DISTRIBUTED
 };
 
 /* IO Profiling Verbosity Levels */
@@ -115,15 +115,15 @@ enum L7_IO_ProfilingLevel
    L7_IO_PROF_VERBOSE,
 
    L7_IO_PROF_LEVEL_MIN = L7_IO_PROF_OFF,
-   L7_IO_PROF_LEVEL_MAX = L7_IO_PROF_VERBOSE   
+   L7_IO_PROF_LEVEL_MAX = L7_IO_PROF_VERBOSE
 };
 
 /*
  * C Prototypes.
- * 
+ *
  * Note that scalar variables that are input are usually made
  * const. Large input arrays are not made const to avoid copying
- * by the compiler.  
+ * by the compiler.
  */
 
 int L7_Init (
@@ -146,7 +146,7 @@ int L7_Broadcast (
 		const int              root_pe
 		);
 
-void L7_Abort (void); 
+void L7_Abort (void);
 
 void L7_Sum(
 		void                    *input,
@@ -332,7 +332,7 @@ int L7_Setup(
         int             *indices_needed,
         const int       num_indices_needed,
         /* Remove for now until can be made portable and is needed */
-        //const MPI_Comm  *mpi_comm_user, 
+        //const MPI_Comm  *mpi_comm_user,
         int             *l7_id
         );
 
@@ -343,7 +343,7 @@ int L7_Dev_Setup(
         int             *indices_needed,
         const int       num_indices_needed,
         /* Remove for now until can be made portable and is needed */
-        //const MPI_Comm  *mpi_comm_user, 
+        //const MPI_Comm  *mpi_comm_user,
         int             *l7_id
         );
 
@@ -388,7 +388,7 @@ int L7_Push_Setup(
       const int               num_comm_partners,
       const int               *comm_partner,
       const int               *send_buffer_count,
-      int                     **send_database, 
+      int                     **send_database,
       int                     *receive_count_total,
       int                     *l7_push_id
       );

@@ -8,7 +8,7 @@ void broadcast_test()
    int mype,
        numpes,
        ierr;
-   
+
    char c[10];
    int i;
    long ilong;
@@ -21,7 +21,7 @@ void broadcast_test()
 
    if (mype == 0)
       printf("\n\t\tRunning the Broadcast tests\n\n");
-   
+
    strcpy(c,"\0");
    if (mype == numpes-1) strcpy(c,"test\0");
    ierr = L7_Broadcast(c, 5, L7_CHAR, numpes-1 );
@@ -45,7 +45,7 @@ void broadcast_test()
          printf("  PASSED L7_Broadcast of int type\n");
       }
    }
-   
+
    ilong=0L;
    if (mype == numpes-1) ilong = 1L;
    ierr = L7_Broadcast(&ilong, 1, L7_LONG, numpes-1 );
@@ -57,7 +57,7 @@ void broadcast_test()
           printf("  PASSED L7_Broadcast of long type\n");
        }
    }
-   
+
    ilonglong=0L;
    if (mype == numpes-1) ilonglong = 1L;
    ierr = L7_Broadcast(&ilonglong, 1, L7_LONG_LONG_INT, numpes-1 );

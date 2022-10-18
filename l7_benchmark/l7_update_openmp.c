@@ -14,7 +14,7 @@ void initialize_data_openmp(void **odata, int nowned, int nremote, int typesize,
    void *data = omp_target_alloc(datalen * typesize, t);
 
    if (!data) {
-      fprintf(stderr, "Could not allocate %d elements of size %d in openmp memory space.\n", 
+      fprintf(stderr, "Could not allocate %d elements of size %d in openmp memory space.\n",
               nowned + nremote, typesize);
       exit(-1);
    }
@@ -35,7 +35,7 @@ void initialize_data_openmp(void **odata, int nowned, int nremote, int typesize,
       case 8:
          ((unsigned long *)data)[i] = my_start_index + 1;
          break;
-      } 
+      }
    }
 
    *odata = data;
