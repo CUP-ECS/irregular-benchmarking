@@ -116,7 +116,7 @@ int L7_Setup(
 	 * ============
 	 * 0) Check input for basic validity.
 	 * 1) Set communication parameters within database.
-	 * 2) Deternine processes this pe receives from.
+	 * 2) Determine processes this pe receives from.
 	 * 3) Determine the number of processes this pe sends to.
 	 * 4) Send number of as well as the indices needed from each sending process.
 	 * 5) Set up array containing the pes this pe sends indices to.
