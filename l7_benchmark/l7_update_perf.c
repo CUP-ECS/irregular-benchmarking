@@ -258,10 +258,6 @@ void parse_arguments(int argc, char **argv, int penum)
             case 'I':
                 nsamples = atoi(optarg);
                 if (nsamples < 0) usage(argv[0], penum);
-                if (nsamples > 50) {
-                    printf("ERROR: nsamples cannot be larger than 50\n");
-                    exit(-1);
-                };
                 break;
             case 't':
                 // used to set typesize value
