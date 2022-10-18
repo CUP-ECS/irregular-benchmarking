@@ -38,6 +38,11 @@ class Parameter:
                 line = line.split("-")
                 if line[1].strip().isdigit():
                     self.stride.append(int(line[1]))
+            elif "indices_needed" in line:
+                line = line.split("-")[1].split()
+                for index, index_value in enumerate(line):
+                    if index < int(len(line) - 1):
+                        self.stride.append(int(line[index + 1]) - int(line[index]))
 
     def nowned_mean(self):
         if len(self.nowned) == 0:
@@ -157,6 +162,14 @@ def analysis(params, results_dir="results"):
         plt.ylabel("frequency")
         plt.savefig(results_dir + "/block_sizes.png")
         plt.clf()
+
+    print("stride: " + str(params.stride_mean()) + "\n")
+    plt.hist(params.stride, bins=20)
+    plt.title("stride size")
+    plt.xlabel("stride size (bytes)")
+    plt.ylabel("frequency")
+    plt.savefig(results_dir + "/stride.png")
+    plt.clf()
 
 
 if __name__ == "__main__":
