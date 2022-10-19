@@ -42,3 +42,4 @@ results/
 
 # Ignore MacOS files
 .DS_Store
+__pycache__/

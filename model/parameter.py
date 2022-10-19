@@ -1,5 +1,6 @@
 import statistics
 
+
 class Parameter:
     def __init__(self, param_file):
         self.nowned = []
