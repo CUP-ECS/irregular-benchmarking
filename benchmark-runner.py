@@ -133,6 +133,12 @@ if __name__ == "__main__":
         help="Overrides where results are stored",
     )
     parser.add_argument(
+        "-R",
+        "--reproduce",
+        action="store_true",
+        help="Changes benchmark behavior to reproduce communication pattern",
+    )
+    parser.add_argument(
         "-c",
         "--clean",
         action="store_true",
