@@ -8,6 +8,7 @@ class Parameter:
         self.blocksize = []
         self.stride = []
         self.comm_partners = []
+        self.updates_per_setup = []
 
         for param_line in param_file:
             line = param_line.lower()
@@ -36,6 +37,10 @@ class Parameter:
                 for index, index_value in enumerate(line):
                     if index < int(len(line) - 1):
                         self.stride.append(int(line[index + 1]) - int(line[index]))
+            elif "setup_called" in line:
+                self.updates_per_setup.append(0)
+            elif "update_called" in line:
+                self.update_per_setup[-1] = self.updates_per_setup[-1] + 1
 
     def nowned_mean(self):
         if len(self.nowned) == 0:
