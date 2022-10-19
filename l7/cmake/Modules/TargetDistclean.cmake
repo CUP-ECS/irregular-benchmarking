@@ -27,7 +27,7 @@ IF (UNIX)
    */cmake_install.cmake
    */*/cmake_install.cmake
   )
-  
+
   ADD_CUSTOM_COMMAND(
     DEPENDS clean
     COMMENT "distribution clean"

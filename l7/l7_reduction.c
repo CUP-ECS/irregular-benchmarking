@@ -4,12 +4,12 @@
  *
  *  CLAMR -- LA-CC-11-094
  *
- *  Copyright 2011-2019. Triad National Security, LLC. This software was produced 
- *  under U.S. Government contract 89233218CNA000001 for Los Alamos National 
- *  Laboratory (LANL), which is operated by Triad National Security, LLC 
- *  for the U.S. Department of Energy. The U.S. Government has rights to use, 
+ *  Copyright 2011-2019. Triad National Security, LLC. This software was produced
+ *  under U.S. Government contract 89233218CNA000001 for Los Alamos National
+ *  Laboratory (LANL), which is operated by Triad National Security, LLC
+ *  for the U.S. Department of Energy. The U.S. Government has rights to use,
  *  reproduce, and distribute this software.  NEITHER THE GOVERNMENT NOR
- *  TRIAD NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR 
+ *  TRIAD NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR
  *  ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE.  If software is modified
  *  to produce derivative works, such modified software should be clearly marked,
  *  so as not to confuse it with the version available from LANL.
@@ -21,13 +21,13 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Triad National Security, LLC, Los Alamos 
- *       National Laboratory, LANL, the U.S. Government, nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the Triad National Security, LLC, Los Alamos
+ *       National Laboratory, LANL, the U.S. Government, nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- *  
- *  THIS SOFTWARE IS PROVIDED BY THE TRIAD NATIONAL SECURITY, LLC AND 
- *  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT 
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE TRIAD NATIONAL SECURITY, LLC AND
+ *  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
  *  NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL TRIAD NATIONAL
  *  SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
@@ -37,7 +37,7 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
- *  
+ *
  */
 #include <float.h>
 #include <stdlib.h>
@@ -54,16 +54,16 @@ void L7_Sum(
       void                    *output
       )
 {
-   
+
 	double    local_sum_double;
 	int       local_sum_int;
 	long      local_sum_long;
 	long long local_sum_long_long;
 	int       i;
-	
+
 #ifdef HAVE_MPI
 	double out_double;
-	
+
 	switch (l7_datatype){
 	case L7_INT:
 	case L7_INTEGER4:
@@ -206,7 +206,7 @@ int L7_Max(
 
 #ifdef HAVE_MPI
 	double out_double;
-	
+
 	switch (l7_datatype){
 	case L7_INT:
 	case L7_INTEGER4:
@@ -377,10 +377,10 @@ int L7_Min(
    long      local_min_long;
    long long local_min_long_long;
    int       i;
-   
+
 #ifdef HAVE_MPI
    double out_double;
-   
+
    switch (l7_datatype){
    case L7_INT:
    case L7_INTEGER4:
@@ -550,7 +550,7 @@ int L7_Any(
 	long      local_any_long;
 	long long local_any_long_long;
 	int       i;
-	
+
 #ifdef HAVE_MPI
 	switch (l7_datatype){
 	case L7_INT:
@@ -569,7 +569,7 @@ int L7_Any(
 					*((int *)output) = -1;
 				}
 				else {
-				    *((int *)output) = 1;	
+				    *((int *)output) = 1;
 				}
 			}
 		}
@@ -592,7 +592,7 @@ int L7_Any(
                *((long *)output) = -1;
             }
             else {
-                *((long *)output) = 1;  
+                *((long *)output) = 1;
             }
          }
       }
@@ -615,7 +615,7 @@ int L7_Any(
 					*((long long *)output) = -1;
 				}
 				else {
-				    *((long long *)output) = 1;	
+				    *((long long *)output) = 1;
 				}
 			}
 		}
@@ -690,7 +690,7 @@ int L7_All(
    long      local_all_long, sign_long;
 	long long local_all_long_long, sign_long_long;
 	int       i, sign;
-	
+
 #ifdef HAVE_MPI
 	switch (l7_datatype){
 	case L7_INT:
@@ -820,7 +820,7 @@ int L7_Array_Sum(
 #ifdef HAVE_MPI
 	MPI_Datatype
 	  mpi_type;
-	
+
 	switch (l7_datatype){
 	case L7_INT:
 	case L7_INTEGER4:
@@ -843,7 +843,7 @@ int L7_Array_Sum(
 	}
 #else
 	int i;
-	
+
    switch (l7_datatype){
    case L7_INT:
    case L7_INTEGER4:
@@ -900,7 +900,7 @@ int L7_Array_Max(
 #ifdef HAVE_MPI
 	MPI_Datatype
 	  mpi_type;
-	
+
 	switch (l7_datatype){
 	case L7_INT:
 	case L7_INTEGER4:
@@ -923,7 +923,7 @@ int L7_Array_Max(
 	}
 #else
    int i;
-   
+
    switch (l7_datatype){
    case L7_INT:
    case L7_INTEGER4:
@@ -980,7 +980,7 @@ int L7_Array_Min(
 #ifdef HAVE_MPI
 	MPI_Datatype
 	  mpi_type;
-	
+
 	switch (l7_datatype){
 	case L7_INT:
 	case L7_INTEGER4:
@@ -1003,7 +1003,7 @@ int L7_Array_Min(
 	}
 #else
    int i;
-   
+
    switch (l7_datatype){
    case L7_INT:
    case L7_INTEGER4:
@@ -1062,7 +1062,7 @@ int L7_MaxLoc(
    //long long longlong_cur_max;
    float     float_cur_max;
    double real_cur_max;
-   
+
    int    i, local_maxloc;
 
    int *iptrinp = NULL;
@@ -1076,7 +1076,7 @@ int L7_MaxLoc(
 	int    nprocs, mype;
 	int    local_count[1];
 	int    *counts = NULL;
-	
+
    struct {
       int    value;
       int    index;
@@ -1097,10 +1097,10 @@ int L7_MaxLoc(
 		double value;
 		int    index;
 	} in_double, out_double;
-	
+
 	nprocs = l7.numpes;
 	mype = l7.penum;
-	
+
    istart = 0;
    if (l7.initialized_mpi){
      counts = (int *)malloc(nprocs*sizeof(int));
@@ -1112,7 +1112,7 @@ int L7_MaxLoc(
 	  }
 	  free(counts);
    }
-	
+
 	switch (l7_datatype){
 	   case L7_INT:
 	   case L7_INTEGER4:
@@ -1295,9 +1295,9 @@ int L7_MinLoc(
    //long long longlong_cur_min;
    float     float_cur_min;
    double real_cur_min;
-   
+
    int    i, local_minloc;
-   
+
    int *iptrinp = NULL;
    long *lptrinp = NULL;
    //long long *llptrinp=NULL;
@@ -1309,7 +1309,7 @@ int L7_MinLoc(
    int    nprocs, mype;
    int    local_count[1];
    int    *counts = NULL;
-   
+
    struct {
       int    value;
       int    index;
@@ -1330,10 +1330,10 @@ int L7_MinLoc(
       double value;
       int    index;
    } in_double, out_double;
-   
+
    nprocs = l7.numpes;
    mype = l7.penum;
-   
+
    istart = 0;
    if (l7.initialized_mpi){
      counts = (int *)malloc(nprocs*sizeof(int));
@@ -1345,7 +1345,7 @@ int L7_MinLoc(
      }
      free(counts);
    }
-   
+
    switch (l7_datatype){
       case L7_INT:
       case L7_INTEGER4:
@@ -1529,7 +1529,7 @@ int L7_MaxValLoc(
    //long long longlong_cur_max;
    float     float_cur_max;
    double real_cur_max;
-   
+
    int    i, local_maxloc;
 
    int *iptrinp = NULL;
@@ -1537,14 +1537,14 @@ int L7_MaxValLoc(
    //long long *llptrinp=NULL;
    float *fptrinp = NULL;
    double *rptrinp = NULL;
-   
+
 #ifdef HAVE_MPI
-   
+
    int    iprocs, istart;
    int    nprocs, mype;
    int    local_count[1];
    int    *counts = NULL;
-   
+
    struct {
       int    value;
       int    index;
@@ -1565,10 +1565,10 @@ int L7_MaxValLoc(
       double value;
       int    index;
    } in_double, out_double;
-   
+
    nprocs = l7.numpes;
    mype = l7.penum;
-   
+
    istart = 0;
    if (l7.initialized_mpi){
      counts = (int *)malloc(nprocs*sizeof(int));
@@ -1580,7 +1580,7 @@ int L7_MaxValLoc(
      }
      free(counts);
    }
-   
+
    switch (l7_datatype){
       case L7_INT:
       case L7_INTEGER4:
@@ -1654,7 +1654,7 @@ int L7_MaxValLoc(
          else {
             *((float *)val) = float_cur_max;
             *loc = local_maxloc;
-            
+
          }
          break;
       case L7_DOUBLE:
@@ -1674,7 +1674,7 @@ int L7_MaxValLoc(
             in_double.index = local_maxloc;
             MPI_Allreduce(&in_double, &out_double, 1, MPI_DOUBLE_INT,
                MPI_MAXLOC, MPI_COMM_WORLD);
-         
+
             *((double *)val) = out_double.value;
             *loc = out_double.index;
          }
@@ -1781,7 +1781,7 @@ int L7_MinValLoc(
    //long long longlong_cur_min;
    float     float_cur_min;
    double real_cur_min;
-   
+
    int    i, local_minloc;
 
    int *iptrinp = NULL;
@@ -1795,7 +1795,7 @@ int L7_MinValLoc(
    int    nprocs, mype;
    int    local_count[1];
    int    *counts = NULL;
-   
+
    struct {
       int    value;
       int    index;
@@ -1816,10 +1816,10 @@ int L7_MinValLoc(
       double value;
       int    index;
    } in_double, out_double;
-   
+
    nprocs = l7.numpes;
    mype = l7.penum;
-   
+
    if (l7.initialized_mpi){
      counts = (int *)malloc(nprocs*sizeof(int));
      local_count[0] = count;
@@ -1831,7 +1831,7 @@ int L7_MinValLoc(
      }
      free(counts);
    }
-   
+
    switch (l7_datatype){
       case L7_INT:
       case L7_INTEGER4:
@@ -1924,7 +1924,7 @@ int L7_MinValLoc(
             in_double.index = local_minloc;
             MPI_Allreduce(&in_double, &out_double, 1, MPI_DOUBLE_INT,
                MPI_MINLOC, MPI_COMM_WORLD);
-         
+
             *((double *)val) = out_double.value;
             *loc = out_double.index;
          }
@@ -2038,16 +2038,16 @@ int L7_MaxValLocLoc_Int4(
 	int    nprocs, mype;
 	int    local_count[1];
 	int    *counts = NULL;
-	
+
 	struct {
 		double value;
 		int    index;
 	} in_double, out_double;
-	
+
 	nprocs = l7.numpes;
 	mype = l7.penum;
 	istart = 0;
-	
+
 	if (l7.initialized_mpi){
 	  counts = (int *)malloc(nprocs*sizeof(int));
 	  local_count[0] = count;
@@ -2059,7 +2059,7 @@ int L7_MaxValLocLoc_Int4(
 	  }
 	  free(counts);
 	}
-	
+
 	switch (l7_datatype){
 	case L7_REAL8:
 		real_cur_max=-DBL_MAX;
@@ -2081,7 +2081,7 @@ int L7_MaxValLocLoc_Int4(
 				MPI_MAXLOC, MPI_COMM_WORLD);
 		  *((double *)val) = out_double.value;
 		  *((int *)loc) = out_double.index;
-		  
+
 		  in_double.index = local_maxloc2;
 		  MPI_Allreduce(&in_double, &out_double, 1, MPI_DOUBLE_INT,
 				  MPI_MAXLOC, MPI_COMM_WORLD);
@@ -2091,7 +2091,7 @@ int L7_MaxValLocLoc_Int4(
 			  *((double *)val) = real_cur_max;
 			  *((int *)loc) = local_maxloc;
 			  *((int *)loc2) = local_maxloc2;
-			
+
 		}
 		break;
    default:
@@ -2154,22 +2154,22 @@ int L7_MaxValLocLoc_Int8(
 	int       i, local_maxloc, local_maxloc2;
    double    *rptrinp = NULL;
    long long *iptrinp = NULL;
-	
+
 #ifdef HAVE_MPI
 	int       iprocs, istart;
 	int       nprocs, mype;
 	int       local_count[1];
 	int       *counts = NULL;
-	
+
 	struct {
 		double value;
 		int    index;
 	} in_double, out_double;
-	
+
 	nprocs = l7.numpes;
 	mype = l7.penum;
 	istart = 0;
-	
+
 	if (l7.initialized_mpi){
 	  counts = (int *)malloc(nprocs*sizeof(int));
 	  local_count[0] = count;
@@ -2181,7 +2181,7 @@ int L7_MaxValLocLoc_Int8(
 	  }
 	  free(counts);
 	}
-	
+
 	switch (l7_datatype){
 	case L7_REAL8:
 		real_cur_max=-DBL_MAX;
@@ -2203,7 +2203,7 @@ int L7_MaxValLocLoc_Int8(
 				MPI_MAXLOC, MPI_COMM_WORLD);
 		  *((double *)val) = out_double.value;
 		  *((int *)loc) = out_double.index;
-		  
+
 		  in_double.index = local_maxloc2;
 		  MPI_Allreduce(&in_double, &out_double, 1, MPI_DOUBLE_INT,
 				  MPI_MAXLOC, MPI_COMM_WORLD);
@@ -2213,7 +2213,7 @@ int L7_MaxValLocLoc_Int8(
 			  *((double *)val) = real_cur_max;
 			  *((int *)loc) = local_maxloc;
 			  *((int *)loc2) = local_maxloc2;
-			
+
 		}
 		break;
    default:
@@ -2274,22 +2274,22 @@ int L7_GetGlobal(
 	int   nprocs, mype;
 	int   iprocs, istart, index_start, index_end, root_pe;
 	int   found_value;
-	
+
 	int   local_count[1];
 	int   *counts = NULL;
 	int   *iptrinp = NULL;
-	
+
 	nprocs = l7.numpes;
 	mype   = l7.penum;
-	
+
 	istart = 0;
 	index_start = 0;
 	index_end   = -1;
 	root_pe     = 0;
 	found_value = 0;
-	
+
 	iptrinp = (int *)array;
-	
+
 	if (l7.initialized_mpi){
 		  counts = (int *)malloc(nprocs*sizeof(int));
 		  local_count[0] = count;
@@ -2299,7 +2299,7 @@ int L7_GetGlobal(
 		  for (iprocs = 0; iprocs < mype; iprocs++){
 			  istart+=counts[iprocs];
 		  }
-		  
+
 		  for (iprocs = 0; iprocs < mype; iprocs++){
 			  index_end += counts[iprocs];
 			  if (index >= index_start && index <= index_end){
@@ -2307,9 +2307,9 @@ int L7_GetGlobal(
 			  }
 			  index_start+=counts[iprocs];
 		  }
-		  
+
 		  free(counts);
-		  
+
 		  if (mype == root_pe){
 			  found_value = iptrinp[index-istart];
 		  }
@@ -2319,9 +2319,9 @@ int L7_GetGlobal(
 	}
 
 	L7_Broadcast(&found_value, 1, l7_datatype, root_pe);
-	
+
 	*((int *)val) = found_value;
-	
+
 #else
    *((int *)val) = ((int *)array)[index];
 #endif

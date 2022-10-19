@@ -7,10 +7,10 @@ Author: Michael Jones
 Author-email: m.pricejones@gmail.com
 License: BSD
 Download-URL: https://github.com/michaeljones/breathe
-Description: 
-        Breathe is an extension to reStructuredText and Sphinx to be able to read and 
+Description:
+        Breathe is an extension to reStructuredText and Sphinx to be able to read and
         render `Doxygen <http://www.doxygen.org>`__ xml output.
-        
+
 Platform: any
 Classifier: Development Status :: 4 - Beta
 Classifier: Environment :: Console

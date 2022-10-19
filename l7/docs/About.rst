@@ -8,7 +8,7 @@ L7 is part of the CLAMR mini-app and is released as open source code under the
 
     Copyright (c) 2011-2019, Triad National Security, LLC.
     All rights Reserved.
-  
+
     Copyright 2011-2019. Triad National Security, LLC. This software was produced
     under U.S. Government contract 89233218CNA000001 for Los Alamos National
     Laboratory (LANL), which is operated by Triad National Security, LLC
@@ -18,7 +18,7 @@ L7 is part of the CLAMR mini-app and is released as open source code under the
     ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE.  If software is modified
     to produce derivative works, such modified software should be clearly marked,
     so as not to confuse it with the version available from LANL.
-  
+
     Additionally, redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions are met:
        * Redistributions of source code must retain the above copyright

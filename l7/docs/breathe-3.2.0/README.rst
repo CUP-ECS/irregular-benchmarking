@@ -31,7 +31,7 @@ Breathe doesn't have a set of tests at the moment. The documentation does a good
 job of running the different parts of the Breathe functionality but there is
 nothing to check that the output is appropriate.
 
-To build the documentation, run ``make`` in the root of the project. 
+To build the documentation, run ``make`` in the root of the project.
 
 This will run doxygen over the example code and then run the Breathe
 documentation. View the results at::
@@ -42,7 +42,7 @@ Requirements
 ------------
 
 Development is currently done with:
- 
+
 - Python 2.7.4
 - Docutils 0.11
 - Sphinx 1.2.2
@@ -118,7 +118,7 @@ documentation. And thanks to:
 
 - Dimitri van Heesch for `Doxygen <http://www.stack.nl/~dimitri/doxygen/>`_.
 - Georg Brandl for `Sphinx <http://sphinx-doc.org>`_.
-- David Goodger for `Docutils <http://docutils.sourceforge.net/>`_ and reStructuredText. 
+- David Goodger for `Docutils <http://docutils.sourceforge.net/>`_ and reStructuredText.
 
 Change Log
 ----------

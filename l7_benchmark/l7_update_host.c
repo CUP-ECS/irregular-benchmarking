@@ -8,7 +8,7 @@ void initialize_data_host(void **odata, int nowned, int nremote, int typesize, i
    int i;
 
    if (!data) {
-      fprintf(stderr, "Could not allocate %d elements of size %d in host memory space.\n", 
+      fprintf(stderr, "Could not allocate %d elements of size %d in host memory space.\n",
               nowned + nremote, typesize);
       exit(-1);
    }
@@ -30,7 +30,7 @@ void initialize_data_host(void **odata, int nowned, int nremote, int typesize, i
       default:
          fprintf(stderr, "Unknown type of size %d.\n", typesize);
          exit(-1);
-      } 
+      }
    }
 
    *odata = data;

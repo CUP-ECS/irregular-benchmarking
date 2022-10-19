@@ -4,12 +4,12 @@
  *
  *  CLAMR -- LA-CC-11-094
  *
- *  Copyright 2011-2019. Triad National Security, LLC. This software was produced 
- *  under U.S. Government contract 89233218CNA000001 for Los Alamos National 
- *  Laboratory (LANL), which is operated by Triad National Security, LLC 
- *  for the U.S. Department of Energy. The U.S. Government has rights to use, 
+ *  Copyright 2011-2019. Triad National Security, LLC. This software was produced
+ *  under U.S. Government contract 89233218CNA000001 for Los Alamos National
+ *  Laboratory (LANL), which is operated by Triad National Security, LLC
+ *  for the U.S. Department of Energy. The U.S. Government has rights to use,
  *  reproduce, and distribute this software.  NEITHER THE GOVERNMENT NOR
- *  TRIAD NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR 
+ *  TRIAD NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR
  *  ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE.  If software is modified
  *  to produce derivative works, such modified software should be clearly marked,
  *  so as not to confuse it with the version available from LANL.
@@ -21,13 +21,13 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Triad National Security, LLC, Los Alamos 
- *       National Laboratory, LANL, the U.S. Government, nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the Triad National Security, LLC, Los Alamos
+ *       National Laboratory, LANL, the U.S. Government, nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- *  
- *  THIS SOFTWARE IS PROVIDED BY THE TRIAD NATIONAL SECURITY, LLC AND 
- *  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT 
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE TRIAD NATIONAL SECURITY, LLC AND
+ *  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
  *  NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL TRIAD NATIONAL
  *  SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
@@ -37,7 +37,7 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
- */  
+ */
 
 #include <stdlib.h>
 #include "l7.h"
@@ -64,7 +64,7 @@ int L7_Push_Setup(
          * processor with the indices to send. From this, a communication
          * pattern and buffers are setup that allows subsequent calls to
 	 * L7_Push_Update.
-	 * 
+	 *
 	 * Arguments
 	 * =========
 	 * num_comm_partners    (input) const L7_INT
@@ -74,34 +74,34 @@ int L7_Push_Setup(
 	 * comm_partner         (input) const L7_INT
 	 *                      Starting index number of calling process
 	 *                      in global indexing set.
-	 * 
+	 *
 	 * send_buffer_count    (input) const L7_INT
 	 *                      Number of indices owned by calling process.
-	 * 
+	 *
 	 * send_database        (input) const L7_INT*
 	 *                      Array containing indices needed by
 	 *                      calling process.
-	 * 
+	 *
 	 * receive_count_total  (output) const L7_INT
 	 *                      Number of indices of interest listed
 	 *                      in array 'num_indices_needed'.
-	 * 
+	 *
 	 * l7_push_id           (input/output) int*
 	 *                      Handle to database to be setup.
-	 * 
+	 *
 	 *                      0: L7 sets up a new database, and
 	 *                      assigns it a value.
 	 *                      > 0: L7 resets existing database with
 	 *                      input information. That is, it reuses
 	 *                      the allocated memory.
 	 *                      < 0: An error is returned.
-	 * 
+	 *
 	 * Notes:
 	 * =====
 	 * 1) The indices are handled as 4-byte integers. ??
-	 * 
+	 *
 	 * 2) Serial compilation creates a no-op. ??
-	 * 
+	 *
 	 * Program Flow ??
 	 * ============
 	 * 0) Check input for basic validity.
@@ -112,32 +112,32 @@ int L7_Push_Setup(
 	 * 5) Set up array containing the pes this pe sends indices to.
 	 * 6) Set up array containing the indices this pe sends to others.
 	 */
-	
+
 	/*
 	 * Local variables.
 	 */
 
    int
      ierr;                        /* Error code for return                */
-   
+
 #ifdef HAVE_MPI
-   
+
 	l7_push_id_database
 	  *l7_push_id_db;
-	
+
 	/*
 	 * Executable Statements
 	 */
-	
+
 	if (! l7.mpi_initialized){
 		return(0);
 	}
-	
+
         if (l7.initialized != 1){
 		ierr = -1;
 		L7_ASSERT( l7.initialized == 1, "L7 not initialized", ierr);
 	}
-	
+
 	/*
 	 * Check input
 	 */
@@ -147,7 +147,7 @@ int L7_Push_Setup(
 		L7_ASSERT( my_start_index >= 0, "my_start_index < 0", ierr);
 	}
 */
-	
+
 	if (num_comm_partners < 0){
 		ierr = -1;
 		L7_ASSERT( num_comm_partners >= 0, "num_comm_partners < 0", ierr);
@@ -172,18 +172,18 @@ int L7_Push_Setup(
 	/*
 	 * Setup database structure.
 	 */
-	
+
 	if (*l7_push_id != 0){
 		/*
 		 * Find it in the database and update based on new input.
 		 */
-		
+
 		if (l7.first_push_db == NULL){
 			L7_ASSERT(l7.first_push_db != NULL,
 					"Uninitialized l7_push_id input, but no ids in database",
 					ierr);
 		}
-		
+
 		l7_push_id_db = l7.first_push_db;
 
 
@@ -199,20 +199,20 @@ int L7_Push_Setup(
 					"Uninitialized l7_push_id input, but not found in this list",
 					ierr);
 		}
-		
+
 		/* REmove old push neighbor communicators and associated arrays and types. */
 		l7p_nbr_state_free(&l7_push_id_db->nbr_state);
-		L7P_Push_Type_Free(l7_push_id_db, &l7_push_id_db->nbr_state.update_datatypes[1]);	
-		L7P_Push_Type_Free(l7_push_id_db, &l7_push_id_db->nbr_state.update_datatypes[2]);	
-		L7P_Push_Type_Free(l7_push_id_db, &l7_push_id_db->nbr_state.update_datatypes[4]);	
-		L7P_Push_Type_Free(l7_push_id_db, &l7_push_id_db->nbr_state.update_datatypes[8]);	
+		L7P_Push_Type_Free(l7_push_id_db, &l7_push_id_db->nbr_state.update_datatypes[1]);
+		L7P_Push_Type_Free(l7_push_id_db, &l7_push_id_db->nbr_state.update_datatypes[2]);
+		L7P_Push_Type_Free(l7_push_id_db, &l7_push_id_db->nbr_state.update_datatypes[4]);
+		L7P_Push_Type_Free(l7_push_id_db, &l7_push_id_db->nbr_state.update_datatypes[8]);
 	}
 	else{
-		
+
 		/*
 		 * Allocate new database, insert into linked list.
 		 */
-		
+
 		if (l7.num_push_dbs >= L7_MAX_NUM_DBS){
 			ierr = -1;
 			L7_ASSERT(l7.num_push_dbs < L7_MAX_NUM_DBS,
@@ -221,66 +221,66 @@ int L7_Push_Setup(
 		}
 
 		l7_push_id_db = (l7_push_id_database*)calloc(1L, sizeof(l7_push_id_database) );
-		
+
 		if (l7_push_id_db == NULL){
 			ierr = -1;
 			L7_ASSERT( l7_push_id_db != NULL, "Failed to allocate new database",
 					ierr);
 		}
-		
+
 		if ( !(l7.first_push_db) ){
 			l7.first_push_db = l7_push_id_db;
 			l7.last_push_db  = l7_push_id_db;
 			l7_push_id_db->next_push_db = NULL; /* Paranoia */
-			
+
 			l7_push_id_db->l7_push_id = 1;
-			
+
 			l7.num_push_dbs = 1;
 		}
 		else{
-			
+
 			/*
 			 * Assign a l7_id.
 			 */
-			
+
 			l7_push_id_db->l7_push_id = l7.last_push_db->l7_push_id + 1;
-			
+
 			/*
 			 * Reset links.
 			 */
-			
+
 			l7.last_push_db->next_push_db = l7_push_id_db;
-			
+
 			l7.last_push_db = l7_push_id_db;
-			
+
 			l7.num_push_dbs++;
 		}
-		
+
 		*l7_push_id = l7_push_id_db->l7_push_id;
-		
+
 		/*
 		 * Initialize some parameters.
 		 */
-		
+
 /*
 		l7_id_db->recv_counts_len = 0;
 		l7_id_db->recv_from_len   = 0;
-		
+
 		l7_id_db->send_to_len     = 0;
 		l7_id_db->send_counts_len = 0;
-		
+
 		l7_id_db->indices_to_send_len = 0;
-		
+
 		l7_id_db->mpi_request_len = 0;
 		l7_id_db->mpi_status_len  = 0;
 */
 	}
-	
+
 	/*
          *  Allocate arrays and
 	 *  Store input in database.
 	 */
-	
+
         if (l7_push_id_db->num_comm_partners < num_comm_partners){
 
                 //  comm_partner
@@ -384,7 +384,7 @@ int L7_Push_Setup(
 
         MPI_Request request[2*num_comm_partners];
         MPI_Status  status[2*num_comm_partners];
-         
+
         for (int ip = 0; ip < num_comm_partners; ip++){
                 MPI_Irecv(&l7_push_id_db->recv_buffer_count[ip], 1, MPI_INT, l7_push_id_db->comm_partner[ip],
                           l7_push_id_db->comm_partner[ip], MPI_COMM_WORLD, &request[ip]);
@@ -411,7 +411,7 @@ int L7_Push_Setup(
                                        num_comm_partners, l7_push_id_db->comm_partner, MPI_UNWEIGHTED,
 	                               MPI_INFO_NULL, 0, &l7_push_id_db->nbr_state.comm);
 
-        
+
 	/* Create neighbor communication state */
 	l7p_nbr_state_create(&l7_push_id_db->nbr_state, num_comm_partners, num_comm_partners);
 
@@ -420,7 +420,7 @@ int L7_Push_Setup(
         for (int ip = 0; ip < num_comm_partners; ip++) {
 		if (l7_push_id_db->recv_buffer_count[ip] == 0) {
  			l7_push_id_db->nbr_state.mpi_recv_counts[ip] = 0;
-		} 
+		}
 		if (l7_push_id_db->send_buffer_count[ip] == 0) {
 			l7_push_id_db->nbr_state.mpi_send_counts[ip] = 0;
 		}
@@ -434,10 +434,10 @@ int L7_Push_Setup(
         L7P_Push_Type_Create(l7_push_id_db, L7_DOUBLE, &l7_push_id_db->nbr_state.update_datatypes[8]);
 
 #endif /* HAVE_MPI */
-	
+
 	ierr = L7_OK;
-	
+
         return(ierr);
-   
+
 } /* End L7_Push_Setup */
 

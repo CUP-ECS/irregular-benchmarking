@@ -4,12 +4,12 @@
  *
  *  CLAMR -- LA-CC-11-094
  *
- *  Copyright 2011-2019. Triad National Security, LLC. This software was produced 
- *  under U.S. Government contract 89233218CNA000001 for Los Alamos National 
- *  Laboratory (LANL), which is operated by Triad National Security, LLC 
- *  for the U.S. Department of Energy. The U.S. Government has rights to use, 
+ *  Copyright 2011-2019. Triad National Security, LLC. This software was produced
+ *  under U.S. Government contract 89233218CNA000001 for Los Alamos National
+ *  Laboratory (LANL), which is operated by Triad National Security, LLC
+ *  for the U.S. Department of Energy. The U.S. Government has rights to use,
  *  reproduce, and distribute this software.  NEITHER THE GOVERNMENT NOR
- *  TRIAD NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR 
+ *  TRIAD NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR
  *  ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE.  If software is modified
  *  to produce derivative works, such modified software should be clearly marked,
  *  so as not to confuse it with the version available from LANL.
@@ -21,13 +21,13 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Triad National Security, LLC, Los Alamos 
- *       National Laboratory, LANL, the U.S. Government, nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the Triad National Security, LLC, Los Alamos
+ *       National Laboratory, LANL, the U.S. Government, nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- *  
- *  THIS SOFTWARE IS PROVIDED BY THE TRIAD NATIONAL SECURITY, LLC AND 
- *  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT 
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE TRIAD NATIONAL SECURITY, LLC AND
+ *  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
  *  NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL TRIAD NATIONAL
  *  SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
@@ -37,7 +37,7 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
- */  
+ */
 
 /* This define causes this routine to have the storage for
  * for global variables here and declared extern everywhere
@@ -82,29 +82,29 @@ int L7_Init (
      * numpes       (output) int*
      * argc         (input/output) int* from main
      * argv         (input/output) char** from main
-     * 
+     *
      * Return Value
      * ============
      * Returns zero if successful and non-zero for error
-     * 
+     *
      * Notes
      * =====
      * 1) If MPI has not been initialized when this subroutine is called,
      *    L7 will do so. In this case, L7 will also take responsibility for
      *    terminating MPI when L7_TERMINATE is called.
-     * 
+     *
      */
-    
+
     /*
      * Local variables
      */
-    
+
    int ierr;
 
 #if defined(HAVE_MPI)
-   
+
     int flag;    /* MPI_Initialized input. */
-      
+
     /*
      * Executable Statements
      */
@@ -126,21 +126,21 @@ int L7_Init (
       }
       int (*init_lttrace)(int *argc, char ***argv);
       init_lttrace = (int (*)(int *, char ***))dlsym(handle, "initialize_lttrace");
-   }  
+   }
 #endif
-      
+
     if ( l7.initialized != 0 ) {
        ierr = -1;
        L7_ASSERT( l7.initialized == 0, "L7 already initialized", -1 );
     }
-      
+
     ierr = MPI_Initialized ( &flag );
     L7_ASSERT( ierr == MPI_SUCCESS, "MPI_Initialized", ierr );
-      
+
     if ( !flag && *numpes != -1){
         ierr = MPI_Init(argc, &argv);
         L7_ASSERT( ierr == MPI_SUCCESS, "MPI_Init", ierr);
-          
+
           l7.initialized_mpi = 1;
           l7.mpi_initialized = 1;
     }
@@ -148,7 +148,7 @@ int L7_Init (
        l7.initialized_mpi = 0;
        l7.mpi_initialized = 0;
     }
-      
+
     if (*numpes != -1) {
         ierr = MPI_Comm_rank (MPI_COMM_WORLD, &l7.penum );
         L7_ASSERT( ierr == MPI_SUCCESS, "MPI_Comm_rank", ierr );
@@ -164,9 +164,9 @@ int L7_Init (
         *mype = 0;
         *numpes = 1;
     }
-      
+
    l7.sizeof_workspace = 0;
-    
+
    l7.sizeof_send_buffer = 2 * *numpes * sizeof(int);
    l7.send_buffer = (void *)calloc(2 * *numpes, sizeof(int));
 
@@ -185,7 +185,7 @@ int L7_Init (
       int rc = QUO_ERR;
       if (QUO_SUCCESS != (rc = QUO_create(&context))){
          printf("QUO_create failure: rc = %d\n",rc);
-      } 
+      }
 
       if (l7.penum == 0) {
          int nnodes, nnumanodes, nsockets, ncores, npus, nqids;
@@ -277,7 +277,7 @@ int L7_Init (
 
 #endif /* HAVE_MPI */
 
-   return(ierr);     
+   return(ierr);
 }
 void L7_Dev_Init(void)
 {

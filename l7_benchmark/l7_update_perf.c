@@ -792,6 +792,7 @@ int benchmark(int penum) {
         }
 
         /*
+         * BOOKMARK: BENCHMARK LOOP
          * Begin updating data
          * This is what is being "benchmarked", how quickly the data amount
          * of data specified is being updated across all members of the database

@@ -399,7 +399,7 @@ class EndsWithFilter(Filter):
         self.options = options
 
     def allow(self, node_stack):
-        string = self.accessor(node_stack) 
+        string = self.accessor(node_stack)
         for entry in self.options:
             if string.endswith(entry):
                 return True

@@ -57,7 +57,7 @@ class CompoundDefTypeSubRenderer(Renderer):
 
     def render(self):
 
-        nodelist = []    
+        nodelist = []
 
         if self.data_object.briefdescription:
             context = self.context.create_child_context(self.data_object.briefdescription)
@@ -519,7 +519,7 @@ class DocRefTextTypeSubRenderer(Renderer):
                     reftype="ref",
                     refdomain="std",
                     refexplicit=True,
-                    refid=refid, 
+                    refid=refid,
                     reftarget=refid,
                     *nodelist
                     )

@@ -4,12 +4,12 @@
  *
  *  CLAMR -- LA-CC-11-094
  *
- *  Copyright 2011-2019. Triad National Security, LLC. This software was produced 
- *  under U.S. Government contract 89233218CNA000001 for Los Alamos National 
- *  Laboratory (LANL), which is operated by Triad National Security, LLC 
- *  for the U.S. Department of Energy. The U.S. Government has rights to use, 
+ *  Copyright 2011-2019. Triad National Security, LLC. This software was produced
+ *  under U.S. Government contract 89233218CNA000001 for Los Alamos National
+ *  Laboratory (LANL), which is operated by Triad National Security, LLC
+ *  for the U.S. Department of Energy. The U.S. Government has rights to use,
  *  reproduce, and distribute this software.  NEITHER THE GOVERNMENT NOR
- *  TRIAD NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR 
+ *  TRIAD NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR
  *  ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE.  If software is modified
  *  to produce derivative works, such modified software should be clearly marked,
  *  so as not to confuse it with the version available from LANL.
@@ -21,13 +21,13 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the Triad National Security, LLC, Los Alamos 
- *       National Laboratory, LANL, the U.S. Government, nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the Triad National Security, LLC, Los Alamos
+ *       National Laboratory, LANL, the U.S. Government, nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- *  
- *  THIS SOFTWARE IS PROVIDED BY THE TRIAD NATIONAL SECURITY, LLC AND 
- *  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT 
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE TRIAD NATIONAL SECURITY, LLC AND
+ *  CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
  *  NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL TRIAD NATIONAL
  *  SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
@@ -37,7 +37,7 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
- */  
+ */
 #include "l7.h"
 #include "l7p.h"
 
@@ -47,14 +47,14 @@
 //#define _L7_DEBUG
 
 /* Forward declarations of internal subroutines. */
-static int create_push_recv_type(int recv_count, int init_offset, 
-		                 MPI_Datatype base_type, 
+static int create_push_recv_type(int recv_count, int init_offset,
+		                 MPI_Datatype base_type,
                                  MPI_Datatype *send_type);
 static int create_push_send_type(int send_count, int *send_indices,
 				 MPI_Datatype base_type, MPI_Datatype *send_type);
 
 int L7P_Push_Type_Create(
-      l7_push_id_database       *l7_push_id_db, 
+      l7_push_id_database       *l7_push_id_db,
       const enum L7_Datatype    l7_datatype,
       struct l7_update_datatype *l7_update_datatype
       )
@@ -62,20 +62,20 @@ int L7P_Push_Type_Create(
    /*
     * Purpose
     * =======
-    * L7_Push_Type_Create created the type offset information needed for 
-    * the in-place data scatter/gather (using neighbor collectives) in 
+    * L7_Push_Type_Create created the type offset information needed for
+    * the in-place data scatter/gather (using neighbor collectives) in
     * L7_Push_Update.
-    * 
+    *
     * Arguments
     * =========
-    * 
+    *
     * l7_datatype        (input) const it
     *                    The base type of data that will be scatter/gathered and out
-    *                    of which we'll construct the needed MPI datatypes 
-    * 
+    *                    of which we'll construct the needed MPI datatypes
+    *
     * l7_id              (input) const int
     *                    Handle to database containing communication requirements.
-    * 
+    *
     * l7_update_datatype (output) struct *
     *                    Arrays of MPI Indexed_type datatypes for handling incoming
     *                    and outgoing data in L7_Push
@@ -83,11 +83,11 @@ int L7P_Push_Type_Create(
     * Notes:
     * =====
     * 1) Serial compilation creates a no-op
-    * 
+    *
     */
 #if defined HAVE_MPI
    int ierr, i, offset;
-   
+
    MPI_Datatype mpi_type;
 
    int num_sends, num_recvs;
@@ -101,14 +101,14 @@ int L7P_Push_Type_Create(
    num_sends = l7_push_id_db->num_comm_partners;
    num_recvs = l7_push_id_db->num_comm_partners;
 
-   l7_update_datatype->in_types = calloc(num_recvs, sizeof(MPI_Datatype)); 
-   L7_ASSERT(l7_update_datatype->in_types != NULL, 
+   l7_update_datatype->in_types = calloc(num_recvs, sizeof(MPI_Datatype));
+   L7_ASSERT(l7_update_datatype->in_types != NULL,
 	     "Could not allocate space for push datatype in_types.", -1);
-   l7_update_datatype->out_types = calloc(num_sends, sizeof(MPI_Datatype)); 
-   L7_ASSERT(l7_update_datatype->out_types != NULL, 
+   l7_update_datatype->out_types = calloc(num_sends, sizeof(MPI_Datatype));
+   L7_ASSERT(l7_update_datatype->out_types != NULL,
 	     "Could not allocate space for push datatype out_types.", -1);
 
-   /* Now that we've allocated the push datatype storage, create all of the 
+   /* Now that we've allocated the push datatype storage, create all of the
     * types that go in it */
 
    offset = 0;
@@ -118,7 +118,7 @@ int L7P_Push_Type_Create(
       printf("[pe %d] Constructing push recv type %d (%d elements at offset %d) from [pe %d].\n",
              l7.penum, i, msg_count, offset, l7_push_id_db->comm_partner[i]);
 #endif
-      ierr = create_push_recv_type(msg_count, offset, 
+      ierr = create_push_recv_type(msg_count, offset,
 			           mpi_type, &l7_update_datatype->in_types[i]);
       L7_ASSERT(ierr == 0, "Failed to create push recv datatype.", ierr);
 
@@ -141,9 +141,9 @@ int L7P_Push_Type_Create(
    return(L7_OK);
 }
 
-int 
-L7P_Push_Type_Free(l7_push_id_database *l7_push_id_db, 
-		    struct l7_update_datatype *l7_update_datatype) 
+int
+L7P_Push_Type_Free(l7_push_id_database *l7_push_id_db,
+		    struct l7_update_datatype *l7_update_datatype)
 {
 #ifdef HAVE_MPI
    int num_sends, num_recvs;
@@ -154,14 +154,14 @@ L7P_Push_Type_Free(l7_push_id_database *l7_push_id_db,
    num_sends = l7_push_id_db->num_comm_partners;
    num_recvs = l7_push_id_db->num_comm_partners;
 
-   for (int i = 0; i < num_sends; i++) 
+   for (int i = 0; i < num_sends; i++)
    {
 	MPI_Type_free(&l7_update_datatype->out_types[i]);
    }
    free(l7_update_datatype->out_types);
    l7_update_datatype->out_types = NULL;
 
-   for (int i = 0; i < num_recvs; i++) 
+   for (int i = 0; i < num_recvs; i++)
    {
 	MPI_Type_free(&l7_update_datatype->in_types[i]);
    }
@@ -177,10 +177,10 @@ L7P_Push_Type_Free(l7_push_id_database *l7_push_id_db,
 
 /* For the receive type, we just use the converted L7 base type and specify
  * the offset and length to MPI_Neighbor_alltoallw. Alternatively, we could
- * create a more complex type here if we wanted to scatter the data on 
- * receive */ 
+ * create a more complex type here if we wanted to scatter the data on
+ * receive */
 static int
-create_push_recv_type(int recv_count, int init_offset, 
+create_push_recv_type(int recv_count, int init_offset,
 		      MPI_Datatype base_type, MPI_Datatype *recv_type)
 {
    int length[1], offset[1];
@@ -189,7 +189,7 @@ create_push_recv_type(int recv_count, int init_offset,
    offset[0] = init_offset;
 
 #if defined _L7_DEBUG
-      printf("[pe %d]     Recv type has %d elements starting at array offset %d.\n", 
+      printf("[pe %d]     Recv type has %d elements starting at array offset %d.\n",
              l7.penum, length[0], offset[0]);
 #endif
 
@@ -227,10 +227,10 @@ create_push_send_type(int send_count, int *send_indices,
    /* Now that we know the number of blocks in the datatype, allocate
     * the lists of them and fill them out. */
    block_lens = calloc(num_blocks, sizeof(int));
-   L7_ASSERT(block_lens != NULL, 
+   L7_ASSERT(block_lens != NULL,
 	     "Could not allocate space for type block lengths.", -1);
    block_offsets = calloc(num_blocks, sizeof(int));
-   L7_ASSERT(block_offsets != NULL, 
+   L7_ASSERT(block_offsets != NULL,
 	     "Could not allocate space for type block offsets.", -1);
 
    last_index = -2;

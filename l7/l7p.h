@@ -41,7 +41,7 @@ typedef struct QUO_SubComm {
 
    /* these are the functions we will profile.  they MUST start at 0, be
     * unique integers, and increase +1 up to the last function.  if you add
-    * a new function in to profile, add it to the bottom and choose the 
+    * a new function in to profile, add it to the bottom and choose the
     * next number! Enum does this for us so we use it to enforce these rules.
     * To remove a function from profiling, set it to a negative number.
     */
@@ -83,7 +83,7 @@ enum
 #define Comm_Op        int  /* Reduction operation type. */
 
 #else
-   
+
 
 /* Some parameters. */
 
@@ -120,12 +120,12 @@ struct l7_update_datatype {
 };
 
 struct nbr_state {
-   /* The communicator, counts, offsets, and types needed to perform a neighbor 
+   /* The communicator, counts, offsets, and types needed to perform a neighbor
     * collective * for the communication pattern needed by this update. */
    MPI_Comm
      comm;		 	/* MPI subcommunicator to use for the update. */
 
-   int 
+   int
       *mpi_send_counts, 	/* Number of datatypes to send on an edge (always 1) */
       *mpi_recv_counts;  	/* Number of datatypes to recv on an edge (always 1) */
 
@@ -143,7 +143,7 @@ int l7p_nbr_state_free( struct nbr_state *nbr_state );
 /*
  * Struct for data associated with specified L7 handle.
  */
-   
+
 typedef struct l7_id_database
 {
    int
@@ -178,16 +178,16 @@ typedef struct l7_id_database
      send_counts_len,          /* Length (in int) of send_counts_len.       */
      *starting_indices,        /* Array of my_start_index from each pe.     */
      this_tag_update;          /* Msg tag for updates.                      */
-   
+
    /* MPI parameters */
-   
+
    MPI_Request
      *mpi_request;
-   
+
    MPI_Status
      *mpi_status;
-   
-   struct nbr_state nbr_state; 
+
+   struct nbr_state nbr_state;
 
 #ifdef HAVE_OPENCL
    int
@@ -199,7 +199,7 @@ typedef struct l7_id_database
 
    struct l7_id_database
      *next_db;                 /* Link to next database.                    */
-   
+
 } l7_id_database;
 
 typedef struct l7_push_id_database
@@ -207,7 +207,7 @@ typedef struct l7_push_id_database
    int
      num_comm_partners,        /* Number of processors to communicate with. */
      *comm_partner,            /* List of processors to communicate with.
-                                  Length of this and next two arrays will 
+                                  Length of this and next two arrays will
                                   will be num_comm_partners                 */
      *send_buffer_count,       /* Count of data to send to each processor   */
      *recv_buffer_count,       /* Count of data to receive from each proc   */
@@ -219,12 +219,12 @@ typedef struct l7_push_id_database
                                   This is a sum of the recv_buffer_count
                                   array                                     */
      l7_push_id;               /* As input to L7_PUSH_SETUP.                */
-   
+
    struct nbr_state nbr_state;
 
    struct l7_push_id_database
      *next_push_db;            /* Link to next database.                    */
-   
+
 } l7_push_id_database;
 
 #endif /* HAVE_MPI */
@@ -232,27 +232,27 @@ typedef struct l7_push_id_database
 /*
  * main structure for L7.
  */
-       
+
 typedef struct
 {
    /* Some workspace, for message data. */
-   
+
    void
      *send_buffer,
      *workspace;
-   
+
    int
      sizeof_send_buffer,
      sizeof_workspace;
-   
+
    l7_id_database
      *first_db,                /* For linked list of dbs.              */
      *last_db;
-   
+
    l7_push_id_database
      *first_push_db,           /* For linked list of push dbs.         */
      *last_push_db;
-   
+
    int
      data_check_len,           /* Number of bytes in array data_check. */
      initialized,              /* 1 if L7 initialized, else 0          */
@@ -266,10 +266,10 @@ typedef struct
 #ifdef HAVE_QUO
    QUO_SubComm subComm;
 #endif
-   
+
    void
      *data_check;              /* Workspace for use in l7_update_check */
-   
+
    FILE
      *assert_out_file,         /* output file for MAYAP_ASSERT.
                                 * if NULL, default is stderr           */
@@ -291,7 +291,7 @@ typedef struct
      kernel_copy_ghost_float_data,
      kernel_copy_ghost_double_data;
 #endif
-   
+
    int
      io_profiling_level;       /* L7_IO_PROF_OFF / SIMPLE / VERBOSE    */
 } l7_globals;
@@ -367,7 +367,7 @@ l7_id_database *l7p_set_database(
       const int l7_id
       );
 
-/* 
+/*
  * L7 Update type private prototypes
  */
 int L7P_Update_Type_Create(
@@ -381,7 +381,7 @@ int L7P_Update_Type_Free(
       struct l7_update_datatype *l7_update_datatype
       );
 
-/* 
+/*
  * L7 Update type private prototypes
  */
 int L7P_Push_Type_Create(

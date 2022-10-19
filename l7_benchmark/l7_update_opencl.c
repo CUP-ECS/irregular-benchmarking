@@ -35,12 +35,12 @@ void initialize_data_opencl(void **odata, int nowned, int nremote, int typesize,
       case 8:
          init_kernel = ezcl_create_kernel_wprogram(program, "init_double_array_cl");
          break;
-   } 
+   }
 
    ezcl_program_release(program);
 
    cl_command_queue command_queue = ezcl_get_command_queue();
-  
+
    ezcl_set_kernel_arg(init_kernel,  0, sizeof(cl_int),  (void *)&nowned);
    ezcl_set_kernel_arg(init_kernel,  1, sizeof(cl_int), (void *)&my_start_index);
    ezcl_set_kernel_arg(init_kernel,  2, sizeof(cl_mem),  (void *)&data);
