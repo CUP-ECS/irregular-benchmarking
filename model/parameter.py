@@ -37,10 +37,10 @@ class Parameter:
                 for index, index_value in enumerate(line):
                     if index < int(len(line) - 1):
                         self.stride.append(int(line[index + 1]) - int(line[index]))
-            elif "setup_called" in line:
+            elif "setup called" in line:
                 self.updates_per_setup.append(0)
-            elif "update_called" in line:
-                self.update_per_setup[-1] = self.updates_per_setup[-1] + 1
+            elif "update called" in line:
+                self.updates_per_setup[-1] = self.updates_per_setup[-1] + 1
 
     def nowned_mean(self):
         if len(self.nowned) == 0:
@@ -95,3 +95,9 @@ class Parameter:
             return 0
         else:
             return round(statistics.mean(self.comm_partners))
+
+    def updates_per_setup_mean(self):
+        if len(self.updates_per_setup) == 0:
+            return 0
+        else:
+            return round(statistics.mean(self.updates_per_setup))
