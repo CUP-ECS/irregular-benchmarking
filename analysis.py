@@ -81,6 +81,8 @@ def analysis(params, results_dir="results"):
     plt.savefig(results_dir + "/stride.png")
     plt.clf()
 
+    print("Average Update to Setup Ratio: " + str(params.updates_per_setup_mean()))
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
