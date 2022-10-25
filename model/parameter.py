@@ -11,36 +11,39 @@ class Parameter:
         self.updates_per_setup = []
 
         for param_line in param_file:
-            line = param_line.lower()
-            if "nowned" in line:
-                line = line.split("-")
-                if line[1].strip().isdigit():
-                    self.nowned.append(int(line[1]))
-            elif "nremote" in line:
-                line = line.split("-")
-                if line[1].strip().isdigit():
-                    self.nremote.append(int(line[1]))
-            elif "num_comm_partners" in line:
-                line = line.split("-")
-                if line[1].strip().isdigit():
-                    self.comm_partners.append(int(line[1]))
-            elif "blocksize" in line:
-                line = line.split("-")
-                if line[1].strip().isdigit():
-                    self.blocksize.append(int(line[1]))
-            elif "stride" in line:
-                line = line.split("-")
-                if line[1].strip().isdigit():
-                    self.stride.append(int(line[1]))
-            elif "indices_needed" in line:
-                line = line.split("-")[1].split()
-                for index, index_value in enumerate(line):
-                    if index < int(len(line) - 1):
-                        self.stride.append(int(line[index + 1]) - int(line[index]))
-            elif "setup called" in line:
-                self.updates_per_setup.append(0)
-            elif "update called" in line:
-                self.updates_per_setup[-1] = self.updates_per_setup[-1] + 1
+            # ensures we don't accidentally pick up
+            # from regular program output
+            if "PARAM" in param_line:
+                line = param_line.lower()
+                if "nowned" in line:
+                    line = line.split("-")
+                    if line[1].strip().isdigit():
+                        self.nowned.append(int(line[1]))
+                elif "nremote" in line:
+                    line = line.split("-")
+                    if line[1].strip().isdigit():
+                        self.nremote.append(int(line[1]))
+                elif "num_comm_partners" in line:
+                    line = line.split("-")
+                    if line[1].strip().isdigit():
+                        self.comm_partners.append(int(line[1]))
+                elif "blocksize" in line:
+                    line = line.split("-")
+                    if line[1].strip().isdigit():
+                        self.blocksize.append(int(line[1]))
+                elif "stride" in line:
+                    line = line.split("-")
+                    if line[1].strip().isdigit():
+                        self.stride.append(int(line[1]))
+                elif "indices_needed" in line:
+                    line = line.split("-")[1].split()
+                    for index, index_value in enumerate(line):
+                        if index < int(len(line) - 1):
+                            self.stride.append(int(line[index + 1]) - int(line[index]))
+                elif "setup called" in line:
+                    self.updates_per_setup.append(0)
+                elif "update called" in line:
+                    self.updates_per_setup[-1] = self.updates_per_setup[-1] + 1
 
     def nowned_mean(self):
         if len(self.nowned) == 0:
