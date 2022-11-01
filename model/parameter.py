@@ -1,4 +1,6 @@
 import statistics
+import numpy as np
+from fitter import Fitter, get_common_distributions, get_distributions
 
 
 class Parameter:
@@ -57,6 +59,9 @@ class Parameter:
         else:
             return round(statistics.stdev(self.nowned))
 
+    def nowned_dist(self):
+        return self._dist_test(self.nowned)
+
     def nremote_mean(self):
         if len(self.nremote) == 0:
             return 0
@@ -68,6 +73,9 @@ class Parameter:
             return 0
         else:
             return round(statistics.stdev(self.nremote))
+
+    def nremote_dist(self):
+        return self._dist_test(self.nremote)
 
     def blocksize_mean(self):
         if len(self.blocksize) == 0:
@@ -81,6 +89,9 @@ class Parameter:
         else:
             return round(statistics.stdev(self.blocksize))
 
+    def blocksize_dist(self):
+        return self._dist_test(self.blocksize)
+
     def stride_mean(self):
         if len(self.stride) == 0:
             return 0
@@ -93,6 +104,9 @@ class Parameter:
         else:
             return round(statistics.stdev(self.stride))
 
+    def stride_dist(self):
+        return self._dist_test(self.stride)
+
     def comm_partners_mean(self):
         if len(self.comm_partners) == 0:
             return 0
@@ -104,3 +118,17 @@ class Parameter:
             return 0
         else:
             return round(statistics.mean(self.updates_per_setup))
+
+    def updates_per_setup_stdev(self):
+        if len(self.updates_per_setup) == 0:
+            return 0
+        else:
+            return round(statistics.stdev(self.updates_per_setup))
+
+    def updates_per_setup_dist(self):
+        return self._dist_test(self.updates_per_setup)
+
+    def _dist_test(self, param):
+        f = Fitter(param)
+        f.fit()
+        return str(f.get_best(method="sumsquare_error"))

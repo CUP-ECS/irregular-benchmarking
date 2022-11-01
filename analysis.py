@@ -25,10 +25,7 @@ def bootstrap_results(results_dir=Path("results"), clean=False):
 def analysis(params, results_dir="results"):
     print("nowned: " + str(params.nowned_mean()))
     print("nowned stdev: " + str(params.nowned_stdev()))
-    if shapiro(params.nowned).pvalue > 0.05:
-        print("Distribution: Normal\n")
-    else:
-        print("Distribution: Not Normal\n")
+    print("nowned dist: " + params.nowned_dist())
     plt.hist(params.nowned, bins=20)
     plt.title("Distribution of nowned Size")
     plt.xlabel("size (in bytes)")
@@ -38,10 +35,7 @@ def analysis(params, results_dir="results"):
 
     print("nremote: " + str(params.nremote_mean()))
     print("nremote stdev: " + str(params.nremote_stdev()))
-    if shapiro(params.nremote).pvalue > 0.05:
-        print("Distribution: Normal\n")
-    else:
-        print("Distribution: Not Normal\n")
+    print("nremote dist: " + params.nremote_dist())
     plt.hist(params.nremote, bins=20)
     plt.title("Distribution of nremote Size")
     plt.xlabel("size (in bytes)")
@@ -62,10 +56,7 @@ def analysis(params, results_dir="results"):
     else:
         print("blocksize: " + str(params.blocksize_mean()))
         print("blocksize stdev: " + str(params.blocksize_stdev()))
-        if shapiro(params.blocksize).pvalue > 0.05:
-            print("Distribution: Normal\n")
-        else:
-            print("Distribution: Not Normal\n")
+        print("nremote dist: " + params.blocksize_dist())
         plt.hist(params.blocksize, bins=20)
         plt.title("blocksizes")
         plt.xlabel("size (bytes)")
@@ -74,6 +65,8 @@ def analysis(params, results_dir="results"):
         plt.clf()
 
     print("stride: " + str(params.stride_mean()) + "\n")
+    print("stride stdev: " + str(params.stride_stdev()) + "\n")
+    print("stride distribution: " + params.stride_dist() + "\n")
     plt.hist(params.stride, bins=20)
     plt.title("stride size")
     plt.xlabel("stride size (bytes)")
@@ -81,7 +74,9 @@ def analysis(params, results_dir="results"):
     plt.savefig(results_dir + "/stride.png")
     plt.clf()
 
-    print("Average Update to Setup Ratio: " + str(params.updates_per_setup_mean()))
+    print("updates_per_setup: " + str(params.updates_per_setup_mean()))
+    print("updates_per_setup stdev: " + str(params.updates_per_setup_stdev()))
+    print("updates_per_setup distribution: " + params.updates_per_setup_dist())
 
 
 if __name__ == "__main__":
