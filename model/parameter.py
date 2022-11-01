@@ -47,6 +47,13 @@ class Parameter:
                 elif "update called" in line:
                     self.updates_per_setup[-1] = self.updates_per_setup[-1] + 1
 
+        self.nowned_dist = self._dist_test(self.nowned)
+        self.nremote_dist = self._dist_test(self.nremote)
+        self.blocksize_dist = self._dist_test(self.blocksize)
+        self.stride_dist = self._dist_test(self.stride)
+        self.comm_partners_dist = self._dist_test(self.comm_partners)
+        self.updates_per_setup_dist = self._dist_test(self.updates_per_setup)
+
     def nowned_mean(self):
         if len(self.nowned) == 0:
             return 0
@@ -60,7 +67,7 @@ class Parameter:
             return round(statistics.stdev(self.nowned))
 
     def nowned_dist(self):
-        return self._dist_test(self.nowned)
+        return str(self.nowned_dist.get_best(method="sumsquare_error"))
 
     def nremote_mean(self):
         if len(self.nremote) == 0:
@@ -75,7 +82,7 @@ class Parameter:
             return round(statistics.stdev(self.nremote))
 
     def nremote_dist(self):
-        return self._dist_test(self.nremote)
+        return str(self.nremote_dist.get_best(method="sumsquare_error"))
 
     def blocksize_mean(self):
         if len(self.blocksize) == 0:
@@ -90,7 +97,7 @@ class Parameter:
             return round(statistics.stdev(self.blocksize))
 
     def blocksize_dist(self):
-        return self._dist_test(self.blocksize)
+        return str(self.blocksize_dist.get_best(method="sumsquare_error"))
 
     def stride_mean(self):
         if len(self.stride) == 0:
@@ -105,13 +112,22 @@ class Parameter:
             return round(statistics.stdev(self.stride))
 
     def stride_dist(self):
-        return self._dist_test(self.stride)
+        return str(self.stride_dist.get_best(method="sumsquare_error"))
 
     def comm_partners_mean(self):
         if len(self.comm_partners) == 0:
             return 0
         else:
             return round(statistics.mean(self.comm_partners))
+
+    def comm_partners_stdev(self):
+        if len(self.comm_partners) == 0:
+            return 0
+        else:
+            return round(statistics.stdev(self.comm_partners))
+
+    def comm_partners_dist(self):
+        return str(self.comm_partners_dist.get_best(method="sumsquare_error"))
 
     def updates_per_setup_mean(self):
         if len(self.updates_per_setup) == 0:
@@ -126,9 +142,9 @@ class Parameter:
             return round(statistics.stdev(self.updates_per_setup))
 
     def updates_per_setup_dist(self):
-        return self._dist_test(self.updates_per_setup)
+        return str(self.updates_per_setup_dist.get_best(method="sumsquare_error"))
 
     def _dist_test(self, param):
         f = Fitter(param)
         f.fit()
-        return str(f.get_best(method="sumsquare_error"))
+        return f
