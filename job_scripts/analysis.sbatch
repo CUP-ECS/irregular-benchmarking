@@ -8,8 +8,8 @@
 INPUT_FILE=./examples/reproducible_clamr.txt
 
 echo "Loading Dependencies"
-spack install python py-pandas py-matplotlib py-scipy py-numpy py-fitter
-spack load python py-pandas py-matplotlib py-scipy py-numpy py-fitter
+spack install python py-pandas py-matplotlib py-scipy py-numpy py-fitter py-joblib
+spack load python py-pandas py-matplotlib py-scipy py-numpy py-fitter py-joblib
 
 echo "Clearing Results"
 cd ..
