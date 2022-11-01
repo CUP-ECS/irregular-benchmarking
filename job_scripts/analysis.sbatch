@@ -17,6 +17,6 @@ rm -rf ${RESULTS_DIR}
 mkdir -p ${RESULTS_DIR}
 
 echo "Starting Analysis"
-python3 analysis ${INPUT_FILE}
+python3 analysis.py ${INPUT_FILE}
 echo "Analysis Done"
 
