@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 from scipy.stats import shapiro
 from model.parameter import Parameter
 
-
 def bootstrap_results(results_dir=Path("results"), clean=False):
     """
     Setup where results are stored
