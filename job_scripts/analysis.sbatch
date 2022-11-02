@@ -1,6 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=Param_Analysis
+#SBATCH --ntasks=40
 #SBATCH --nodes=1
+#SBATCH --cpus-per-task=4
 #SBATCH --time=1-00:00:00
 #SBATCH --output=%x.%j.log # Standard output and error log
 #SBATCH --partition general
