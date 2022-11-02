@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=Param_Analysis
 #SBATCH --nodes=1
-#SBATCH --time=4:00:00     # Time limit hrs:min:sec
+#SBATCH --time=1-00:00:00
 #SBATCH --output=%x.%j.log # Standard output and error log
 #SBATCH --partition general
 
