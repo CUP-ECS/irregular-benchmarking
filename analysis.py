@@ -108,7 +108,8 @@ if __name__ == "__main__":
         raise SystemExit("Error: no path to parameter log file specified")
 
     # bootstrap results directory
-    bootstrap_results(Path(args.rpath), clean=args.clean)
+    results = os.path.join(args.rpath, args.param_path.split()[-1].split(".")[0])
+    bootstrap_results(results, clean=args.clean)
 
     # tries to read file containing parameter data
     # fails if file does not exist, cannot be read, etc.
