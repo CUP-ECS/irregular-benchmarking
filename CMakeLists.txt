@@ -375,73 +375,73 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/PowerParser" AND IS_DIRECTORY "${CMAKE_SOURCE_DI
    add_subdirectory(PowerParser)
 endif (EXISTS "${CMAKE_SOURCE_DIR}/PowerParser" AND IS_DIRECTORY "${CMAKE_SOURCE_DIR}/PowerParser")
 
-########### l7_update_perf target ###############
-add_executable(l7_update_perf l7_benchmark/l7_update_perf.c l7_benchmark/l7_update_host.c)
+########### benchmark target ###############
+add_executable(benchmark benchmark/benchmark.c benchmark/l7_update_host.c)
 
 # Add source files we need for different accelerators
 if(L7_CUDA_OFFLOAD)
    enable_language(CUDA)
    if(CMAKE_CUDA_COMPILER)
-      message("Compiling l7_update_perf with CUDA accelerator support")
+      message("Compiling benchmark with CUDA accelerator support")
       add_definitions(-DL7_CUDA_OFFLOAD)
-      target_sources(l7_update_perf PRIVATE l7_benchmark/l7_update_cuda.cu)
-      set_property(TARGET l7_update_perf PROPERTY CUDA_ARCHITECTURES 35 70)
-      set_target_properties(l7_update_perf PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-      set_target_properties(l7_update_perf PROPERTIES COMPILE_DEFINITIONS HAVE_CUDA)
+      target_sources(benchmark PRIVATE benchmark/l7_update_cuda.cu)
+      set_property(TARGET benchmark PROPERTY CUDA_ARCHITECTURES 35 70)
+      set_target_properties(benchmark PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+      set_target_properties(benchmark PROPERTIES COMPILE_DEFINITIONS HAVE_CUDA)
    endif(CMAKE_CUDA_COMPILER)
 endif(L7_CUDA_OFFLOAD)
 
 if(OpenCL_FOUND)
-   message("Compiling l7_update_perf with OpenCL accelerator support")
+   message("Compiling benchmark with OpenCL accelerator support")
    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/l7_update_kern.inc
-                  COMMAND ${CMAKE_SOURCE_DIR}/l7_benchmark/embed_source.pl ${CMAKE_SOURCE_DIR}/l7_benchmark/l7_update_kern.cl > l7_update_kern.inc
-                  DEPENDS l7_benchmark/state_kern.cl ${CMAKE_SOURCE_DIR}/l7_benchmark/embed_source.pl)
+                  COMMAND ${CMAKE_SOURCE_DIR}/benchmark/embed_source.pl ${CMAKE_SOURCE_DIR}/benchmark/l7_update_kern.cl > l7_update_kern.inc
+                  DEPENDS benchmark/state_kern.cl ${CMAKE_SOURCE_DIR}/benchmark/embed_source.pl)
    add_custom_target(l7_update_kern_source ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/l7_update_kern.inc)
 
-   set_target_properties(l7_update_perf PROPERTIES COMPILE_DEFINITIONS HAVE_OPENCL)
+   set_target_properties(benchmark PROPERTIES COMPILE_DEFINITIONS HAVE_OPENCL)
 
-   target_sources(l7_update_perf PRIVATE l7_benchmark/l7_update_opencl.c)
-   add_custom_target(l7_benchmark/l7_update_opencl.c DEPENDS l7_update_kern_source)
+   target_sources(benchmark PRIVATE benchmark/l7_update_opencl.c)
+   add_custom_target(benchmark/l7_update_opencl.c DEPENDS l7_update_kern_source)
 
-   target_link_libraries(l7_update_perf PRIVATE ${OpenCL_LIBRARIES})
+   target_link_libraries(benchmark PRIVATE ${OpenCL_LIBRARIES})
 endif(OpenCL_FOUND)
 
 if(OpenMP_FOUND)
    # We have to set this since its not cached otherwise.
    set(OpenMP_C_VERSION ${OpenMP_C_VERSION} CACHE STRING "OpenMP C version")
-   target_link_libraries(l7_update_perf PRIVATE OpenMP::OpenMP_C)
+   target_link_libraries(benchmark PRIVATE OpenMP::OpenMP_C)
 
   if(L7_OPENMP_OFFLOAD)
       if(OpenMP_C_VERSION VERSION_GREATER_EQUAL "4.5")
          add_definitions(-DL7_OPENMP_OFFLOAD)
-         message("Compiling l7_update_perf with OpenMP accelerator support")
-         target_sources(l7_update_perf PRIVATE l7_benchmark/l7_update_openmp.c)
-         set_property(TARGET l7_update_perf PROPERTY CUDA_ARCHITECTURES 35 70)
-         target_link_libraries(l7_update_perf PRIVATE OpenMP::OpenMP_C)
+         message("Compiling benchmark with OpenMP accelerator support")
+         target_sources(benchmark PRIVATE benchmark/l7_update_openmp.c)
+         set_property(TARGET benchmark PROPERTY CUDA_ARCHITECTURES 35 70)
+         target_link_libraries(benchmark PRIVATE OpenMP::OpenMP_C)
          if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp -foffload=nvptx-none=-misa=sm_35")
          endif ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
       else (OpenMP_C_VERSION VERSION_GREATER_EQUAL "4.5")
-         message("l7_update_perf not using OpenMP accelerator support (VERSION=${OpenMP_C_VERSION})")
+         message("benchmark not using OpenMP accelerator support (VERSION=${OpenMP_C_VERSION})")
       endif(OpenMP_C_VERSION VERSION_GREATER_EQUAL "4.5")
    endif(L7_OPENMP_OFFLOAD)
 endif(OpenMP_FOUND)
 
-target_link_libraries(l7_update_perf PRIVATE m)
-target_link_libraries(l7_update_perf PRIVATE ${MPI_LIBRARIES})
+target_link_libraries(benchmark PRIVATE m)
+target_link_libraries(benchmark PRIVATE ${MPI_LIBRARIES})
 if(OpenCL_FOUND)
-   target_link_libraries(l7_update_perf PRIVATE dl7 ezcl)
+   target_link_libraries(benchmark PRIVATE dl7 ezcl)
 elseif (OpenMP_FOUND)
-   target_link_libraries(l7_update_perf PRIVATE mpl7)
+   target_link_libraries(benchmark PRIVATE mpl7)
 else(OpenCL_FOUND)
-   target_link_libraries(l7_update_perf PRIVATE l7)
+   target_link_libraries(benchmark PRIVATE l7)
 endif(OpenCL_FOUND)
 
 ########### configure config.h ################
 # configure a header file to pass some of the CMake settings
 # to the source code
 # at bottom because we set things that change config above
-configure_file ( "${PROJECT_SOURCE_DIR}/l7_benchmark/config.h.in" "${PROJECT_BINARY_DIR}/config.h")
+configure_file ( "${PROJECT_SOURCE_DIR}/benchmark/config.h.in" "${PROJECT_BINARY_DIR}/config.h")
 
 ########### clean files ################
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "state_kernel.inc;clamr;clamr_cpuonly;clamr_gpuonly;clamr_mpionly;clamr_gpucheck;clamr_mpicheck;clamr_checkall;clamr_quo;total_execution_time.log;docs/_build;htmldoc.out;pdfdoc.out;singlehtmldoc.out")

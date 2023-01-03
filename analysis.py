@@ -19,7 +19,7 @@ def bootstrap_results(results_dir=Path("results"), clean=False):
 
     # create new results directory
     if not os.path.exists(results_dir):
-        os.mkdir(results_dir)
+        os.makedirs(results_dir, exist_ok=True)
 
 
 def analysis(params, results_dir="results"):
@@ -108,7 +108,8 @@ if __name__ == "__main__":
         raise SystemExit("Error: no path to parameter log file specified")
 
     # bootstrap results directory
-    results = os.path.join(args.rpath, args.param_path.split()[-1].split(".")[0])
+    print(args.param_path.split("/")[-1].split(".")[0])
+    results = os.path.join(args.rpath, args.param_path.split("/")[-1].split(".")[0])
     bootstrap_results(results, clean=args.clean)
 
     # tries to read file containing parameter data
