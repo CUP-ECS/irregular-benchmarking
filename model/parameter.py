@@ -4,13 +4,14 @@ from fitter import Fitter, get_common_distributions, get_distributions
 
 
 class Parameter:
-    def __init__(self, param_file):
+    def __init__(self, param_file, fit_distribution=True):
         self.nowned = []
         self.nremote = []
         self.blocksize = []
         self.stride = []
         self.comm_partners = []
         self.updates_per_setup = []
+        self.fit_distribution = fit_distribution
 
         for param_line in param_file:
             # ensures we don't accidentally pick up
@@ -47,12 +48,13 @@ class Parameter:
                 elif "update called" in line:
                     self.updates_per_setup[-1] = self.updates_per_setup[-1] + 1
 
-        self.nowned_distr = self._dist_test(self.nowned)
-        self.nremote_distr = self._dist_test(self.nremote)
-        self.blocksize_distr = self._dist_test(self.blocksize)
-        self.stride_distr = self._dist_test(self.stride)
-        self.comm_partners_distr = self._dist_test(self.comm_partners)
-        self.updates_per_setup_distr = self._dist_test(self.updates_per_setup)
+        if fit_distribution == True:
+            self.nowned_distr = self._dist_test(self.nowned)
+            self.nremote_distr = self._dist_test(self.nremote)
+            self.blocksize_distr = self._dist_test(self.blocksize)
+            self.stride_distr = self._dist_test(self.stride)
+            self.comm_partners_distr = self._dist_test(self.comm_partners)
+            self.updates_per_setup_distr = self._dist_test(self.updates_per_setup)
 
     def nowned_mean(self):
         if len(self.nowned) == 0:
@@ -67,6 +69,8 @@ class Parameter:
             return round(statistics.stdev(self.nowned))
 
     def nowned_dist(self):
+        if self.fit_distribution == False:
+            return "Unknown"
         return str(self.nowned_distr.get_best(method="sumsquare_error"))
 
     def nremote_mean(self):
@@ -82,6 +86,8 @@ class Parameter:
             return round(statistics.stdev(self.nremote))
 
     def nremote_dist(self):
+        if self.fit_distribution == False:
+            return "Unknown"
         return str(self.nremote_distr.get_best(method="sumsquare_error"))
 
     def blocksize_mean(self):
@@ -97,6 +103,8 @@ class Parameter:
             return round(statistics.stdev(self.blocksize))
 
     def blocksize_dist(self):
+        if self.fit_distribution == False:
+            return "Unknown"
         return str(self.blocksize_distr.get_best(method="sumsquare_error"))
 
     def stride_mean(self):
@@ -112,6 +120,8 @@ class Parameter:
             return round(statistics.stdev(self.stride))
 
     def stride_dist(self):
+        if self.fit_distribution == False:
+            return "Unknown"
         return str(self.stride_distr.get_best(method="sumsquare_error"))
 
     def comm_partners_mean(self):
@@ -127,6 +137,8 @@ class Parameter:
             return round(statistics.stdev(self.comm_partners))
 
     def comm_partners_dist(self):
+        if self.fit_distribution == False:
+            return "Unknown"
         return str(self.comm_partners_distr.get_best(method="sumsquare_error"))
 
     def updates_per_setup_mean(self):
@@ -142,6 +154,8 @@ class Parameter:
             return round(statistics.stdev(self.updates_per_setup))
 
     def updates_per_setup_dist(self):
+        if self.fit_distribution == False:
+            return "Unknown"
         return str(self.updates_per_setup_distr.get_best(method="sumsquare_error"))
 
     def _dist_test(self, param):

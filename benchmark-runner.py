@@ -145,6 +145,12 @@ if __name__ == "__main__":
         help="Removes previously generated results",
     )
 
+    parser.add_argument(
+        "--disable-distribution-fitting",
+        action="store_false",
+        help="Disables lengthy process of fitting parameters to best distribution",
+    )
+
     args = parser.parse_args()
 
     # parameter path must be specified
@@ -170,7 +176,7 @@ if __name__ == "__main__":
         )
 
     # run analysis on parameter data
-    params = Parameter(param_output)
+    params = Parameter(param_output, fit_distribution=args.disable_distribution_fitting)
     print("nowned: " + str(params.nowned_mean()))
     print("nowned stdev: " + str(params.nowned_stdev()))
     print("nremote: " + str(params.nremote_mean()))
