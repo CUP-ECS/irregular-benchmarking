@@ -49,7 +49,7 @@ def bootstrap_benchmark(stage_dir=Path(".benchmark_stage")):
     )
 
     # ensures benchmark was built properly
-    if not os.path.isfile(os.path.join(stage_dir, "l7_update_perf")):
+    if not os.path.isfile(os.path.join(stage_dir, "benchmark")):
         print("\nError: could not bootstrap successfully")
         exit(-1)
     else:
@@ -72,7 +72,7 @@ def bootstrap_results(
 
     # copy benchmark
     try:
-        shutil.copy(os.path.join(stage_dir, "l7_update_perf"), results_dir)
+        shutil.copy(os.path.join(stage_dir, "benchmark"), results_dir)
     except:
         raise SystemExit("Error: could not move benchmark binary to results directory")
 
@@ -80,7 +80,7 @@ def bootstrap_results(
 def run_benchmark_with_params(params, results_dir="results/"):
     cmd = [
         identify_launcher(),
-        "./l7_update_perf",
+        "./benchmark",
         "-o",
         str(params.nowned_mean()),
         "-O",
@@ -145,6 +145,12 @@ if __name__ == "__main__":
         help="Removes previously generated results",
     )
 
+    parser.add_argument(
+        "--disable-distribution-fitting",
+        action="store_false",
+        help="Disables lengthy process of fitting parameters to best distribution",
+    )
+
     args = parser.parse_args()
 
     # parameter path must be specified
@@ -160,6 +166,7 @@ if __name__ == "__main__":
     # tries to read file containing parameter data
     # fails if file does not exist, cannot be read, etc.
     try:
+        print(args.param_path)
         param_file = open(args.param_path, "r")
         param_output = param_file.readlines()
         param_file.close()
@@ -169,7 +176,7 @@ if __name__ == "__main__":
         )
 
     # run analysis on parameter data
-    params = Parameter(param_output)
+    params = Parameter(param_output, fit_distribution=args.disable_distribution_fitting)
     print("nowned: " + str(params.nowned_mean()))
     print("nowned stdev: " + str(params.nowned_stdev()))
     print("nremote: " + str(params.nremote_mean()))
