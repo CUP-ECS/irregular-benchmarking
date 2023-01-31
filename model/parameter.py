@@ -48,6 +48,7 @@ class Parameter:
                 elif "update called" in line:
                     self.updates_per_setup[-1] = self.updates_per_setup[-1] + 1
 
+
         if fit_distribution == True:
             self.nowned_distr = self._dist_test(self.nowned)
             self.nremote_distr = self._dist_test(self.nremote)
