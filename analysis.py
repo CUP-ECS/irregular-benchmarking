@@ -113,7 +113,7 @@ if __name__ == "__main__":
         raise SystemExit("Error: no path to parameter log file specified")
 
     # bootstrap results directory
-    print(args.param_path.split("/")[-1].split(".")[0])
+    print("Analyzing: " + args.param_path.split("/")[-1].split(".")[0])
     results = os.path.join(args.rpath, args.param_path.split("/")[-1].split(".")[0])
     bootstrap_results(results, clean=args.clean)
 
@@ -132,4 +132,4 @@ if __name__ == "__main__":
     params = Parameter(param_output, fit_distribution=args.disable_distribution_fitting)
 
     # generate distribution plots
-    analysis(params)
+    analysis(params, results)
