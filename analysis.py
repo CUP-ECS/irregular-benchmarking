@@ -22,32 +22,37 @@ def bootstrap_results(results_dir=Path("results"), clean=False):
         os.makedirs(results_dir, exist_ok=True)
 
 
-def analysis(params, results_dir="results"):
+def analysis(params, results_dir="results", file_name=""):
+    title_font = {"family": "DejaVu Sans", "weight": "bold", "size": 16}
+    axes_font = {"family": "DejaVu Sans", "weight": "bold", "size": 12}
+
+    if file_name != "":
+        file_name += "\n"
     print("nowned: " + str(params.nowned_mean()))
     print("nowned stdev: " + str(params.nowned_stdev()))
     print("nowned dist: " + params.nowned_dist())
-    plt.hist(params.nowned, bins=20)
-    plt.title("Distribution of nowned Size")
-    plt.xlabel("size (in bytes)")
-    plt.ylabel("frequency")
+    plt.hist(params.nowned, bins=20, color="#00416d")
+    plt.title(file_name + "distribution of nowned size", **title_font)
+    plt.xlabel("size (in bytes)", **axes_font)
+    plt.ylabel("frequency", **axes_font)
     plt.savefig(results_dir + "/nowned.png")
     plt.clf()
 
     print("nremote: " + str(params.nremote_mean()))
     print("nremote stdev: " + str(params.nremote_stdev()))
     print("nremote dist: " + params.nremote_dist())
-    plt.hist(params.nremote, bins=20)
-    plt.title("Distribution of nremote Size")
-    plt.xlabel("size (in bytes)")
-    plt.ylabel("frequency")
+    plt.hist(params.nremote, bins=20, color="#00416d")
+    plt.title(file_name + "Distribution of nremote size", **title_font)
+    plt.xlabel("size (in bytes)", **axes_font)
+    plt.ylabel("frequency", **axes_font)
     plt.savefig(results_dir + "/nremote.png")
     plt.clf()
 
     print("num_comm_partners: " + str(params.comm_partners_mean()) + "\n")
-    plt.hist(params.comm_partners, bins=20)
-    plt.title("comm_partners size")
-    plt.xlabel("number of partners")
-    plt.ylabel("frequency")
+    plt.hist(params.comm_partners, bins=20, color="#00416d")
+    plt.title(file_name + "Num_comm_partners size", **title_font)
+    plt.xlabel("number of partners", **axes_font)
+    plt.ylabel("frequency", **axes_font)
     plt.savefig(results_dir + "/comm_partners.png")
     plt.clf()
 
@@ -57,20 +62,20 @@ def analysis(params, results_dir="results"):
         print("blocksize: " + str(params.blocksize_mean()))
         print("blocksize stdev: " + str(params.blocksize_stdev()))
         print("nremote dist: " + params.blocksize_dist())
-        plt.hist(params.blocksize, bins=20)
-        plt.title("blocksizes")
-        plt.xlabel("size (bytes)")
-        plt.ylabel("frequency")
+        plt.hist(params.blocksize, bins=20, color="#00416d")
+        plt.title(file_name + "Distribution of blocksizes", **title_font)
+        plt.xlabel("size (bytes)", **axes_font)
+        plt.ylabel("frequency", **axes_font)
         plt.savefig(results_dir + "/block_sizes.png")
         plt.clf()
 
     print("stride: " + str(params.stride_mean()) + "\n")
     print("stride stdev: " + str(params.stride_stdev()) + "\n")
     print("stride distribution: " + params.stride_dist() + "\n")
-    plt.hist(params.stride, bins=20)
-    plt.title("stride size")
-    plt.xlabel("stride size (bytes)")
-    plt.ylabel("frequency")
+    plt.hist(params.stride, bins=20, color="#00416d")
+    plt.title(file_name + "Distrbution of stride size", **title_font)
+    plt.xlabel("stride size (bytes)", **axes_font)
+    plt.ylabel("frequency", **axes_font)
     plt.savefig(results_dir + "/stride.png")
     plt.clf()
 
@@ -113,8 +118,9 @@ if __name__ == "__main__":
         raise SystemExit("Error: no path to parameter log file specified")
 
     # bootstrap results directory
-    print("Analyzing: " + args.param_path.split("/")[-1].split(".")[0])
-    results = os.path.join(args.rpath, args.param_path.split("/")[-1].split(".")[0])
+    file_name = args.param_path.split("/")[-1].split(".")[0]
+    print("Analyzing: " + file_name)
+    results = os.path.join(args.rpath, file_name)
     bootstrap_results(results, clean=args.clean)
 
     # tries to read file containing parameter data
@@ -132,4 +138,4 @@ if __name__ == "__main__":
     params = Parameter(param_output, fit_distribution=args.disable_distribution_fitting)
 
     # generate distribution plots
-    analysis(params, results)
+    analysis(params, results, file_name)
