@@ -40,11 +40,11 @@ The currently supported parameters are as follows:
 
 In your application, have the application print the desired parameters in the format:
 ```bash
-PARAMETER_NAME - PARAMETER_VALUE
+PARAM: PARAMETER_NAME - PARAMETER_VALUE
 ```
 For example, if you wanted to print that the `stride` parameter has a value of `12`, you would print the following to your log file:
 ```bash
-stride - 12
+PARAM: stride - 12
 ```
 You can print the value as often as you deem appropriate.
 The parser takes all instances of a parameter in a file and averages it to get the value used for the benchmark.
