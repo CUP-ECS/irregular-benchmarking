@@ -19,7 +19,7 @@ class Clamr(CMakePackage):
     git = "https://github.com/carsonwoods/CLAMR.git"
     tags = ["proxy-app"]
 
-    version("benchmark", branch="benchmark")
+    version("parameters", branch="parameters")
 
     variant(
         "graphics",
