@@ -17,10 +17,13 @@ spack install clamr graphics=none
 # Iterate over job sizes (node count)
 for i in {1,2,4,8,16}
 do
+
     export NUM_NODES=$i
     export JOB_NAME=CLAMR_${NUM_NODES}
     export JOBSIZE=$(echo "scale=1;2048*sqrt(${NUM_NODES})" | bc | cut -f 1 -d.)
 
+    cd ${DIR}/${NUM_NODES}
+    
     echo "Running ${JOB_NAME} with N=${JOBSIZE} on ${NUM_NODES} nodes."
 
     echo "#!/bin/bash" >> temp_sbatch
