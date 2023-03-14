@@ -51,7 +51,7 @@ The parser takes all instances of a parameter in a file and averages it to get t
 Failing to report a parameter results in the default value of 0.
 Obviously, this could cause failures depending on the parameter so be sure to check that your values are being parsed correctly.
 Write all of this data to a **single** text file and save it in a location the scripts can read from.
-For an example parameter file, see `examples/example_clamr_parameter.txt`.
+For an example parameter file, see `data/example_data/example_clamr_parameter.txt`.
 You can run any of the scripts in the repository on this parameter file to see how it behaves.
 
 ## Scripts
