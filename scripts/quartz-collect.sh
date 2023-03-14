@@ -72,6 +72,7 @@ rm -rf CabanaMD
 for i in {1,2,4,8,16}
 do
     export NUM_NODES=$i
+    export NUM_PROC_PER_NODE=32
     export JOB_NAME=CBNMD_${NUM_NODES}
     
     echo "Running ${JOB_NAME} with N=${JOBSIZE} on ${NUM_NODES} nodes."
@@ -79,14 +80,14 @@ do
     echo "#!/bin/bash" >> temp_sbatch
     echo "#SBATCH --job-name=${JOB_NAME}" >> temp_sbatch
     echo "#SBATCH --nodes=${NUM_NODES}" >> temp_sbatch
-    echo "#SBATCH --tasks-per-node=32" >> temp_sbatch
+    echo "#SBATCH --tasks-per-node=${NUM_PROC_PER_NODE}" >> temp_sbatch
     echo "#SBATCH --cpus-per-task=1" >> temp_sbatch
     echo "#SBATCH --time=1:00:00" >> temp_sbatch
     echo "#SBATCH --sockets-per-node=2" >> temp_sbatch
     echo "#SBATCH --cores-per-socket=18" >> temp_sbatch
     echo "#SBATCH --partition=pbatch" >> temp_sbatch
     echo "spack load cabanamd" >> temp_sbatch
-    echo "srun cbnMD -il in.lj > ${DIR}/CABANAMD_QUARTZ_${NUM_NODES}.txt" >> temp_sbatch
+    echo "srun cbnMD -il in.lj > ${DIR}/CABANAMD_QUARTZ_${NUM_NODES}_${NUM_PROC_PER_NODE}.txt" >> temp_sbatch
 
     # Launch generated script
     sbatch temp_sbatch
