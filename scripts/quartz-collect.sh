@@ -22,7 +22,9 @@ do
     export JOB_NAME=CLAMR_${NUM_NODES}
     export JOBSIZE=$(echo "scale=1;2048*sqrt(${NUM_NODES})" | bc | cut -f 1 -d.)
 
-    cd ${DIR}/${NUM_NODES}
+    export JOB_DIR=${DIR}/${NUM_NODES}
+    mkdir -p ${JOB_DIR}
+    cd ${JOB_DIR}
     
     echo "Running ${JOB_NAME} with N=${JOBSIZE} on ${NUM_NODES} nodes."
 
@@ -36,8 +38,10 @@ do
     echo "#SBATCH --cores-per-socket=18" >> temp_sbatch
     echo "#SBATCH --partition=pbatch" >> temp_sbatch
     echo "spack load clamr" >> temp_sbatch
-    echo "srun clamr_mpionly -n ${JOBSIZE} -l 2 -t 500 -i 100 > ${DIR}/CLAMR_QUARTZ_${NUM_NODES}.txt" >> temp_sbatch
-
+    echo "srun clamr_mpionly -n ${JOBSIZE} -l 2 -t 500 -i 100 > ${JOB_DIR}/CLAMR_QUARTZ_${NUM_NODES}.txt" >> temp_sbatch
+    echo "cd ${JOB_DIR}" >> temp_sbatch
+    echo "rm out*" >> temp_sbatch
+    
     # Launch generated script
     sbatch temp_sbatch
 
