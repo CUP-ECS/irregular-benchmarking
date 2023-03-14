@@ -32,7 +32,7 @@ do
     echo "#!/bin/bash" >> temp_sbatch
     echo "#SBATCH --job-name=${JOB_NAME}" >> temp_sbatch
     echo "#SBATCH --nodes=${NUM_NODES}" >> temp_sbatch
-    echo "#SBATCH --tasks-per-node={NUM_PROC_PER_NODE}" >> temp_sbatch
+    echo "#SBATCH --tasks-per-node=${NUM_PROC_PER_NODE}" >> temp_sbatch
     echo "#SBATCH --cpus-per-task=1" >> temp_sbatch
     echo "#SBATCH --time=1:00:00" >> temp_sbatch
     echo "#SBATCH --sockets-per-node=2" >> temp_sbatch
