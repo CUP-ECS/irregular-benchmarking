@@ -19,6 +19,7 @@ for i in {1,2,4,8,16}
 do
 
     export NUM_NODES=$i
+    export NUM_PROC_PER_NODE=32
     export JOB_NAME=CLAMR_${NUM_NODES}
     export JOBSIZE=$(echo "scale=1;2048*sqrt(${NUM_NODES})" | bc | cut -f 1 -d.)
 
@@ -31,14 +32,14 @@ do
     echo "#!/bin/bash" >> temp_sbatch
     echo "#SBATCH --job-name=${JOB_NAME}" >> temp_sbatch
     echo "#SBATCH --nodes=${NUM_NODES}" >> temp_sbatch
-    echo "#SBATCH --tasks-per-node=32" >> temp_sbatch
+    echo "#SBATCH --tasks-per-node={NUM_PROC_PER_NODE}" >> temp_sbatch
     echo "#SBATCH --cpus-per-task=1" >> temp_sbatch
     echo "#SBATCH --time=1:00:00" >> temp_sbatch
     echo "#SBATCH --sockets-per-node=2" >> temp_sbatch
     echo "#SBATCH --cores-per-socket=18" >> temp_sbatch
     echo "#SBATCH --partition=pbatch" >> temp_sbatch
     echo "spack load clamr" >> temp_sbatch
-    echo "srun clamr_mpionly -n ${JOBSIZE} -l 2 -t 500 -i 100 > ${JOB_DIR}/CLAMR_QUARTZ_${NUM_NODES}.txt" >> temp_sbatch
+    echo "srun clamr_mpionly -n ${JOBSIZE} -l 2 -t 500 -i 100 > ${JOB_DIR}/CLAMR_QUARTZ_${NUM_NODES}_${NUM_PROC_PER_NODE}.txt" >> temp_sbatch
     echo "cd ${JOB_DIR}" >> temp_sbatch
     echo "rm out*" >> temp_sbatch
     
