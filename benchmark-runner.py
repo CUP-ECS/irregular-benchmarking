@@ -2,6 +2,7 @@ import subprocess
 import argparse
 import statistics
 import os
+import sys
 import shutil
 import math
 from pathlib import Path
@@ -124,6 +125,19 @@ if __name__ == "__main__":
         help="Overrides where benchmark is built",
     )
     parser.add_argument(
+        "--bin-count",
+        dest="bin_count",
+        default="auto",
+        action="store",
+        nargs="?",
+        type=str,
+        required=False,
+        help="""
+             Specify number of bins for empirical distribution fitting\n
+             Can be a numerical value or \"auto\" to set the value dynamically.
+             """,
+    )
+    parser.add_argument(
         "-r",
         dest="rpath",
         default="results",
@@ -157,6 +171,10 @@ if __name__ == "__main__":
     if not args.param_path:
         raise SystemExit("Error: no path to parameter log file specified")
 
+    if args.bin_count != "auto":
+        if not args.bin_count.isnumeric():
+            sys.exit("Error: the bin-count argument must be an integer or auto")
+
     # bootstraps benchmark from source
     bootstrap_benchmark(Path(args.bpath))
 
@@ -183,6 +201,7 @@ if __name__ == "__main__":
         param_output,
         fit_distribution=args.disable_distribution_fitting,
         results_dir=results,
+        bin_count=args.bin_count,
     )
     print("nowned: " + str(params.nowned_mean()))
     print("nowned stdev: " + str(params.nowned_stdev()))

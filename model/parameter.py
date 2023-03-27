@@ -6,7 +6,9 @@ from fitter import Fitter, get_common_distributions, get_distributions
 
 
 class Parameter:
-    def __init__(self, param_file, fit_distribution=True, results_dir=None):
+    def __init__(
+        self, param_file, fit_distribution=True, results_dir=None, bin_count="auto"
+    ):
         self.nowned = []
         self.nremote = []
         self.blocksize = []
@@ -59,7 +61,7 @@ class Parameter:
             self.updates_per_setup_distr = self._dist_test(self.updates_per_setup)
 
         if results_dir is not None:
-            self.generate_file(results_dir)
+            self.generate_file(results_dir, bin_count)
 
     def nowned_mean(self):
         if len(self.nowned) == 0:
@@ -168,7 +170,7 @@ class Parameter:
         f.fit()
         return f
 
-    def generate_file(self, results_dir):
+    def generate_file(self, results_dir, bin_count):
         file_path = os.path.join(results_dir, "BENCHMARK_CONFIG")
         file = open(file_path, "w")
         file.write("BENCHMARK INPUT FILE\n")
@@ -177,19 +179,24 @@ class Parameter:
         file.write("BIN_COUNT: BIN_COUNT_VALUE\n")
         file.write("BIN_MIN, BIN_MAX, BIN_PROP, BIN_MEAN, BIN_STDEV\n\n")
 
-        # nowned_bins = self.binify("nowned", self.nowned) + "\n"
-        # nremote_bins = self.binify("nremote", self.nremote) + "\n"
-        # blocksize_bins = self.binify("blocksize", self.blocksize) + "\n"
-        # stride_bins = self.binify("stride", self.stride) + "\n"
-        # comm_partners_bins = self.binify("comm_partners", self.comm_partners) + "\n"
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
-            futures.append(executor.submit(self.binify, "nowned", self.nowned))
-            futures.append(executor.submit(self.binify, "nremote", self.nremote))
-            futures.append(executor.submit(self.binify, "blocksize", self.blocksize))
-            futures.append(executor.submit(self.binify, "stride", self.stride))
             futures.append(
-                executor.submit(self.binify, "comm_partners", self.comm_partners)
+                executor.submit(self.binify, "nowned", self.nowned, int(bin_count))
+            )
+            futures.append(
+                executor.submit(self.binify, "nremote", self.nremote, int(bin_count))
+            )
+            futures.append(
+                executor.submit(self.binify, "blocksize", self.blocksize, int(bin_count))
+            )
+            futures.append(
+                executor.submit(self.binify, "stride", self.stride, int(bin_count))
+            )
+            futures.append(
+                executor.submit(
+                    self.binify, "comm_partners", self.comm_partners, int(bin_count)
+                )
             )
 
             results = [f.result() for f in concurrent.futures.as_completed(futures)]
@@ -200,7 +207,7 @@ class Parameter:
 
         file.close()
 
-    def binify(self, param_name, data, bin_count=None):
+    def binify(self, param_name, data, bin_count):
         """
         This function performs the initial data ingest for a
         specific parameter list.
@@ -222,22 +229,22 @@ class Parameter:
         contents = "PARAM: " + str(param_name) + "\n"
 
         # calculate minimum and maximum values of nowned
-        nowned_min = min(data)
-        nowned_max = max(data)
+        data_min = min(data)
+        data_max = max(data)
 
-        # calculate a good bin count assuming one is not specified
-        if bin_count is None:
+        # calculate a good bin count if auto is set
+        if bin_count == "auto":
             bin_count = round(len(data) / 1000)
 
         # write the number of bins to ease the parsing in benchmark
         contents += "BIN_COUNT: " + str(bin_count) + "\n"
 
         # calculate the size of each bin based on the calculated binCount
-        binSize = (nowned_max - nowned_min) / bin_count
+        binSize = (data_max - data_min) / bin_count
 
         # identify the upper and lower bounds of each bin
         bins = []
-        i = nowned_min
+        i = data_min
         for x in range(0, bin_count + 1):
             bins.append(round(i))
             i += binSize
@@ -278,7 +285,7 @@ class Parameter:
                         + str(round(statistics.stdev(mini_data)))
                         + "\n"
                     )
-                if len(mini_data) == 1:
+                elif len(mini_data) == 1:
                     # handles case where only 1 data point occurs in a bin
                     contents += (
                         str(bin_min)
