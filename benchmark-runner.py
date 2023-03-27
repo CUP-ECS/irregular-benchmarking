@@ -161,7 +161,10 @@ if __name__ == "__main__":
     bootstrap_benchmark(Path(args.bpath))
 
     # bootstrap results directory
-    bootstrap_results(Path(args.rpath), Path(args.bpath), args.clean)
+    file_name = args.param_path.split("/")[-1].split(".")[0]
+    print("Running based on: " + file_name)
+    results = os.path.join(args.rpath, file_name)
+    bootstrap_results(results, clean=args.clean)
 
     # tries to read file containing parameter data
     # fails if file does not exist, cannot be read, etc.
@@ -176,7 +179,7 @@ if __name__ == "__main__":
         )
 
     # run analysis on parameter data
-    params = Parameter(param_output, fit_distribution=args.disable_distribution_fitting)
+    params = Parameter(param_output, fit_distribution=args.disable_distribution_fitting, results_dir=results)
     print("nowned: " + str(params.nowned_mean()))
     print("nowned stdev: " + str(params.nowned_stdev()))
     print("nremote: " + str(params.nremote_mean()))
