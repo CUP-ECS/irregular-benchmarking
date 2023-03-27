@@ -135,7 +135,11 @@ if __name__ == "__main__":
         )
 
     # run analysis on parameter data
-    params = Parameter(param_output, fit_distribution=args.disable_distribution_fitting, results_dir=results)
+    params = Parameter(
+        param_output,
+        fit_distribution=args.disable_distribution_fitting,
+        results_dir=results,
+    )
 
     # generate distribution plots
     analysis(params, results, file_name)

@@ -179,7 +179,11 @@ if __name__ == "__main__":
         )
 
     # run analysis on parameter data
-    params = Parameter(param_output, fit_distribution=args.disable_distribution_fitting, results_dir=results)
+    params = Parameter(
+        param_output,
+        fit_distribution=args.disable_distribution_fitting,
+        results_dir=results,
+    )
     print("nowned: " + str(params.nowned_mean()))
     print("nowned stdev: " + str(params.nowned_stdev()))
     print("nremote: " + str(params.nremote_mean()))
