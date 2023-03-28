@@ -198,6 +198,37 @@ int gauss_dist(double mean, double stdev) {
 }
 
 
+// approx implementation of the following for empirical distributions
+// https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/org/apache/commons/math3/random/EmpiricalDistribution.html
+//
+// NOTE: this has been customized for use within this benchmark
+//       and much of the statistical analysis required has been
+//       precomputed for ease of use. You should not take the following
+//       as a faithful and self-contained reproduction of the above link.
+int empirical_dist(char* param) {
+
+  // if-else tree handles choosing a parameter to generate.
+  // This is necessary because each is parameter specific within
+  // the BENCHMARK_CONFIG file
+  if (strcmp(param, "nowned") == 0) {
+    printf("nowned selected\n");
+  } else if (strcmp(param, "nremote") == 0) {
+    printf("nremote selected\n");
+  } else if (strcmp(param, "blocksize") == 0) {
+    printf("blocksize selected\n");
+  } else if (strcmp(param, "stride") == 0) {
+    printf("stride selected\n");
+  } else if (strcmp(param, "num_comm_partners") == 0) {
+    printf("num_comm_partners selected\n");
+  } else {
+    printf("Invalid parameter choice in empericial_dist()\n");
+    exit(1);
+  }
+
+  return 0;
+}
+
+
 // offers a help string to define parameters in the CLI
 void usage(char *exename, int penum)
 {
@@ -844,6 +875,13 @@ int benchmark(int penum) {
 
 int main(int argc, char *argv[])
 {
+    empirical_dist("nowned");
+    empirical_dist("nremote");
+    empirical_dist("blocksize");
+    empirical_dist("stride");
+    empirical_dist("num_comm_partners");
+    empirical_dist("cats");
+    exit(-1);
     int penum, ierr;
 
     // initialize L7
