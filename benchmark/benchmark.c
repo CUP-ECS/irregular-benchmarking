@@ -125,6 +125,7 @@ static int blocksz_stdv = -1;
 static int stride = -1;
 static int unit_div = 1;
 static char * unit_symbol = "auto";
+static char * filepath = NULL;
 static int irregularity = 1;
 static int irregularity_owned = 1;
 static int irregularity_neighbors = 1;
@@ -146,6 +147,7 @@ static memspace_t memspace = MEMSPACE_HOST;
 static struct option long_options[] = {
     /* These options set a flag. */
     {"help",           no_argument, 0, 'h'},
+    {"config_file",    required_argument, 0, 'f'},
     {"typesize",       required_argument, 0, 't'},
     {"owned",          required_argument, 0, 'o'},
     {"owned_stdv",     required_argument, 0, 'O'},
@@ -244,6 +246,7 @@ void usage_long(char *exename, int penum) {
     if (penum == 0) {
         fprintf(stdout,
             "usage: %s [-t typesize] [-I samples] [-i iterations] [-n neighbors] [-o owned] [-r remote] [-b blocksize] [-s stride] [-S seed] [-m memspace]\n\n"
+            "[ -f filepath      ]\tspecify the path to the BENCHMARK_CONFIG file"
             "[ -t typesize      ]\tspecify the size of the variable being sent (in bytes)\n"
             "[ -I samples       ]\tspecify the number of random samples to generate\n"
             "[ -i iterations    ]\tspecify the number of updates each sample performs\n"
@@ -274,13 +277,24 @@ void parse_arguments(int argc, char **argv, int penum)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, ":h:t:i:I:n:o:O:r:R:b:B:s:S:m:u:",
+        c = getopt_long (argc, argv, ":h:f:t:i:I:n:o:O:r:R:b:B:s:S:m:u:",
                        long_options, &option_index);
         if (c == -1) {
             break;
         }
 
         switch (c) {
+            case 'f':
+                // used to load BENCHMARK_CONFIG filepath
+                filepath = optarg;
+
+                if (access(filepath, F_OK) == -1) {
+                    printf("ERROR: the specified filepath doesn't exist, exiting...\n");
+                    exit(-1);
+                }
+
+
+                break;
             case 'i':
                 // used to set custom iteration's value
                 niterations = atoi(optarg);
@@ -880,8 +894,7 @@ int main(int argc, char *argv[])
     empirical_dist("blocksize");
     empirical_dist("stride");
     empirical_dist("num_comm_partners");
-    empirical_dist("cats");
-    exit(-1);
+
     int penum, ierr;
 
     // initialize L7

@@ -232,86 +232,119 @@ class Parameter:
         data_min = min(data)
         data_max = max(data)
 
-        # calculate a good bin count if auto is set
-        if bin_count == "auto":
-            bin_count = round(len(data) / 1000)
+        # handle a special case where a parameter only has a single value
+        # the empirical distribution doesn't do a great job of handling this easily
+        if data_min == data_max:
+            # write the number of bins to ease the parsing in benchmark
+            contents += "BIN_COUNT: 1\n"
 
-        # write the number of bins to ease the parsing in benchmark
-        contents += "BIN_COUNT: " + str(bin_count) + "\n"
+            # write distribution data to benchmark config file
+            contents += "MIN: " + str(data_min) + "\n"
+            contents += "MAX: " + str(data_max) + "\n"
+            contents += "MEAN: " + str(round(statistics.mean(data))) + "\n"
+            contents += "STDEV: " + str(round(statistics.stdev(data))) + "\n"
 
-        # calculate the size of each bin based on the calculated binCount
-        binSize = (data_max - data_min) / bin_count
+            contents += (
+                str(data_min)
+                + ", "
+                + str(data_max)
+                + ", "
+                + "1.0"
+                + ", "
+                + str(round(statistics.mean(data)))
+                + ", "
+                + str(round(statistics.stdev(data)))
+                + "\n"
+            )
 
-        # identify the upper and lower bounds of each bin
-        bins = []
-        i = data_min
-        for x in range(0, bin_count + 1):
-            bins.append(round(i))
-            i += binSize
+            return contents
+        else:
+            # calculate a good bin count if auto is set
+            if bin_count == "auto":
+                bin_count = round(len(data) / 1000)
 
-        # iterate through each bin and find the statistical values
-        # of data belonging to each specific bin
-        for index, value in enumerate(bins):
-            # don't perform bin calculations once on the last element
-            if index != len(bins) - 1:
-                mini_data = []
-                bin_min = value
-                bin_max = bins[index + 1]
-                for parameter in data:
-                    if parameter < bin_max:
-                        # if value is less than bin_max, ensure it is
-                        # larger than bin_min
-                        if parameter >= bin_min:
-                            mini_data.append(parameter)
+            # write the number of bins to ease the parsing in benchmark
+            contents += "BIN_COUNT: " + str(bin_count) + "\n"
+
+            # write distribution data to benchmark config file
+            contents += "MIN: " + str(data_min) + "\n"
+            contents += "MAX: " + str(data_max) + "\n"
+            contents += "MEAN: " + str(round(statistics.mean(data))) + "\n"
+            contents += "STDEV: " + str(round(statistics.stdev(data))) + "\n"
+
+            # calculate the size of each bin based on the calculated binCount
+            binSize = (data_max - data_min) / bin_count
+
+            # identify the upper and lower bounds of each bin
+            bins = []
+            i = data_min
+            for x in range(0, bin_count + 1):
+                bins.append(round(i))
+                i += binSize
+
+            # iterate through each bin and find the statistical values
+            # of data belonging to each specific bin
+            for index, value in enumerate(bins):
+                # don't perform bin calculations once on the last element
+                if index != len(bins) - 1:
+                    mini_data = []
+                    bin_min = value
+                    bin_max = bins[index + 1]
+                    for parameter in data:
+                        if parameter < bin_max:
+                            # if value is less than bin_max, ensure it is
+                            # larger than bin_min
+                            if parameter >= bin_min:
+                                mini_data.append(parameter)
+                        else:
+                            # because list is sorted, if value is not less
+                            # than bin_max, no future value will be less
+                            break
+
+                    # calculate what the proportion of the total data
+                    # belongs to this specific bin
+                    bin_prop = len(mini_data) / len(data)
+
+                    if len(mini_data) >= 2:
+                        contents += (
+                            str(bin_min)
+                            + ", "
+                            + str(bin_max)
+                            + ", "
+                            + f"{bin_prop:.20f}"
+                            + ", "
+                            + str(round(statistics.mean(mini_data)))
+                            + ", "
+                            + str(round(statistics.stdev(mini_data)))
+                            + "\n"
+                        )
+                    elif len(mini_data) == 1:
+                        # handles case where only 1 data point occurs in a bin
+                        contents += (
+                            str(bin_min)
+                            + ", "
+                            + str(bin_max)
+                            + ", "
+                            + f"{bin_prop:.20f}"
+                            + ", "
+                            + str(round(statistics.mean(mini_data)))
+                            + ", "
+                            + str(0)
+                            + "\n"
+                        )
                     else:
-                        # because list is sorted, if value is not less
-                        # than bin_max, no future value will be less
-                        break
+                        # handles the case where no data belongs to a bin
+                        contents += (
+                            str(bin_min)
+                            + ", "
+                            + str(bin_max)
+                            + ", "
+                            + str(0.0)
+                            + ", "
+                            + str(0.0)
+                            + ", "
+                            + str(0.0)
+                            + "\n"
+                        )
 
-                # calculate what the proportion of the total data
-                # belongs to this specific bin
-                bin_prop = len(mini_data) / len(data)
-
-                if len(mini_data) >= 2:
-                    contents += (
-                        str(bin_min)
-                        + ", "
-                        + str(bin_max)
-                        + ", "
-                        + f"{bin_prop:.20f}"
-                        + ", "
-                        + str(round(statistics.mean(mini_data)))
-                        + ", "
-                        + str(round(statistics.stdev(mini_data)))
-                        + "\n"
-                    )
-                elif len(mini_data) == 1:
-                    # handles case where only 1 data point occurs in a bin
-                    contents += (
-                        str(bin_min)
-                        + ", "
-                        + str(bin_max)
-                        + ", "
-                        + f"{bin_prop:.20f}"
-                        + ", "
-                        + str(round(statistics.mean(mini_data)))
-                        + ", "
-                        + str(0)
-                        + "\n"
-                    )
-                else:
-                    # handles the case where no data belongs to a bin
-                    contents += (
-                        str(bin_min)
-                        + ", "
-                        + str(bin_max)
-                        + ", "
-                        + str(0.0)
-                        + ", "
-                        + str(0.0)
-                        + ", "
-                        + str(0.0)
-                        + "\n"
-                    )
-
-        return contents
+            return contents

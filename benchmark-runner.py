@@ -78,26 +78,12 @@ def bootstrap_results(
         raise SystemExit("Error: could not move benchmark binary to results directory")
 
 
-def run_benchmark_with_params(params, results_dir="results/"):
+def run_benchmark_with_params(params, results_dir):
     cmd = [
         identify_launcher(),
         "./benchmark",
-        "-o",
-        str(params.nowned_mean()),
-        "-O",
-        str(params.nowned_stdev()),
-        "-r",
-        str(params.nremote_mean()),
-        "-R",
-        str(params.nremote_stdev()),
-        "-n",
-        str(params.comm_partners_mean()),
-        "-b",
-        str(params.blocksize_mean()),
-        "-B",
-        str(params.blocksize_stdev()),
-        "-I",
-        str(10),
+        "-f",
+        str(os.path.join(results_dir, "BENCHMARK_CONFIG"))
     ]
 
     output = subprocess.run(
@@ -116,13 +102,13 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-b",
-        dest="bpath",
+        dest="bootstrap_path",
         default=".benchmark_stage",
         action="store",
         nargs="?",
         type=str,
         required=False,
-        help="Overrides where benchmark is built",
+        help="Overrides where benchmark is built and bootstrapped up",
     )
     parser.add_argument(
         "--bin-count",
@@ -138,27 +124,11 @@ if __name__ == "__main__":
              """,
     )
     parser.add_argument(
-        "-r",
-        dest="rpath",
-        default="results",
-        action="store",
-        nargs="?",
-        type=str,
-        help="Overrides where results are stored",
-    )
-    parser.add_argument(
-        "-R",
-        "--reproduce",
-        action="store_true",
-        help="Changes benchmark behavior to reproduce communication pattern",
-    )
-    parser.add_argument(
         "-c",
         "--clean",
         action="store_true",
         help="Removes previously generated results",
     )
-
     parser.add_argument(
         "--disable-distribution-fitting",
         action="store_false",
@@ -176,18 +146,19 @@ if __name__ == "__main__":
             sys.exit("Error: the bin-count argument must be an integer or auto")
 
     # bootstraps benchmark from source
-    bootstrap_benchmark(Path(args.bpath))
+    bootstrap_benchmark(Path(args.bootstrap_path))
 
     # bootstrap results directory
     file_name = args.param_path.split("/")[-1].split(".")[0]
     print("Running based on: " + file_name)
-    results = os.path.join(args.rpath, file_name)
+
+    results = os.path.join("results/", file_name)
     bootstrap_results(results, clean=args.clean)
 
     # tries to read file containing parameter data
     # fails if file does not exist, cannot be read, etc.
     try:
-        print(args.param_path)
+        print("Analyzing datafile: " + args.param_path)
         param_file = open(args.param_path, "r")
         param_output = param_file.readlines()
         param_file.close()
@@ -212,4 +183,4 @@ if __name__ == "__main__":
     print("num_comm_partners: " + str(params.comm_partners_mean()))
 
     # run benchmark with parameter data
-    run_benchmark_with_params(params, args.rpath)
+    run_benchmark_with_params(params, results)
