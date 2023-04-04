@@ -177,6 +177,10 @@ class Parameter:
         file.write("FORMAT IS ORDERED AS FOLLOWS:\n\n")
         file.write("PARAM: PARAM_NAME\n")
         file.write("BIN_COUNT: BIN_COUNT_VALUE\n")
+        file.write("MIN: MIN_VALUE\n")
+        file.write("MAX: MAX_VALUE\n")
+        file.write("MEAN: MEAN_VALUE\n")
+        file.write("STDEV: STDEV_VALUE\n")
         file.write("BIN_MIN, BIN_MAX, BIN_PROP, BIN_MEAN, BIN_STDEV\n\n")
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -188,7 +192,9 @@ class Parameter:
                 executor.submit(self.binify, "nremote", self.nremote, int(bin_count))
             )
             futures.append(
-                executor.submit(self.binify, "blocksize", self.blocksize, int(bin_count))
+                executor.submit(
+                    self.binify, "blocksize", self.blocksize, int(bin_count)
+                )
             )
             futures.append(
                 executor.submit(self.binify, "stride", self.stride, int(bin_count))

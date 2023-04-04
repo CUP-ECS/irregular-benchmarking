@@ -207,27 +207,35 @@ int gauss_dist(double mean, double stdev) {
 //       and much of the statistical analysis required has been
 //       precomputed for ease of use. You should not take the following
 //       as a faithful and self-contained reproduction of the above link.
-int empirical_dist(char* param) {
+int empirical_dist(char param[]) {
+    char param_key[25] = "PARAM: ";
+    strcat(param_key, param);
 
-  // if-else tree handles choosing a parameter to generate.
-  // This is necessary because each is parameter specific within
-  // the BENCHMARK_CONFIG file
-  if (strcmp(param, "nowned") == 0) {
-    printf("nowned selected\n");
-  } else if (strcmp(param, "nremote") == 0) {
-    printf("nremote selected\n");
-  } else if (strcmp(param, "blocksize") == 0) {
-    printf("blocksize selected\n");
-  } else if (strcmp(param, "stride") == 0) {
-    printf("stride selected\n");
-  } else if (strcmp(param, "num_comm_partners") == 0) {
-    printf("num_comm_partners selected\n");
-  } else {
-    printf("Invalid parameter choice in empericial_dist()\n");
-    exit(1);
-  }
+    FILE* fp = fopen(filepath, "r");
+    if (fp == NULL) {
+        fprintf(stderr, "Error: Unable to open file %s\n", filepath);
+        exit(1);
+    }
 
-  return 0;
+    char* line = NULL;
+    size_t linecap = 0;
+    ssize_t linelen;
+    int line_num = 0;
+
+    while ((linelen = getline(&line, &linecap, fp)) != -1) {
+        // remove trailing new line to better do comparison
+        if (linelen > 0 && line[linelen-1] == '\n') {
+            line[linelen-1] = '\0';
+        }
+
+        if (strcmp(param_key, line) == 0) {
+            printf("KEY FOUND\n");
+            exit(0);
+        }
+    }
+
+    exit(0);
+    return 0;
 }
 
 
@@ -889,12 +897,6 @@ int benchmark(int penum) {
 
 int main(int argc, char *argv[])
 {
-    empirical_dist("nowned");
-    empirical_dist("nremote");
-    empirical_dist("blocksize");
-    empirical_dist("stride");
-    empirical_dist("num_comm_partners");
-
     int penum, ierr;
 
     // initialize L7
@@ -904,6 +906,8 @@ int main(int argc, char *argv[])
 
     // parse CLI arguments
     parse_arguments(argc, argv, penum);
+
+    empirical_dist("comm_partners");
 
     // sets random seed for generating random distributions
     if (irregularity) {
