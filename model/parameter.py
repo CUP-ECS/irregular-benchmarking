@@ -186,22 +186,20 @@ class Parameter:
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
             futures.append(
-                executor.submit(self.binify, "nowned", self.nowned, int(bin_count))
+                executor.submit(self.binify, "nowned", self.nowned, bin_count)
             )
             futures.append(
-                executor.submit(self.binify, "nremote", self.nremote, int(bin_count))
+                executor.submit(self.binify, "nremote", self.nremote, bin_count)
+            )
+            futures.append(
+                executor.submit(self.binify, "blocksize", self.blocksize, bin_count)
+            )
+            futures.append(
+                executor.submit(self.binify, "stride", self.stride, bin_count)
             )
             futures.append(
                 executor.submit(
-                    self.binify, "blocksize", self.blocksize, int(bin_count)
-                )
-            )
-            futures.append(
-                executor.submit(self.binify, "stride", self.stride, int(bin_count))
-            )
-            futures.append(
-                executor.submit(
-                    self.binify, "comm_partners", self.comm_partners, int(bin_count)
+                    self.binify, "comm_partners", self.comm_partners, bin_count
                 )
             )
 
@@ -268,6 +266,8 @@ class Parameter:
             # calculate a good bin count if auto is set
             if bin_count == "auto":
                 bin_count = round(len(data) / 1000)
+            else:
+                bin_count = int(bin_count)
 
             # write the number of bins to ease the parsing in benchmark
             contents += "BIN_COUNT: " + str(bin_count) + "\n"
