@@ -160,11 +160,13 @@ static struct option long_options[] = {
     {"iterations",     required_argument, 0, 'i'},
     {"samples"   ,     required_argument, 0, 'I'},
     {"neighbors",      required_argument, 0, 'n'},
+    {"neighbors_stdv", required_argument, 0, 'N'},
     {"remote",         required_argument, 0, 'r'},
     {"remote_stdv",    required_argument, 0, 'O'},
     {"blocksize",      required_argument, 0, 'b'},
     {"blocksize_stdv", required_argument, 0, 'B'},
     {"stride",         required_argument, 0, 's'},
+    {"stride_stdv",    required_argument, 0, 'T'},
     {"seed",           required_argument, 0, 'S'},
     {"memspace",       required_argument, 0, 'm'},
     {"distribution",   required_argument, 0, 'd'},
@@ -383,22 +385,24 @@ void usage_long(char *exename, int penum) {
     if (penum == 0) {
         fprintf(stdout,
             "usage: %s [-t typesize] [-I samples] [-i iterations] [-n neighbors] [-o owned] [-r remote] [-b blocksize] [-s stride] [-S seed] [-m memspace]\n\n"
-            "[ -f filepath      ]\tspecify the path to the BENCHMARK_CONFIG file"
-            "[ -t typesize      ]\tspecify the size of the variable being sent (in bytes)\n"
-            "[ -I samples       ]\tspecify the number of random samples to generate\n"
-            "[ -i iterations    ]\tspecify the number of updates each sample performs\n"
-            "[ -n neighbors     ]\tspecify the average number of neighbors each process communicates with \n"
-            "[ -o owned_avg     ]\tspecify average byte count for data owned per node\n"
-            "[ -O owned_stv     ]\tspecify stdev byte count for data owned per node\n"
-            "[ -r remote_avg    ]\tspecify how average amount of data each process receives\n"
-            "[ -R remote_stv    ]\tspecify how average amount of data each process receives\n"
-            "[ -b blocksize_avg ]\tspecify average size of transmitted blocks\n"
-            "[ -B blocksize_std ]\tspecify average size of transmitted blocks\n"
-            "[ -s stride        ]\tspecify avereage size of stride\n"
-            "[ -S seed          ]\tspecify positive integer to be used as seed for random number generation (current time used as default)\n"
-            "[ -m memspace      ]\tchoose from: host, cuda, openmp, opencl\n"
-            "[ -d distribution  ]\tchoose from: gaussian (default), empirical\n"
-            "[ -u units         ]\tchoose from: a,b,k,m,g (auto, bytes, kilobytes, etc.)\n\n"
+            "[ -f filepath       ]\tspecify the path to the BENCHMARK_CONFIG file"
+            "[ -t typesize       ]\tspecify the size of the variable being sent (in bytes)\n"
+            "[ -I samples        ]\tspecify the number of random samples to generate\n"
+            "[ -i iterations     ]\tspecify the number of updates each sample performs\n"
+            "[ -n neighbors      ]\tspecify the average number of neighbors each process communicates with \n"
+            "[ -N neighbors_stdv ]\tspecify the stdev number of neighbors each process communicates with \n"
+            "[ -o owned_avg      ]\tspecify average byte count for data owned per node\n"
+            "[ -O owned_stdv     ]\tspecify stdev byte count for data owned per node\n"
+            "[ -r remote_avg     ]\tspecify how average amount of data each process receives\n"
+            "[ -R remote_stdv    ]\tspecify how average amount of data each process receives\n"
+            "[ -b blocksize_avg  ]\tspecify average size of transmitted blocks\n"
+            "[ -B blocksize_stdv ]\tspecify average size of transmitted blocks\n"
+            "[ -s stride         ]\tspecify average size of stride\n"
+            "[ -T stride_stdv    ]\tspecify stdev size of stride\n"
+            "[ -S seed           ]\tspecify positive integer to be used as seed for random number generation (current time used as default)\n"
+            "[ -m memspace       ]\tchoose from: host, cuda, openmp, opencl\n"
+            "[ -d distribution   ]\tchoose from: gaussian (default), empirical\n"
+            "[ -u units          ]\tchoose from: a,b,k,m,g (auto, bytes, kilobytes, etc.)\n\n"
             "NOTE: setting parameters for the benchmark such as (neighbors, owned, remote, blocksize, and stride)\n"
             "      sets parameters to those values for the reference benchmark.\n"
             "      Those parameters are then randomized for the irregular samples\n"
@@ -416,7 +420,7 @@ void parse_arguments(int argc, char **argv, int penum)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, ":h:f:t:i:I:n:o:O:r:R:b:B:s:S:m:d:u:",
+        c = getopt_long (argc, argv, ":h:f:t:i:I:n:N:o:O:r:R:b:B:s:T:S:m:d:u:",
                        long_options, &option_index);
         if (c == -1) {
             break;
@@ -452,6 +456,11 @@ void parse_arguments(int argc, char **argv, int penum)
                 nneighbors = atoi(optarg);
                 if (nneighbors < 0) usage(argv[0], penum);
                 break;
+            case 'N':
+                // used to set nneighbors_stdv value
+                nneighbors_stdv = atoi(optarg);
+                if (nneighbors_stdv < 0) usage(argv[0], penum);
+                break;
             case 'o':
                 // used to set nowned value
                 nowned = atoi(optarg);
@@ -486,6 +495,11 @@ void parse_arguments(int argc, char **argv, int penum)
                 // used to set stride size value
                 stride = atoi(optarg);
                 if (stride < 0) usage(argv[0], penum);
+                break;
+            case 'T':
+                // used to set stride size value
+                stride_stdv = atoi(optarg);
+                if (stride_stdv < 0) usage(argv[0], penum);
                 break;
             case 'S':
                 // used to set stride size value
