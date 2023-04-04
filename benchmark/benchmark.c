@@ -294,7 +294,7 @@ int gauss_dist(double mean, double stdev) {
 }
 
 
-// approx implementation of the following for empirical distributions
+// approx. implementation of the following for empirical distributions
 // https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/org/apache/commons/math3/random/EmpiricalDistribution.html
 //
 // NOTE: this has been customized for use within this benchmark
@@ -302,15 +302,21 @@ int gauss_dist(double mean, double stdev) {
 //       precomputed for ease of use. You should not take the following
 //       as a faithful and self-contained reproduction of the above link.
 int empirical_dist(char param[]) {
+    // set the parameter string to look for.
     char param_key[25] = "PARAM: ";
     strcat(param_key, param);
 
+    // attempts to open the file pointer
+    // and ensure that the file can be read
+    // exits if fails
     FILE* fp = fopen(filepath, "r");
     if (fp == NULL) {
         fprintf(stderr, "Error: Unable to open file %s\n", filepath);
         exit(1);
     }
 
+    // stores the current read line and
+    // some auxiliary information that assists in parsing the file
     char* line = NULL;
     size_t linecap = 0;
     ssize_t linelen;
@@ -336,7 +342,8 @@ int empirical_dist(char param[]) {
     int dataMean;
     int dataStdev;
 
-    // iterates through non-bin data points
+    // Iterates through non-bin data points
+    // and collect information about the data and number of bins
     for (int i = 0; i < 5; i++) {
         // gets the next line which contains the BIN_COUNT data
         linelen = getline(&line, &linecap, fp);
@@ -366,7 +373,91 @@ int empirical_dist(char param[]) {
         }
     }
 
-    return 0;
+    // do a quick sanity check to ensure that the data doesn't only
+    // fall into a single bin
+    if (dataMin == dataMax) {
+        // close file as reading is no longer required
+        fclose(fp);
+
+        return dataMin; // could also return data max, is arbitrary
+    }
+
+    // chose a uniformly distributed value between (0,1)
+    double binSelection  = ((double)rand()) / RAND_MAX;
+
+    // used to track if we have checked a bin
+    // if we have/are, the bin's proportion of the total dataset
+    // is added to the binSum.
+    // If the binSelection falls under the binSum, it is said
+    // to be in the bin and we can use that bin's data to generate values
+    double binSum = 0.0;
+
+    // iterates through the bins for a parameter to identity
+    // which one should be chosen based on the random binSelection
+    // value chosen above
+    for (int i = 0; i < binCount; i++) {
+        // gets the next line which contains the BIN_COUNT data
+        linelen = getline(&line, &linecap, fp);
+
+        // remove trailing new line to better do comparison
+        if (linelen > 0 && line[linelen-1] == '\n') {
+            line[linelen-1] = '\0';
+        }
+
+        // stores data from the current bin being checked
+        int binMin;
+        int binMax;
+        int binMean;
+        int binStdev;
+
+        // gets the bin minimum data point
+        char* token = strtok(line, ",");
+        binMin = atoi(token);
+
+        // gets the bin maximum data point
+        token = strtok(NULL, ",");
+        binMax = atoi(token);
+
+        // gets the binProp value and adds it to the binSum
+        token = strtok(NULL, ",");
+        binSum += strtod(token, NULL);
+
+        // if so, then the selection is in the most
+        // recently search bin, so we can proceed to
+        // generating a random value
+        if (binSelection < binSum) {
+
+            // if the bin is the correct one,
+            // get the mean of the data points
+            // for this bin
+            token = strtok(NULL, ",");
+            binMean = atoi(token);
+
+            // if the bin is the correct one,
+            // get the standard deviation of the
+            // data points in this bin
+            token = strtok(NULL, ",");
+            binStdev = atoi(token);
+
+            // close file as reading is no longer required
+            fclose(fp);
+
+            // return a normally distributed value with the
+            // mean and standard deviation from the
+            // chosen bin
+
+            return gauss_dist(binMean, binStdev);
+        }
+
+    }
+
+    // if we have somehow made it to this point
+    // without generating a value, we should throw an error
+    printf("Error: empirical value could not be generated due to an unknown error.\n");
+    printf("\tParameter type being generated: %s\n", param);
+    printf("\tConfig file which could have caused this error: %s\n", filepath);
+    printf("\tIf you encounter a bug which causes this for any reason, please open an issue on Github\n");
+    exit(1);
 }
 
 
