@@ -116,6 +116,7 @@ static int numpes = 0;
 static int nsamples = 25;
 static int niterations = 100;
 static int nneighbors = -1;
+static int nneighbors_stdv = -1;
 static int nowned = -1;
 static int nowned_stdv = -1;
 static int nremote = -1;
@@ -123,6 +124,7 @@ static int nremote_stdv = -1;
 static int blocksz = -1;
 static int blocksz_stdv = -1;
 static int stride = -1;
+static int stride_stdv = -1;
 static int unit_div = 1;
 static char * unit_symbol = "auto";
 static char * filepath = NULL;
@@ -132,11 +134,6 @@ static int irregularity_neighbors = 1;
 static int irregularity_stride = 1;
 static int irregularity_blocksz = 1;
 static int irregularity_remote = 1;
-static bool owned_default = false;
-static bool neighbors_default = false;
-static bool stride_default = false;
-static bool blocksz_default = false;
-static bool remote_default = false;
 static int seed = -1;
 static memspace_t memspace = MEMSPACE_HOST;
 
@@ -170,6 +167,91 @@ static struct option long_options[] = {
     {"disable-irregularity-remote", no_argument, &irregularity_remote, 0},
     {0, 0, 0, 0}
 };
+
+void parse_config_file() {
+    char* params[] = { "nowned",
+                       "nremote",
+                       "blocksize",
+                       "stride",
+                       "comm_partners" };
+
+    for (int index = 0; index < (sizeof(params) / sizeof(params[0])); index++) {
+        char* param = params[index];
+
+        char param_key[25] = "PARAM: ";
+        strcat(param_key, param);
+
+        FILE* fp = fopen(filepath, "r");
+        if (fp == NULL) {
+            fprintf(stderr, "Error: Unable to open file %s\n", filepath);
+            exit(1);
+        }
+
+        char* line = NULL;
+        size_t linecap = 0;
+        ssize_t linelen;
+
+        // iterates through lines in the file until we get to the line
+        // that contains the parameter we're trying to generate for
+        while ((linelen = getline(&line, &linecap, fp)) != -1) {
+            // remove trailing new line to better do comparison
+            if (linelen > 0 && line[linelen-1] == '\n') {
+                line[linelen-1] = '\0';
+            }
+
+            // if the correct parameter is found,
+            // stop iterating through the file
+            if (strcmp(param_key, line) == 0) {
+                break;
+            }
+        }
+
+        // iterates through non-bin data points
+        for (int i = 0; i < 5; i++) {
+            // gets the next line which contains the BIN_COUNT data
+            linelen = getline(&line, &linecap, fp);
+
+            // remove trailing new line to better do comparison
+            if (linelen > 0 && line[linelen-1] == '\n') {
+                line[linelen-1] = '\0';
+            }
+
+            // gets the name of the data point being read
+            char* token = strtok(line, ":");
+
+            // writes the correct token value to the correct variable from file input
+            if (strcmp(token, "MEAN") == 0) {
+                // puts the mean value in the correct parameter spot
+                // based on current parameter choice
+                if (strcmp(param, "nowned") == 0) {
+                    nowned = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "nremote") == 0) {
+                    nremote = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "blocksize") == 0) {
+                    blocksz = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "stride") == 0) {
+                    stride = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "comm_partners") == 0) {
+                    nneighbors = atoi(strtok(NULL, " "));
+                }
+            } else if (strcmp(token, "STDEV") == 0) {
+                // puts the stdev value in the correct parameter spot
+                // based on current parameter choice
+                if (strcmp(param, "nowned") == 0) {
+                    nowned_stdv = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "nremote") == 0) {
+                    nremote_stdv = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "blocksize") == 0) {
+                    blocksz_stdv = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "stride") == 0) {
+                    stride_stdv = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "comm_partners") == 0) {
+                    nneighbors_stdv = atoi(strtok(NULL, " "));
+                }
+            }
+        }
+    }
+}
 
 
 // implementation of the following
@@ -220,21 +302,58 @@ int empirical_dist(char param[]) {
     char* line = NULL;
     size_t linecap = 0;
     ssize_t linelen;
-    int line_num = 0;
 
+    // iterates through lines in the file until we get to the line
+    // that contains the parameter we're trying to generate for
     while ((linelen = getline(&line, &linecap, fp)) != -1) {
         // remove trailing new line to better do comparison
         if (linelen > 0 && line[linelen-1] == '\n') {
             line[linelen-1] = '\0';
         }
 
+        // if the correct parameter is found,
+        // stop iterating through the file
         if (strcmp(param_key, line) == 0) {
-            printf("KEY FOUND\n");
-            exit(0);
+            break;
         }
     }
 
-    exit(0);
+    int binCount;
+    int dataMin;
+    int dataMax;
+    int dataMean;
+    int dataStdev;
+
+    // iterates through non-bin data points
+    for (int i = 0; i < 5; i++) {
+        // gets the next line which contains the BIN_COUNT data
+        linelen = getline(&line, &linecap, fp);
+
+        // remove trailing new line to better do comparison
+        if (linelen > 0 && line[linelen-1] == '\n') {
+            line[linelen-1] = '\0';
+        }
+
+        // gets the name of the data point being read
+        char* token = strtok(line, ":");
+
+        // writes the correct token value to the correct variable from file input
+        if (strcmp(token, "BIN_COUNT") == 0) {
+            binCount = atoi(strtok(NULL, " "));
+        } else if (strcmp(token, "MIN") == 0) {
+            dataMin = atoi(strtok(NULL, " "));
+        } else if (strcmp(token, "MAX") == 0) {
+            dataMax = atoi(strtok(NULL, " "));
+        } else if (strcmp(token, "MEAN") == 0) {
+            dataMean = atoi(strtok(NULL, " "));
+        } else if (strcmp(token, "STDEV") == 0) {
+            dataStdev = atoi(strtok(NULL, " "));
+        } else {
+            printf("Error: reading data file failed, invalid data point found: %s\n", token);
+            exit(1);
+        }
+    }
+
     return 0;
 }
 
@@ -281,6 +400,7 @@ void usage_long(char *exename, int penum) {
 void parse_arguments(int argc, char **argv, int penum)
 {
     int c;
+    bool config_file_used = false;
     while (1) {
         /* getopt_long stores the option index here. */
         int option_index = 0;
@@ -300,8 +420,7 @@ void parse_arguments(int argc, char **argv, int penum)
                     printf("ERROR: the specified filepath doesn't exist, exiting...\n");
                     exit(-1);
                 }
-
-
+                config_file_used = true;
                 break;
             case 'i':
                 // used to set custom iteration's value
@@ -422,35 +541,51 @@ void parse_arguments(int argc, char **argv, int penum)
                 break;
         }
     }
-    /* Now compute any unset values from the defaults */
-    if (nneighbors < 0) {
-        nneighbors = sqrt(numpes);
-        neighbors_default = true;
-    }
-    if (nowned < 0) {
-        nowned = (1<<28) / typesize;
-        owned_default = true;
-    }
-    if (nowned_stdv < 0) {
-        nowned_stdv = round(nowned*.05);
-    }
-    if (nremote < 0) {
-        nremote = nowned/(1 << 6);
-        remote_default = true;
-    }
-    if (nremote_stdv < 0) {
-        nremote_stdv = round(nremote*.1);
-    }
-    if (blocksz < 0) {
-        blocksz = nowned/(1 << 15);
-        blocksz_default = true;
-    }
-    if (blocksz_stdv < 0) {
-        blocksz_stdv = blocksz;
-    }
-    if (stride < 0) {
-        stride = 16;
-        stride_default = true;
+
+    /* parses the config file to set default mean & stdev values for:
+     * - nowned
+     * - nremote
+     * - blocksize
+     * - stride
+     * - comm_partners
+    */
+    if (config_file_used) {
+        if (penum == 0) {
+            printf("WARNING: using a config file will override all other CLI argument values used for setting mean and standard deviation.\n");
+        }
+        parse_config_file();
+    } else {
+        /* Now compute any unset values from the defaults */
+        if (nneighbors < 0) {
+            nneighbors = sqrt(numpes);
+        }
+        if (nneighbors_stdv < 0) {
+            nneighbors_stdv = 0;
+        }
+        if (nowned < 0) {
+            nowned = (1<<28) / typesize;
+        }
+        if (nowned_stdv < 0) {
+            nowned_stdv = round(nowned*.05);
+        }
+        if (nremote < 0) {
+            nremote = nowned/(1 << 6);
+        }
+        if (nremote_stdv < 0) {
+            nremote_stdv = round(nremote*.1);
+        }
+        if (blocksz < 0) {
+            blocksz = nowned/(1 << 15);
+        }
+        if (blocksz_stdv < 0) {
+            blocksz_stdv = round(blocksz*.5);
+        }
+        if (stride < 0) {
+            stride = 16;
+        }
+        if (stride_stdv < 0) {
+            stride_stdv = 2 ;
+        }
     }
 
     return;
@@ -907,7 +1042,6 @@ int main(int argc, char *argv[])
     // parse CLI arguments
     parse_arguments(argc, argv, penum);
 
-    empirical_dist("comm_partners");
 
     // sets random seed for generating random distributions
     if (irregularity) {
