@@ -405,7 +405,7 @@ void usage_long(char *exename, int penum) {
             "      where the user-set parameters become averages for the random generation.\n"
             "      Use the `--disable-irregularity` flag to only run the reference benchmark.\n\n", exename);
     }
-    exit(-1);
+    exit(0);
 }
 
 void parse_arguments(int argc, char **argv, int penum)
