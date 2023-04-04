@@ -95,6 +95,14 @@ enum memspace {
 };
 typedef enum memspace memspace_t;
 
+// specifies the possible memory spaces (depends on support device)
+// also maps members of the memspace enum to the memspace_t type
+enum distribution {
+  GAUSSIAN,
+  EMPIRICAL
+};
+typedef enum distribution distribution_t;
+
 /*
  * We declare these settings as global
  * because they're used by basically every
@@ -128,6 +136,7 @@ static int stride_stdv = -1;
 static int unit_div = 1;
 static char * unit_symbol = "auto";
 static char * filepath = NULL;
+static distribution_t distribution_type = GAUSSIAN;
 static int irregularity = 1;
 static int irregularity_owned = 1;
 static int irregularity_neighbors = 1;
@@ -158,6 +167,7 @@ static struct option long_options[] = {
     {"stride",         required_argument, 0, 's'},
     {"seed",           required_argument, 0, 'S'},
     {"memspace",       required_argument, 0, 'm'},
+    {"distribution",   required_argument, 0, 'd'},
     {"units",          required_argument, 0, 'u'},
     {"disable-irregularity", no_argument, &irregularity, 0},
     {"disable-irregularity-owned", no_argument, &irregularity_owned, 0},
@@ -387,6 +397,7 @@ void usage_long(char *exename, int penum) {
             "[ -s stride        ]\tspecify avereage size of stride\n"
             "[ -S seed          ]\tspecify positive integer to be used as seed for random number generation (current time used as default)\n"
             "[ -m memspace      ]\tchoose from: host, cuda, openmp, opencl\n"
+            "[ -d distribution  ]\tchoose from: gaussian (default), empirical\n"
             "[ -u units         ]\tchoose from: a,b,k,m,g (auto, bytes, kilobytes, etc.)\n\n"
             "NOTE: setting parameters for the benchmark such as (neighbors, owned, remote, blocksize, and stride)\n"
             "      sets parameters to those values for the reference benchmark.\n"
@@ -405,7 +416,7 @@ void parse_arguments(int argc, char **argv, int penum)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, ":h:f:t:i:I:n:o:O:r:R:b:B:s:S:m:u:",
+        c = getopt_long (argc, argv, ":h:f:t:i:I:n:o:O:r:R:b:B:s:S:m:d:u:",
                        long_options, &option_index);
         if (c == -1) {
             break;
@@ -512,6 +523,18 @@ void parse_arguments(int argc, char **argv, int penum)
                     usage(argv[0], penum);
                 }
                 break;
+            case 'd':
+                // used to set distribution type
+                // valid options include gaussian, empirical
+                if (strcmp(optarg, "gaussian") == 0) {
+                    distribution_type = GAUSSIAN;
+                } else if (strcmp(optarg, "empirical") == 0) {
+                    distribution_type = EMPIRICAL;
+                } else {
+                    fprintf(stderr, "Invalid distribution type: %s\n", optarg);
+                    usage(argv[0], penum);
+                }
+                break;
             case 'u':
                 // used to set units value
                 if (strcmp(optarg, "a") == 0) {
@@ -555,6 +578,10 @@ void parse_arguments(int argc, char **argv, int penum)
         }
         parse_config_file();
     } else {
+        if (distribution_type == EMPIRICAL) {
+            if (penum == 0) printf("Error: empirical distributions must use a config file.\n");
+            exit(1);
+        }
         /* Now compute any unset values from the defaults */
         if (nneighbors < 0) {
             nneighbors = sqrt(numpes);
@@ -767,19 +794,69 @@ int benchmark(int penum) {
                 // as the starting point (mean, stdev) for the gaussian dist
                 */
                 if (irregularity_owned) {
-                    nowned = gauss_dist(nowned_orig, nowned_stdv);
+                    switch (distribution_type) {
+                        case GAUSSIAN:
+                            nowned = gauss_dist(nowned_orig, nowned_stdv);
+                            break;
+                        case EMPIRICAL:
+                            nowned = empirical_dist("nowned");
+                            break;
+                        default:
+                            nowned = nowned_orig;
+                            break;
+                    }
                 }
                 if (irregularity_remote) {
-                    nremote = gauss_dist(nremote_orig, nremote_orig);
+                    switch (distribution_type) {
+                        case GAUSSIAN:
+                            nremote = gauss_dist(nremote_orig, nremote_orig);
+                            break;
+                        case EMPIRICAL:
+                            nremote = empirical_dist("nremote");
+                            break;
+                        default:
+                            nremote = nremote_orig;
+                            break;
+                    }
                 }
                 if (irregularity_blocksz) {
-                    blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
+                    switch (distribution_type) {
+                        case GAUSSIAN:
+                            blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
+                            break;
+                        case EMPIRICAL:
+                            blocksz = empirical_dist("blocksize");
+                            break;
+                        default:
+                            blocksz = blocksz_orig;
+                            break;
+                    }
                 }
                 if (irregularity_neighbors) {
-                    nneighbors = gauss_dist(nneighbors_orig, 1);
+                    switch (distribution_type) {
+                        case GAUSSIAN:
+                            nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv);
+                            break;
+                        case EMPIRICAL:
+                            nneighbors = empirical_dist("comm_partners");
+                            break;
+                        default:
+                            nneighbors = nneighbors_orig;
+                            break;
+                    }
                 }
                 if (irregularity_stride) {
-                    stride = gauss_dist(stride_orig, 4);
+                    switch (distribution_type) {
+                        case GAUSSIAN:
+                            stride = gauss_dist(stride_orig, stride_stdv);
+                            break;
+                        case EMPIRICAL:
+                            stride = empirical_dist("stride");
+                            break;
+                        default:
+                            stride = stride_orig;
+                            break;
+                    }
                 }
 
 
