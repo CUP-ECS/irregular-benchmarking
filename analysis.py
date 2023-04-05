@@ -119,9 +119,9 @@ if __name__ == "__main__":
         "-c", "--clean", action="store_true", help="Removes previously generated files"
     )
     parser.add_argument(
-        "--disable-distribution-fitting",
-        action="store_false",
-        help="Disables lengthy process of fitting parameters to best distribution",
+        "--enable-distribution-fitting",
+        action="store_true",
+        help="enables lengthy process of fitting parameters to best distribution",
     )
 
     args = parser.parse_args()
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     # run analysis on parameter data
     params = Parameter(
         param_output,
-        fit_distribution=args.disable_distribution_fitting,
+        fit_distribution=args.enable_distribution_fitting,
         results_dir=results,
         bin_count=args.bin_count,
     )

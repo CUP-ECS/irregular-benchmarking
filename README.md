@@ -98,8 +98,8 @@ options:
   --bin-count [BIN_COUNT]
                         Specify number of bins for empirical distribution fitting Can be a numerical value or "auto" to set the value dynamically.
   -c, --clean           Removes previously generated files
-  --disable-distribution-fitting
-                        Disables lengthy process of fitting parameters to best distribution
+  --enable-distribution-fitting
+                        Enables lengthy process of fitting parameters to best distribution
 ```
 You must specify a path to a file where your parameter data is stored.
 This script generates a results directory named the same name as the parameter data file name. 
@@ -110,7 +110,6 @@ If this occurs, you can simply regenerate the file (which can take a while, plea
 It is **HIGHLY** recommended that you set the `--bin-count` flag to something sensible like 10 or 20.
 Leaving it on auto will potentially create a huge amount of bins.
 This is not a problem and can be handled just fine in the benchmark and by the script, but will cause significant processing time before the analysis and graphs are generated. 
-It is **HIGHLY** recommended that you enable the `--disable-distribution-fitting` setting as this is almost never needed and takes an extremely long time (this feature will likely be turned off by default in a future version of the script).
 
 ## Run the Benchmark
 
