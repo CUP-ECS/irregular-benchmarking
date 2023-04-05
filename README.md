@@ -97,6 +97,8 @@ Before running the `benchmark-runner.py` script, you will need the following:
 - Python 3
 - matplotlib
 - scipy
+- numpy
+- [fitter](https://pypi.org/project/fitter/)
 
 #### Running the Benchmark
 To run the benchmark, you will use the following command:
