@@ -145,7 +145,7 @@ mpirun ./benchmark
 To run the benchmark on a `BENCHMARK_CONFIG` (required for using an empirical distribution), you can pass in the path with a `-f [PATH]` flag. 
 You will also need to specify the correct distribution via the `-d` distribution flag. 
 For a full list of options, you can run `--help` to get the following:
-```bash
+```
 mpirun -np 1 ./benchmark --help
 usage: ./benchmark [-t typesize] [-I samples] [-i iterations] [-n neighbors] [-o owned] [-r remote] [-b blocksize] [-s stride] [-S seed] [-m memspace]
 
