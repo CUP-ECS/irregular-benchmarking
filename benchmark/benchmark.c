@@ -95,6 +95,14 @@ enum memspace {
 };
 typedef enum memspace memspace_t;
 
+// specifies the possible memory spaces (depends on support device)
+// also maps members of the memspace enum to the memspace_t type
+enum distribution {
+  GAUSSIAN,
+  EMPIRICAL
+};
+typedef enum distribution distribution_t;
+
 /*
  * We declare these settings as global
  * because they're used by basically every
@@ -116,6 +124,7 @@ static int numpes = 0;
 static int nsamples = 25;
 static int niterations = 100;
 static int nneighbors = -1;
+static int nneighbors_stdv = -1;
 static int nowned = -1;
 static int nowned_stdv = -1;
 static int nremote = -1;
@@ -123,19 +132,17 @@ static int nremote_stdv = -1;
 static int blocksz = -1;
 static int blocksz_stdv = -1;
 static int stride = -1;
+static int stride_stdv = -1;
 static int unit_div = 1;
 static char * unit_symbol = "auto";
+static char * filepath = NULL;
+static distribution_t distribution_type = GAUSSIAN;
 static int irregularity = 1;
 static int irregularity_owned = 1;
 static int irregularity_neighbors = 1;
 static int irregularity_stride = 1;
 static int irregularity_blocksz = 1;
 static int irregularity_remote = 1;
-static bool owned_default = false;
-static bool neighbors_default = false;
-static bool stride_default = false;
-static bool blocksz_default = false;
-static bool remote_default = false;
 static int seed = -1;
 static memspace_t memspace = MEMSPACE_HOST;
 
@@ -146,19 +153,23 @@ static memspace_t memspace = MEMSPACE_HOST;
 static struct option long_options[] = {
     /* These options set a flag. */
     {"help",           no_argument, 0, 'h'},
+    {"config_file",    required_argument, 0, 'f'},
     {"typesize",       required_argument, 0, 't'},
     {"owned",          required_argument, 0, 'o'},
     {"owned_stdv",     required_argument, 0, 'O'},
     {"iterations",     required_argument, 0, 'i'},
     {"samples"   ,     required_argument, 0, 'I'},
     {"neighbors",      required_argument, 0, 'n'},
+    {"neighbors_stdv", required_argument, 0, 'N'},
     {"remote",         required_argument, 0, 'r'},
     {"remote_stdv",    required_argument, 0, 'O'},
     {"blocksize",      required_argument, 0, 'b'},
     {"blocksize_stdv", required_argument, 0, 'B'},
     {"stride",         required_argument, 0, 's'},
+    {"stride_stdv",    required_argument, 0, 'T'},
     {"seed",           required_argument, 0, 'S'},
     {"memspace",       required_argument, 0, 'm'},
+    {"distribution",   required_argument, 0, 'd'},
     {"units",          required_argument, 0, 'u'},
     {"disable-irregularity", no_argument, &irregularity, 0},
     {"disable-irregularity-owned", no_argument, &irregularity_owned, 0},
@@ -168,6 +179,91 @@ static struct option long_options[] = {
     {"disable-irregularity-remote", no_argument, &irregularity_remote, 0},
     {0, 0, 0, 0}
 };
+
+void parse_config_file() {
+    char* params[] = { "nowned",
+                       "nremote",
+                       "blocksize",
+                       "stride",
+                       "comm_partners" };
+
+    for (int index = 0; index < (sizeof(params) / sizeof(params[0])); index++) {
+        char* param = params[index];
+
+        char param_key[25] = "PARAM: ";
+        strcat(param_key, param);
+
+        FILE* fp = fopen(filepath, "r");
+        if (fp == NULL) {
+            fprintf(stderr, "Error: Unable to open file %s\n", filepath);
+            exit(1);
+        }
+
+        char* line = NULL;
+        size_t linecap = 0;
+        ssize_t linelen;
+
+        // iterates through lines in the file until we get to the line
+        // that contains the parameter we're trying to generate for
+        while ((linelen = getline(&line, &linecap, fp)) != -1) {
+            // remove trailing new line to better do comparison
+            if (linelen > 0 && line[linelen-1] == '\n') {
+                line[linelen-1] = '\0';
+            }
+
+            // if the correct parameter is found,
+            // stop iterating through the file
+            if (strcmp(param_key, line) == 0) {
+                break;
+            }
+        }
+
+        // iterates through non-bin data points
+        for (int i = 0; i < 5; i++) {
+            // gets the next line which contains the BIN_COUNT data
+            linelen = getline(&line, &linecap, fp);
+
+            // remove trailing new line to better do comparison
+            if (linelen > 0 && line[linelen-1] == '\n') {
+                line[linelen-1] = '\0';
+            }
+
+            // gets the name of the data point being read
+            char* token = strtok(line, ":");
+
+            // writes the correct token value to the correct variable from file input
+            if (strcmp(token, "MEAN") == 0) {
+                // puts the mean value in the correct parameter spot
+                // based on current parameter choice
+                if (strcmp(param, "nowned") == 0) {
+                    nowned = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "nremote") == 0) {
+                    nremote = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "blocksize") == 0) {
+                    blocksz = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "stride") == 0) {
+                    stride = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "comm_partners") == 0) {
+                    nneighbors = atoi(strtok(NULL, " "));
+                }
+            } else if (strcmp(token, "STDEV") == 0) {
+                // puts the stdev value in the correct parameter spot
+                // based on current parameter choice
+                if (strcmp(param, "nowned") == 0) {
+                    nowned_stdv = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "nremote") == 0) {
+                    nremote_stdv = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "blocksize") == 0) {
+                    blocksz_stdv = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "stride") == 0) {
+                    stride_stdv = atoi(strtok(NULL, " "));
+                } else if (strcmp(param, "comm_partners") == 0) {
+                    nneighbors_stdv = atoi(strtok(NULL, " "));
+                }
+            }
+        }
+    }
+}
 
 
 // implementation of the following
@@ -198,6 +294,173 @@ int gauss_dist(double mean, double stdev) {
 }
 
 
+// approx. implementation of the following for empirical distributions
+// https://commons.apache.org/proper/commons-math/javadocs/api-3.6.1/org/apache/commons/math3/random/EmpiricalDistribution.html
+//
+// NOTE: this has been customized for use within this benchmark
+//       and much of the statistical analysis required has been
+//       precomputed for ease of use. You should not take the following
+//       as a faithful and self-contained reproduction of the above link.
+int empirical_dist(char param[]) {
+    // set the parameter string to look for.
+    char param_key[25] = "PARAM: ";
+    strcat(param_key, param);
+
+    // attempts to open the file pointer
+    // and ensure that the file can be read
+    // exits if fails
+    FILE* fp = fopen(filepath, "r");
+    if (fp == NULL) {
+        fprintf(stderr, "Error: Unable to open file %s\n", filepath);
+        exit(1);
+    }
+
+    // stores the current read line and
+    // some auxiliary information that assists in parsing the file
+    char* line = NULL;
+    size_t linecap = 0;
+    ssize_t linelen;
+
+    // iterates through lines in the file until we get to the line
+    // that contains the parameter we're trying to generate for
+    while ((linelen = getline(&line, &linecap, fp)) != -1) {
+        // remove trailing new line to better do comparison
+        if (linelen > 0 && line[linelen-1] == '\n') {
+            line[linelen-1] = '\0';
+        }
+
+        // if the correct parameter is found,
+        // stop iterating through the file
+        if (strcmp(param_key, line) == 0) {
+            break;
+        }
+    }
+
+    int binCount;
+    int dataMin;
+    int dataMax;
+    int dataMean;
+    int dataStdev;
+
+    // Iterates through non-bin data points
+    // and collect information about the data and number of bins
+    for (int i = 0; i < 5; i++) {
+        // gets the next line which contains the BIN_COUNT data
+        linelen = getline(&line, &linecap, fp);
+
+        // remove trailing new line to better do comparison
+        if (linelen > 0 && line[linelen-1] == '\n') {
+            line[linelen-1] = '\0';
+        }
+
+        // gets the name of the data point being read
+        char* token = strtok(line, ":");
+
+        // writes the correct token value to the correct variable from file input
+        if (strcmp(token, "BIN_COUNT") == 0) {
+            binCount = atoi(strtok(NULL, " "));
+        } else if (strcmp(token, "MIN") == 0) {
+            dataMin = atoi(strtok(NULL, " "));
+        } else if (strcmp(token, "MAX") == 0) {
+            dataMax = atoi(strtok(NULL, " "));
+        } else if (strcmp(token, "MEAN") == 0) {
+            dataMean = atoi(strtok(NULL, " "));
+        } else if (strcmp(token, "STDEV") == 0) {
+            dataStdev = atoi(strtok(NULL, " "));
+        } else {
+            printf("Error: reading data file failed, invalid data point found: %s\n", token);
+            exit(1);
+        }
+    }
+
+    // do a quick sanity check to ensure that the data doesn't only
+    // fall into a single bin
+    if (dataMin == dataMax) {
+        // close file as reading is no longer required
+        fclose(fp);
+
+        return dataMin; // could also return data max, is arbitrary
+    }
+
+    // chose a uniformly distributed value between (0,1)
+    double binSelection  = ((double)rand()) / RAND_MAX;
+
+    // used to track if we have checked a bin
+    // if we have/are, the bin's proportion of the total dataset
+    // is added to the binSum.
+    // If the binSelection falls under the binSum, it is said
+    // to be in the bin and we can use that bin's data to generate values
+    double binSum = 0.0;
+
+    // iterates through the bins for a parameter to identity
+    // which one should be chosen based on the random binSelection
+    // value chosen above
+    for (int i = 0; i < binCount; i++) {
+        // gets the next line which contains the BIN_COUNT data
+        linelen = getline(&line, &linecap, fp);
+
+        // remove trailing new line to better do comparison
+        if (linelen > 0 && line[linelen-1] == '\n') {
+            line[linelen-1] = '\0';
+        }
+
+        // stores data from the current bin being checked
+        int binMin;
+        int binMax;
+        int binMean;
+        int binStdev;
+
+        // gets the bin minimum data point
+        char* token = strtok(line, ",");
+        binMin = atoi(token);
+
+        // gets the bin maximum data point
+        token = strtok(NULL, ",");
+        binMax = atoi(token);
+
+        // gets the binProp value and adds it to the binSum
+        token = strtok(NULL, ",");
+        binSum += strtod(token, NULL);
+
+        // if so, then the selection is in the most
+        // recently search bin, so we can proceed to
+        // generating a random value
+        if (binSelection < binSum) {
+
+            // if the bin is the correct one,
+            // get the mean of the data points
+            // for this bin
+            token = strtok(NULL, ",");
+            binMean = atoi(token);
+
+            // if the bin is the correct one,
+            // get the standard deviation of the
+            // data points in this bin
+            token = strtok(NULL, ",");
+            binStdev = atoi(token);
+
+            // close file as reading is no longer required
+            fclose(fp);
+
+            // return a normally distributed value with the
+            // mean and standard deviation from the
+            // chosen bin
+
+            return gauss_dist(binMean, binStdev);
+        }
+
+    }
+
+    // if we have somehow made it to this point
+    // without generating a value, we should throw an error
+    printf("Error: empirical value could not be generated due to an unknown error.\n");
+    printf("\tParameter type being generated: %s\n", param);
+    printf("\tConfig file which could have caused this error: %s\n", filepath);
+    printf("\tIf you encounter a bug which causes this for any reason, please open an issue on Github\n");
+    exit(1);
+}
+
+
 // offers a help string to define parameters in the CLI
 void usage(char *exename, int penum)
 {
@@ -213,43 +476,58 @@ void usage_long(char *exename, int penum) {
     if (penum == 0) {
         fprintf(stdout,
             "usage: %s [-t typesize] [-I samples] [-i iterations] [-n neighbors] [-o owned] [-r remote] [-b blocksize] [-s stride] [-S seed] [-m memspace]\n\n"
-            "[ -t typesize      ]\tspecify the size of the variable being sent (in bytes)\n"
-            "[ -I samples       ]\tspecify the number of random samples to generate\n"
-            "[ -i iterations    ]\tspecify the number of updates each sample performs\n"
-            "[ -n neighbors     ]\tspecify the average number of neighbors each process communicates with \n"
-            "[ -o owned_avg     ]\tspecify average byte count for data owned per node\n"
-            "[ -O owned_stv     ]\tspecify stdev byte count for data owned per node\n"
-            "[ -r remote_avg    ]\tspecify how average amount of data each process receives\n"
-            "[ -R remote_stv    ]\tspecify how average amount of data each process receives\n"
-            "[ -b blocksize_avg ]\tspecify average size of transmitted blocks\n"
-            "[ -B blocksize_std ]\tspecify average size of transmitted blocks\n"
-            "[ -s stride        ]\tspecify avereage size of stride\n"
-            "[ -S seed          ]\tspecify positive integer to be used as seed for random number generation (current time used as default)\n"
-            "[ -m memspace      ]\tchoose from: host, cuda, openmp, opencl\n"
-            "[ -u units         ]\tchoose from: a,b,k,m,g (auto, bytes, kilobytes, etc.)\n\n"
+            "[ -f filepath       ]\tspecify the path to the BENCHMARK_CONFIG file"
+            "[ -t typesize       ]\tspecify the size of the variable being sent (in bytes)\n"
+            "[ -I samples        ]\tspecify the number of random samples to generate\n"
+            "[ -i iterations     ]\tspecify the number of updates each sample performs\n"
+            "[ -n neighbors      ]\tspecify the average number of neighbors each process communicates with \n"
+            "[ -N neighbors_stdv ]\tspecify the stdev number of neighbors each process communicates with \n"
+            "[ -o owned_avg      ]\tspecify average byte count for data owned per node\n"
+            "[ -O owned_stdv     ]\tspecify stdev byte count for data owned per node\n"
+            "[ -r remote_avg     ]\tspecify how average amount of data each process receives\n"
+            "[ -R remote_stdv    ]\tspecify how average amount of data each process receives\n"
+            "[ -b blocksize_avg  ]\tspecify average size of transmitted blocks\n"
+            "[ -B blocksize_stdv ]\tspecify average size of transmitted blocks\n"
+            "[ -s stride         ]\tspecify average size of stride\n"
+            "[ -T stride_stdv    ]\tspecify stdev size of stride\n"
+            "[ -S seed           ]\tspecify positive integer to be used as seed for random number generation (current time used as default)\n"
+            "[ -m memspace       ]\tchoose from: host, cuda, openmp, opencl\n"
+            "[ -d distribution   ]\tchoose from: gaussian (default), empirical\n"
+            "[ -u units          ]\tchoose from: a,b,k,m,g (auto, bytes, kilobytes, etc.)\n\n"
             "NOTE: setting parameters for the benchmark such as (neighbors, owned, remote, blocksize, and stride)\n"
             "      sets parameters to those values for the reference benchmark.\n"
             "      Those parameters are then randomized for the irregular samples\n"
             "      where the user-set parameters become averages for the random generation.\n"
             "      Use the `--disable-irregularity` flag to only run the reference benchmark.\n\n", exename);
     }
-    exit(-1);
+    exit(0);
 }
 
 void parse_arguments(int argc, char **argv, int penum)
 {
     int c;
+    bool config_file_used = false;
     while (1) {
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, ":h:t:i:I:n:o:O:r:R:b:B:s:S:m:u:",
+        c = getopt_long (argc, argv, ":h:f:t:i:I:n:N:o:O:r:R:b:B:s:T:S:m:d:u:",
                        long_options, &option_index);
         if (c == -1) {
             break;
         }
 
         switch (c) {
+            case 'f':
+                // used to load BENCHMARK_CONFIG filepath
+                filepath = optarg;
+
+                if (access(filepath, F_OK) == -1) {
+                    printf("ERROR: the specified filepath doesn't exist, exiting...\n");
+                    exit(-1);
+                }
+                config_file_used = true;
+                break;
             case 'i':
                 // used to set custom iteration's value
                 niterations = atoi(optarg);
@@ -268,6 +546,11 @@ void parse_arguments(int argc, char **argv, int penum)
                 // used to set nneighbors value
                 nneighbors = atoi(optarg);
                 if (nneighbors < 0) usage(argv[0], penum);
+                break;
+            case 'N':
+                // used to set nneighbors_stdv value
+                nneighbors_stdv = atoi(optarg);
+                if (nneighbors_stdv < 0) usage(argv[0], penum);
                 break;
             case 'o':
                 // used to set nowned value
@@ -303,6 +586,11 @@ void parse_arguments(int argc, char **argv, int penum)
                 // used to set stride size value
                 stride = atoi(optarg);
                 if (stride < 0) usage(argv[0], penum);
+                break;
+            case 'T':
+                // used to set stride size value
+                stride_stdv = atoi(optarg);
+                if (stride_stdv < 0) usage(argv[0], penum);
                 break;
             case 'S':
                 // used to set stride size value
@@ -340,6 +628,18 @@ void parse_arguments(int argc, char **argv, int penum)
                     usage(argv[0], penum);
                 }
                 break;
+            case 'd':
+                // used to set distribution type
+                // valid options include gaussian, empirical
+                if (strcmp(optarg, "gaussian") == 0) {
+                    distribution_type = GAUSSIAN;
+                } else if (strcmp(optarg, "empirical") == 0) {
+                    distribution_type = EMPIRICAL;
+                } else {
+                    fprintf(stderr, "Invalid distribution type: %s\n", optarg);
+                    usage(argv[0], penum);
+                }
+                break;
             case 'u':
                 // used to set units value
                 if (strcmp(optarg, "a") == 0) {
@@ -369,35 +669,55 @@ void parse_arguments(int argc, char **argv, int penum)
                 break;
         }
     }
-    /* Now compute any unset values from the defaults */
-    if (nneighbors < 0) {
-        nneighbors = sqrt(numpes);
-        neighbors_default = true;
-    }
-    if (nowned < 0) {
-        nowned = (1<<28) / typesize;
-        owned_default = true;
-    }
-    if (nowned_stdv < 0) {
-        nowned_stdv = round(nowned*.05);
-    }
-    if (nremote < 0) {
-        nremote = nowned/(1 << 6);
-        remote_default = true;
-    }
-    if (nremote_stdv < 0) {
-        nremote_stdv = round(nremote*.1);
-    }
-    if (blocksz < 0) {
-        blocksz = nowned/(1 << 15);
-        blocksz_default = true;
-    }
-    if (blocksz_stdv < 0) {
-        blocksz_stdv = blocksz;
-    }
-    if (stride < 0) {
-        stride = 16;
-        stride_default = true;
+
+    /* parses the config file to set default mean & stdev values for:
+     * - nowned
+     * - nremote
+     * - blocksize
+     * - stride
+     * - comm_partners
+    */
+    if (config_file_used) {
+        if (penum == 0) {
+            printf("WARNING: using a config file will override all other CLI argument values used for setting mean and standard deviation.\n");
+        }
+        parse_config_file();
+    } else {
+        if (distribution_type == EMPIRICAL) {
+            if (penum == 0) printf("Error: empirical distributions must use a config file.\n");
+            exit(1);
+        }
+        /* Now compute any unset values from the defaults */
+        if (nneighbors < 0) {
+            nneighbors = sqrt(numpes);
+        }
+        if (nneighbors_stdv < 0) {
+            nneighbors_stdv = 0;
+        }
+        if (nowned < 0) {
+            nowned = (1<<28) / typesize;
+        }
+        if (nowned_stdv < 0) {
+            nowned_stdv = round(nowned*.05);
+        }
+        if (nremote < 0) {
+            nremote = nowned/(1 << 6);
+        }
+        if (nremote_stdv < 0) {
+            nremote_stdv = round(nremote*.1);
+        }
+        if (blocksz < 0) {
+            blocksz = nowned/(1 << 15);
+        }
+        if (blocksz_stdv < 0) {
+            blocksz_stdv = round(blocksz*.5);
+        }
+        if (stride < 0) {
+            stride = 16;
+        }
+        if (stride_stdv < 0) {
+            stride_stdv = 2 ;
+        }
     }
 
     return;
@@ -579,19 +899,69 @@ int benchmark(int penum) {
                 // as the starting point (mean, stdev) for the gaussian dist
                 */
                 if (irregularity_owned) {
-                    nowned = gauss_dist(nowned_orig, nowned_stdv);
+                    switch (distribution_type) {
+                        case GAUSSIAN:
+                            nowned = gauss_dist(nowned_orig, nowned_stdv);
+                            break;
+                        case EMPIRICAL:
+                            nowned = empirical_dist("nowned");
+                            break;
+                        default:
+                            nowned = nowned_orig;
+                            break;
+                    }
                 }
                 if (irregularity_remote) {
-                    nremote = gauss_dist(nremote_orig, nremote_orig);
+                    switch (distribution_type) {
+                        case GAUSSIAN:
+                            nremote = gauss_dist(nremote_orig, nremote_orig);
+                            break;
+                        case EMPIRICAL:
+                            nremote = empirical_dist("nremote");
+                            break;
+                        default:
+                            nremote = nremote_orig;
+                            break;
+                    }
                 }
                 if (irregularity_blocksz) {
-                    blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
+                    switch (distribution_type) {
+                        case GAUSSIAN:
+                            blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
+                            break;
+                        case EMPIRICAL:
+                            blocksz = empirical_dist("blocksize");
+                            break;
+                        default:
+                            blocksz = blocksz_orig;
+                            break;
+                    }
                 }
                 if (irregularity_neighbors) {
-                    nneighbors = gauss_dist(nneighbors_orig, 1);
+                    switch (distribution_type) {
+                        case GAUSSIAN:
+                            nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv);
+                            break;
+                        case EMPIRICAL:
+                            nneighbors = empirical_dist("comm_partners");
+                            break;
+                        default:
+                            nneighbors = nneighbors_orig;
+                            break;
+                    }
                 }
                 if (irregularity_stride) {
-                    stride = gauss_dist(stride_orig, 4);
+                    switch (distribution_type) {
+                        case GAUSSIAN:
+                            stride = gauss_dist(stride_orig, stride_stdv);
+                            break;
+                        case EMPIRICAL:
+                            stride = empirical_dist("stride");
+                            break;
+                        default:
+                            stride = stride_orig;
+                            break;
+                    }
                 }
 
 
@@ -853,6 +1223,7 @@ int main(int argc, char *argv[])
 
     // parse CLI arguments
     parse_arguments(argc, argv, penum);
+
 
     // sets random seed for generating random distributions
     if (irregularity) {

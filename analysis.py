@@ -103,6 +103,19 @@ if __name__ == "__main__":
         help="Overrides where results are stored",
     )
     parser.add_argument(
+        "--bin-count",
+        dest="bin_count",
+        default="auto",
+        action="store",
+        nargs="?",
+        type=str,
+        required=False,
+        help="""
+             Specify number of bins for empirical distribution fitting\n
+             Can be a numerical value or \"auto\" to set the value dynamically.
+             """,
+    )
+    parser.add_argument(
         "-c", "--clean", action="store_true", help="Removes previously generated files"
     )
     parser.add_argument(
@@ -116,6 +129,10 @@ if __name__ == "__main__":
     # parameter path must be specified
     if not args.param_path:
         raise SystemExit("Error: no path to parameter log file specified")
+
+    if args.bin_count != "auto":
+        if not args.bin_count.isnumeric():
+            sys.exit("Error: the bin-count argument must be an integer or auto")
 
     # bootstrap results directory
     file_name = args.param_path.split("/")[-1].split(".")[0]
@@ -135,7 +152,12 @@ if __name__ == "__main__":
         )
 
     # run analysis on parameter data
-    params = Parameter(param_output, fit_distribution=args.disable_distribution_fitting)
+    params = Parameter(
+        param_output,
+        fit_distribution=args.disable_distribution_fitting,
+        results_dir=results,
+        bin_count=args.bin_count,
+    )
 
     # generate distribution plots
     analysis(params, results, file_name)

@@ -17,13 +17,13 @@ class Cabana(CMakePackage):
     """
 
     homepage = "https://github.com/ECP-copa/Cabana"
-    git = "https://github.com/carsonwoods/Cabana.git"
+    git = "https://github.com/CUP-ECS/Cabana.git"
 
     maintainers = ["carsonwoods"]
 
     tags = ["e4s", "ecp"]
 
-    version("master", branch="master")
+    version("instrumented", branch="instrumented")
 
     _kokkos_backends = Kokkos.devices_variants
     for _backend in _kokkos_backends:
