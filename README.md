@@ -1,5 +1,5 @@
-# irregular-benchmarking
-Collection of scripts to perform analysis and benchmarking on parameters extracted from various mini-apps.
+# Irregular MPI Benchmarking and Statistical Analysis
+Collection of scripts to perform analysis and on parameters extracted from various mini-apps.
 
 Please read the following for descriptions on data formats, analysis scripts, and build instructions for the benchmark included in this repository. 
 
@@ -174,3 +174,7 @@ NOTE: setting parameters for the benchmark such as (neighbors, owned, remote, bl
       where the user-set parameters become averages for the random generation.
       Use the `--disable-irregularity` flag to only run the reference benchmark.
 ```
+
+It is, of course, expected that you should update the `mpirun` command to better use and take advantage of your system's resources. 
+This could include using Slurm for resource allocation and management. 
+This README does not include how to accomplish that, however there shouldn't be any problems with such an approach. 
