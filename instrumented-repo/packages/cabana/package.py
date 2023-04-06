@@ -43,7 +43,7 @@ class Cabana(CMakePackage):
     depends_on("cmake@3.9:", type="build", when="@:0.4.0")
     depends_on("cmake@3.16:", type="build", when="@0.5.0:")
     depends_on("googletest", type="build", when="testing")
-    _versions = {":0.2": "-legacy", "0.3:": "@3.1:", "0.4:": "@3.2:", "master": "@3.4:", "instrumented": "@3.2"}
+    _versions = {":0.2": "-legacy", "0.3:": "@3.1:", "0.4:": "@3.2:", "master": "@3.4:", "instrumented": "@3.4"}
     for _version in _versions:
         _kk_version = _versions[_version]
         for _backend in _kokkos_backends:
@@ -54,6 +54,8 @@ class Cabana(CMakePackage):
             else:
                 _kk_spec = "kokkos{0}+{1}".format(_kk_version, _backend)
             depends_on(_kk_spec, when="@{0}+{1}".format(_version, _backend))
+    
+    depends_on("kokkos@3.4", when="@instrumented", type=("build", "link", "run")), 
     depends_on("arborx", when="@0.3.0:+arborx")
     depends_on("hypre-cmake@2.22.0:", when="@0.4.0:+hypre")
     depends_on("hypre-cmake@2.22.1:", when="@0.5.0:+hypre")
