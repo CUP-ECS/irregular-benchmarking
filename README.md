@@ -25,8 +25,16 @@ The parser takes all instances of a parameter in a file and averages it to get t
 Failing to report a parameter results in the default value of 0.
 Obviously, this could cause failures depending on the parameter so be sure to check that your values are being parsed correctly.
 Write all of this data to a **single** text file and save it in a location the scripts can read from.
+
 For an example parameter file, see `data/example_data/example_clamr_parameter.txt`.
 You can run any of the scripts in the repository on this parameter file to see how it behaves.
+For real-world application data, you can unzip either `data/CLAMR.tar.gz` or `data/CabanaMD.tar.gz` and find the relevant data files in those directories. 
+Within those tarballs are subdirectories corresponding to the number of nodes used for each application run. 
+The parameter data files are named in the format:
+```
+[APP_NAME]_[SYSTEM_NAME]_[NODE_COUNT]_[PROC_COUNT_PER_NODE].txt
+```
+You can ignore any `slurm-[JOB_ID].out` files as they are primarily for logging and debugging purposes, but serve no purpose in the analysis and benchmarking steps below. 
 
 ## Spack Repository
 If you are wanting to collect data yourself, you can install the instrumented versions of the following applications via a private Spack repo:
