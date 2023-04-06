@@ -23,7 +23,7 @@ class Cabanamd(CMakePackage):
     variant("nnp", default=False, description="Enable neural network potential")
     variant("cuda", default=False, description="Enable CUDA support")
 
-    depends_on("cabana@master +cajita", type=("build", "link", "run"))
+    depends_on("cabana@instrumented +cajita", type=("build", "link", "run"))
     depends_on("kokkos@3.4 +cuda +wrapper", type=("build", "link", "run"), when="+cuda")
     depends_on("kokkos@3.4", type=("build", "link", "run"), when="~cuda")
     depends_on("googletest@1.10.0", type=("build", "link", "run"))
