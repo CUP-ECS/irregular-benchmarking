@@ -2,7 +2,6 @@ import statistics
 import os
 import numpy as np
 import concurrent.futures
-from fitter import Fitter, get_common_distributions, get_distributions
 
 
 class Parameter:
@@ -17,6 +16,38 @@ class Parameter:
         self.updates_per_setup = []
         self.fit_distribution = fit_distribution
 
+        if "|" in param_file[0]:
+            self.xrage_data_parser(param_file)
+        else:
+            self.data_parser(param_file)
+
+        if fit_distribution == True:
+            self.nowned_distr = self._dist_test(self.nowned)
+            self.nremote_distr = self._dist_test(self.nremote)
+            self.blocksize_distr = self._dist_test(self.blocksize)
+            self.stride_distr = self._dist_test(self.stride)
+            self.comm_partners_distr = self._dist_test(self.comm_partners)
+            self.updates_per_setup_distr = self._dist_test(self.updates_per_setup)
+
+        if results_dir is not None:
+            self.generate_file(results_dir, bin_count)
+
+    def xrage_data_parser(self, param_file):
+        line_num = 0
+        for param_line in param_file:
+            param_line = param_line.strip()
+            if line_num != 0:
+                split_line = param_line.split("|")
+                split_line.pop()
+                split_line = [int(float(x)) for x in split_line]
+                rank = split_line[0]
+                token_id = split_line[1]
+                self.nowned.append(split_line[2] + split_line[3])
+                self.nremote.append(split_line[2])
+                self.comm_partners.append(split_line[5])
+            line_num += 1
+
+    def data_parser(self, param_file):
         for param_line in param_file:
             # ensures we don't accidentally pick up
             # from regular program output
@@ -51,17 +82,6 @@ class Parameter:
                     self.updates_per_setup.append(0)
                 elif "update called" in line:
                     self.updates_per_setup[-1] = self.updates_per_setup[-1] + 1
-
-        if fit_distribution == True:
-            self.nowned_distr = self._dist_test(self.nowned)
-            self.nremote_distr = self._dist_test(self.nremote)
-            self.blocksize_distr = self._dist_test(self.blocksize)
-            self.stride_distr = self._dist_test(self.stride)
-            self.comm_partners_distr = self._dist_test(self.comm_partners)
-            self.updates_per_setup_distr = self._dist_test(self.updates_per_setup)
-
-        if results_dir is not None:
-            self.generate_file(results_dir, bin_count)
 
     def nowned_mean(self):
         if len(self.nowned) == 0:
@@ -185,23 +205,28 @@ class Parameter:
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
-            futures.append(
-                executor.submit(self.binify, "nowned", self.nowned, bin_count)
-            )
-            futures.append(
-                executor.submit(self.binify, "nremote", self.nremote, bin_count)
-            )
-            futures.append(
-                executor.submit(self.binify, "blocksize", self.blocksize, bin_count)
-            )
-            futures.append(
-                executor.submit(self.binify, "stride", self.stride, bin_count)
-            )
-            futures.append(
-                executor.submit(
-                    self.binify, "comm_partners", self.comm_partners, bin_count
+            if len(self.nowned) > 0:
+                futures.append(
+                    executor.submit(self.binify, "nowned", self.nowned, bin_count)
                 )
-            )
+            if len(self.nremote) > 0:
+                futures.append(
+                    executor.submit(self.binify, "nremote", self.nremote, bin_count)
+                )
+            if len(self.blocksize) > 0:
+                futures.append(
+                    executor.submit(self.binify, "blocksize", self.blocksize, bin_count)
+                )
+            if len(self.stride) > 0:
+                futures.append(
+                    executor.submit(self.binify, "stride", self.stride, bin_count)
+                )
+            if len(self.comm_partners) > 0:
+                futures.append(
+                    executor.submit(
+                        self.binify, "comm_partners", self.comm_partners, bin_count
+                    )
+                )
 
             results = [f.result() for f in concurrent.futures.as_completed(futures)]
 

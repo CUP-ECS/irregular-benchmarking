@@ -146,6 +146,16 @@ static int irregularity_remote = 1;
 static int seed = -1;
 static memspace_t memspace = MEMSPACE_HOST;
 
+float finalLatencyMean = 0;
+float finalLatencyMin  = 0;
+float finalLatencyMed  = 0;
+float finalLatencyMax  = 0;
+
+float finalBandwidthMean = 0;
+float finalBandwidthMin  = 0;
+float finalBandwidthMed  = 0;
+float finalBandwidthMax  = 0;
+
 /*
  * specifies the options that can be passed
  * into the benchmark
@@ -761,6 +771,34 @@ enum  L7_Datatype typesize_to_l7type(int type_size)
    }
 }
 
+void report_final_results() {
+  finalBandwidthMean /= nsamples;
+
+  if (strcmp(unit_symbol, "auto") == 0) {
+      if (finalBandwidthMean >= 1000000000) {
+          unit_div = 1000000000;
+          unit_symbol = "GB/s";
+      } else if (finalBandwidthMean >= 1000000) {
+          unit_div = 1000000;
+          unit_symbol = "MB/s";
+      } else if (finalBandwidthMean >= 1000) {
+          unit_div = 1000;
+          unit_symbol = "KB/s";
+      } else {
+          unit_div = 1;
+          unit_symbol = "Bytes/s";
+      }
+  }
+
+  // Print results
+  printf("Final Results (across samples):\n");
+  printf("Lat - secs (avg/min/max)\tBW - %s (avg/min/max)\n", unit_symbol);
+  printf("%f/%f/%f,\t%f/%f/%f\n",
+         finalLatencyMean, finalLatencyMin,
+         finalLatencyMax, finalBandwidthMean/unit_div, finalBandwidthMin/unit_div, finalBandwidthMax/unit_div);
+
+}
+
 void report_results_update(int penum, double *time_total_pe, int count_updated_pe, int num_timings, int type_size)
 {
     int i, count_updated_global, bytes_updated, remainder;
@@ -777,8 +815,7 @@ void report_results_update(int penum, double *time_total_pe, int count_updated_p
     L7_Sum(&count_updated_pe, 1, L7_INT, &count_updated_global);
     bytes_updated = count_updated_global*type_size;
 
-    // if the process is the first process
-    // (sets logic to run on first process)
+    // eliminates prints across all but 1 process
     if (penum == 0)
     {
         double *bandwidth_global = (double *)malloc(num_timings*sizeof(double));
@@ -805,11 +842,11 @@ void report_results_update(int penum, double *time_total_pe, int count_updated_p
         latency_mean /= num_timings;
         bandwidth_mean /= num_timings;
 
-        /* Sort the arrays to compute the min, median, and max latency/bandwidth */
+        // Sort the arrays to compute the min, median, and max latency/bandwidth
         qsort(time_total_global, num_timings, sizeof(double), double_compare);
         qsort(bandwidth_global, num_timings, sizeof(double), double_compare);
 
-        /* Properly compute the median */
+        // Properly compute the median
         if (num_timings % 2) {
             // runs if odd number of timings
             latency_med = time_total_global[num_timings/2];
@@ -838,9 +875,9 @@ void report_results_update(int penum, double *time_total_pe, int count_updated_p
             }
         }
 
-        /* Print results */
+        // Print results
         printf("nPEs\tMem\tType\tnOwned\tnRemote\tBlockSz\tStride\tnIter");
-        printf("\tLat(avg/min/med/max)\t\t\tBW - %s (avg/min/med/max)\n", unit_symbol);
+        printf("\tLat - secs (avg/min/med/max)\t\tBW - %s (avg/min/med/max)\n", unit_symbol);
         printf("%d,\t%d,\t%d,\t%d,\t%d,\t%d,\t%d,\t%d,",
                numpes, memspace, typesize, nowned,
                nremote, blocksz, stride, num_timings);
@@ -849,6 +886,23 @@ void report_results_update(int penum, double *time_total_pe, int count_updated_p
                time_total_global[num_timings-1], bandwidth_mean/unit_div,
                bandwidth_global[0]/unit_div, bandwidth_med/unit_div, bandwidth_global[num_timings-1]/unit_div);
 
+        // global value recording for overall averages (end result)
+        if (finalLatencyMin > time_total_global[0]) {
+          finalLatencyMin = time_total_global[0];
+        }
+        if (finalLatencyMax < time_total_global[num_timings-1]) {
+          finalLatencyMax = time_total_global[num_timings-1];
+        }
+        finalLatencyMean += latency_mean;
+        if (finalBandwidthMin > bandwidth_global[0]) {
+          finalBandwidthMin = bandwidth_global[0];
+        }
+        if (finalBandwidthMax < bandwidth_global[num_timings-1]) {
+          finalBandwidthMax = bandwidth_global[num_timings-1];
+        }
+        finalBandwidthMean += bandwidth_mean;
+
+        // free dynamically allocated variable
         free(bandwidth_global);
     }
 
@@ -1206,8 +1260,13 @@ int benchmark(int penum) {
         L7_Free(&l7_id);
     }
 
+    if (penum == 0) {
+      report_final_results();
+    }
+
     out:
        L7_Terminate();
+
 
     return 0;
 }
