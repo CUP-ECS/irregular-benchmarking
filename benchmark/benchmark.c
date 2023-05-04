@@ -1051,21 +1051,26 @@ int benchmark(int penum) {
 
         // if compiled with OpenCL support
         #ifdef HAVE_OPENCL
-        // attempts to initialize OpenCL on GPU
-        int ierr = ezcl_devtype_init(CL_DEVICE_TYPE_GPU);
-        if (ierr == EZCL_NODEVICE) {
-            ierr = ezcl_devtype_init(CL_DEVICE_TYPE_CPU);
-        }
 
-        // if EZCL fails to initialize, exit
-        if (ierr != EZCL_SUCCESS) {
-            printf("No opencl device available -- aborting\n");
-            exit(-1);
-        }
+        // can cause issues if OpenCL is supported on a system
+        // but was not intentionall run
+        if (memspace == MEMSPACE_OPENCL) {
+          // attempts to initialize OpenCL on GPU
+          int ierr = ezcl_devtype_init(CL_DEVICE_TYPE_GPU);
+          if (ierr == EZCL_NODEVICE) {
+              ierr = ezcl_devtype_init(CL_DEVICE_TYPE_CPU);
+          }
 
-        // if OpenCL was initialized successfully,
-        // initialize L7 device
-        L7_Dev_Init();
+          // if EZCL fails to initialize, exit
+          if (ierr != EZCL_SUCCESS) {
+              printf("No opencl device available -- aborting\n");
+              exit(-1);
+          }
+
+          // if OpenCL was initialized successfully,
+          // initialize L7 device
+          L7_Dev_Init();
+        }
         #endif
 
         // initialize pointer (type double)
