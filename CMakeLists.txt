@@ -401,7 +401,7 @@ if(OpenCL_FOUND)
    set_target_properties(benchmark PROPERTIES COMPILE_DEFINITIONS HAVE_OPENCL)
 
    target_sources(benchmark PRIVATE benchmark/l7_update_opencl.c)
-   add_custom_target(benchmark/l7_update_opencl.c DEPENDS l7_update_kern_source)
+   add_custom_target(l7_update_opencl.c DEPENDS l7_update_kern_source)
 
    target_link_libraries(benchmark PRIVATE ${OpenCL_LIBRARIES})
 endif(OpenCL_FOUND)
