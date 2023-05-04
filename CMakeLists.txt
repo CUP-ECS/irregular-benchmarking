@@ -395,7 +395,7 @@ if(OpenCL_FOUND)
    message("Compiling benchmark with OpenCL accelerator support")
    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/l7_update_kern.inc
                   COMMAND ${CMAKE_SOURCE_DIR}/benchmark/embed_source.pl ${CMAKE_SOURCE_DIR}/benchmark/l7_update_kern.cl > l7_update_kern.inc
-                  DEPENDS benchmark/state_kern.cl ${CMAKE_SOURCE_DIR}/benchmark/embed_source.pl)
+                  DEPENDS ${CMAKE_SOURCE_DIR}/benchmark/state_kern.cl ${CMAKE_SOURCE_DIR}/benchmark/embed_source.pl)
    add_custom_target(l7_update_kern_source ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/l7_update_kern.inc)
 
    set_target_properties(benchmark PROPERTIES COMPILE_DEFINITIONS HAVE_OPENCL)
