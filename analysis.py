@@ -23,36 +23,38 @@ def bootstrap_results(results_dir=Path("results"), clean=False):
 
 
 def analysis(params, results_dir="results", file_name=""):
-    title_font = {"family": "DejaVu Sans", "weight": "bold", "size": 16}
-    axes_font = {"family": "DejaVu Sans", "weight": "bold", "size": 12}
+    title_font = {"family": "Serif", "weight": "normal", "size": 16}
+    axes_font = {"family": "Serif", "weight": "normal", "size": 12}
 
     if file_name != "":
         file_name += "\n"
-    print("nowned: " + str(params.nowned_mean()))
-    print("nowned stdev: " + str(params.nowned_stdev()))
-    print("nowned dist: " + params.nowned_dist())
+
+    file_name=""
+    print("N-Owned: " + str(params.nowned_mean()))
+    print("N-Owned stdev: " + str(params.nowned_stdev()))
+    print("N-Owned dist: " + params.nowned_dist())
     plt.hist(params.nowned, bins=20, color="#00416d")
-    plt.title(file_name + "distribution of nowned size", **title_font)
-    plt.xlabel("size (in bytes)", **axes_font)
-    plt.ylabel("frequency", **axes_font)
+    plt.title(file_name + "Distribution of N-Owned Size", **title_font)
+    plt.xlabel("Size (bytes)", **axes_font)
+    plt.ylabel("Frequency", **axes_font)
     plt.savefig(results_dir + "/nowned.png")
     plt.clf()
 
-    print("nremote: " + str(params.nremote_mean()))
-    print("nremote stdev: " + str(params.nremote_stdev()))
-    print("nremote dist: " + params.nremote_dist())
+    print("N-Remote: " + str(params.nremote_mean()))
+    print("N-Remote stdev: " + str(params.nremote_stdev()))
+    print("N-Remote dist: " + params.nremote_dist())
     plt.hist(params.nremote, bins=20, color="#00416d")
-    plt.title(file_name + "Distribution of nremote size", **title_font)
-    plt.xlabel("size (in bytes)", **axes_font)
-    plt.ylabel("frequency", **axes_font)
+    plt.title(file_name + "Distribution of N-Remote Size", **title_font)
+    plt.xlabel("Size (bytes)", **axes_font)
+    plt.ylabel("Frequency", **axes_font)
     plt.savefig(results_dir + "/nremote.png")
     plt.clf()
 
     print("num_comm_partners: " + str(params.comm_partners_mean()) + "\n")
     plt.hist(params.comm_partners, bins=20, color="#00416d")
-    plt.title(file_name + "Num_comm_partners size", **title_font)
-    plt.xlabel("number of partners", **axes_font)
-    plt.ylabel("frequency", **axes_font)
+    plt.title(file_name + "Distribution of Comm-Partners Count", **title_font)
+    plt.xlabel("Number of Partners", **axes_font)
+    plt.ylabel("Frequency", **axes_font)
     plt.savefig(results_dir + "/comm_partners.png")
     plt.clf()
 
@@ -63,19 +65,19 @@ def analysis(params, results_dir="results", file_name=""):
         print("blocksize stdev: " + str(params.blocksize_stdev()))
         print("nremote dist: " + params.blocksize_dist())
         plt.hist(params.blocksize, bins=20, color="#00416d")
-        plt.title(file_name + "Distribution of blocksizes", **title_font)
-        plt.xlabel("size (bytes)", **axes_font)
-        plt.ylabel("frequency", **axes_font)
+        plt.title(file_name + "Distribution of Block Sizes", **title_font)
+        plt.xlabel("Size (bytes)", **axes_font)
+        plt.ylabel("Frequency", **axes_font)
         plt.savefig(results_dir + "/block_sizes.png")
         plt.clf()
 
-    print("stride: " + str(params.stride_mean()) + "\n")
-    print("stride stdev: " + str(params.stride_stdev()) + "\n")
-    print("stride distribution: " + params.stride_dist() + "\n")
+    print("Stride: " + str(params.stride_mean()) + "\n")
+    print("Stride stdev: " + str(params.stride_stdev()) + "\n")
+    print("Stride distribution: " + params.stride_dist() + "\n")
     plt.hist(params.stride, bins=20, color="#00416d")
-    plt.title(file_name + "Distrbution of stride size", **title_font)
-    plt.xlabel("stride size (bytes)", **axes_font)
-    plt.ylabel("frequency", **axes_font)
+    plt.title(file_name + "Distrbution of Stride Size", **title_font)
+    plt.xlabel("Size (bytes)", **axes_font)
+    plt.ylabel("Frequency", **axes_font)
     plt.savefig(results_dir + "/stride.png")
     plt.clf()
 
