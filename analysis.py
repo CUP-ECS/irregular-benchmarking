@@ -37,7 +37,7 @@ def analysis(params, results_dir="results", file_name=""):
     plt.title(file_name + "Distribution of N-Owned Size", **title_font)
     plt.xlabel("Size (bytes)", **axes_font)
     plt.ylabel("Frequency", **axes_font)
-    plt.savefig(results_dir + "/nowned.png")
+    plt.savefig(results_dir + "/nowned.png", dpi=1200)
     plt.clf()
 
     print("N-Remote: " + str(params.nremote_mean()))
@@ -47,7 +47,7 @@ def analysis(params, results_dir="results", file_name=""):
     plt.title(file_name + "Distribution of N-Remote Size", **title_font)
     plt.xlabel("Size (bytes)", **axes_font)
     plt.ylabel("Frequency", **axes_font)
-    plt.savefig(results_dir + "/nremote.png")
+    plt.savefig(results_dir + "/nremote.png", dpi=1200)
     plt.clf()
 
     print("num_comm_partners: " + str(params.comm_partners_mean()) + "\n")
@@ -55,7 +55,7 @@ def analysis(params, results_dir="results", file_name=""):
     plt.title(file_name + "Distribution of Comm-Partners Count", **title_font)
     plt.xlabel("Number of Partners", **axes_font)
     plt.ylabel("Frequency", **axes_font)
-    plt.savefig(results_dir + "/comm_partners.png")
+    plt.savefig(results_dir + "/comm_partners.png", dpi=1200)
     plt.clf()
 
     if len(params.blocksize) == 0:
@@ -68,7 +68,7 @@ def analysis(params, results_dir="results", file_name=""):
         plt.title(file_name + "Distribution of Block Sizes", **title_font)
         plt.xlabel("Size (bytes)", **axes_font)
         plt.ylabel("Frequency", **axes_font)
-        plt.savefig(results_dir + "/block_sizes.png")
+        plt.savefig(results_dir + "/block_sizes.png", dpi=1200)
         plt.clf()
 
     print("Stride: " + str(params.stride_mean()) + "\n")
@@ -78,7 +78,7 @@ def analysis(params, results_dir="results", file_name=""):
     plt.title(file_name + "Distrbution of Stride Size", **title_font)
     plt.xlabel("Size (bytes)", **axes_font)
     plt.ylabel("Frequency", **axes_font)
-    plt.savefig(results_dir + "/stride.png")
+    plt.savefig(results_dir + "/stride.png", dpi=1200)
     plt.clf()
 
     print("updates_per_setup: " + str(params.updates_per_setup_mean()))
