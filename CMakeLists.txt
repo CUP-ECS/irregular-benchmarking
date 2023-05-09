@@ -116,7 +116,8 @@ set_source_files_properties(state.cpp PROPERTIES COMPILE_FLAGS "${VECTOR_CXX_FLA
 
 include_directories(${PROJECT_SOURCE_DIR})
 
-if (NOT APPLE OR "${CMAKE_SYSTEM_VERSION}" LESS 18)
+option(ENABLE_OPENCL "Enable OpenCL support" OFF)
+if (ENABLE_OPENCL AND (NOT APPLE OR "${CMAKE_SYSTEM_VERSION}" LESS 18))
    find_package(OpenCL)
    #  OpenCL_FOUND          - True if OpenCL was found
    #  OpenCL_INCLUDE_DIRS   - include directories for OpenCL
@@ -129,21 +130,22 @@ if (NOT APPLE OR "${CMAKE_SYSTEM_VERSION}" LESS 18)
       set(NO_CL_DOUBLE OFF)
       include_directories(${OpenCL_INCLUDE_DIRS})
    endif (OpenCL_FOUND)
-endif (NOT APPLE OR "${CMAKE_SYSTEM_VERSION}" LESS 18)
+endif (ENABLE_OPENCL AND (NOT APPLE OR "${CMAKE_SYSTEM_VERSION}" LESS 18))
 
 find_package(MPI)
 if (MPI_FOUND)
    include_directories(${MPI_INCLUDE_PATH})
 endif (MPI_FOUND)
 
-if(NOT KOKKOS_ENABLE)
+option(ENABLE_OPENMP "Enable OpenMP support" OFF)
+if(ENABLE_OPENMP AND (NOT KOKKOS_ENABLE))
    find_package( OpenMP)
    if(OPENMP_FOUND)
       message("OPENMP FOUND ${OpenMP_C_FLAGS}")
    else (OPENMP_FOUND)
       message("OPENMP NOT FOUND")
    endif(OPENMP_FOUND)
-endif(NOT KOKKOS_ENABLE)
+endif(ENABLE_OPENMP AND (NOT KOKKOS_ENABLE))
 
 #-----------------------------------------------------------------------------
 # Option to use Shared/Static libs, default is static

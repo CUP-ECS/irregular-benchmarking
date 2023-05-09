@@ -143,7 +143,7 @@ static int irregularity_neighbors = 1;
 static int irregularity_stride = 1;
 static int irregularity_blocksz = 1;
 static int irregularity_remote = 1;
-static int report_params = 1;
+static int report_params = 0;
 static int seed = -1;
 static memspace_t memspace = MEMSPACE_HOST;
 
@@ -188,7 +188,7 @@ static struct option long_options[] = {
     {"disable-irregularity-stride", no_argument, &irregularity_stride, 0},
     {"disable-irregularity-blocksize", no_argument, &irregularity_blocksz, 0},
     {"disable-irregularity-remote", no_argument, &irregularity_remote, 0},
-    {"report-params", no_argument, &report_params, 0},
+    {"report-params", no_argument, &report_params, 1},
     {0, 0, 0, 0}
 };
 
