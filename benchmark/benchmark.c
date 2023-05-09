@@ -506,6 +506,7 @@ void usage_long(char *exename, int penum) {
             "[ -m memspace       ]\tchoose from: host, cuda, openmp, opencl\n"
             "[ -d distribution   ]\tchoose from: gaussian (default), empirical\n"
             "[ -u units          ]\tchoose from: a,b,k,m,g (auto, bytes, kilobytes, etc.)\n\n"
+            "[ --report-params   ]\tenables parameter reporting for use with analysis scripts\n"
             "NOTE: setting parameters for the benchmark such as (neighbors, owned, remote, blocksize, and stride)\n"
             "      sets parameters to those values for the reference benchmark.\n"
             "      Those parameters are then randomized for the irregular samples\n"
