@@ -37,6 +37,7 @@ def analysis(params, results_dir="results", file_name=""):
     plt.title(file_name + "Distribution of N-Owned Size", **title_font)
     plt.xlabel("Size (bytes)", **axes_font)
     plt.ylabel("Frequency", **axes_font)
+    plt.tight_layout()
     plt.savefig(results_dir + "/nowned.png", dpi=1200)
     plt.clf()
 
@@ -47,6 +48,7 @@ def analysis(params, results_dir="results", file_name=""):
     plt.title(file_name + "Distribution of N-Remote Size", **title_font)
     plt.xlabel("Size (bytes)", **axes_font)
     plt.ylabel("Frequency", **axes_font)
+    plt.tight_layout()
     plt.savefig(results_dir + "/nremote.png", dpi=1200)
     plt.clf()
 
@@ -55,6 +57,7 @@ def analysis(params, results_dir="results", file_name=""):
     plt.title(file_name + "Distribution of Comm-Partners Count", **title_font)
     plt.xlabel("Number of Partners", **axes_font)
     plt.ylabel("Frequency", **axes_font)
+    plt.tight_layout()
     plt.savefig(results_dir + "/comm_partners.png", dpi=1200)
     plt.clf()
 
@@ -68,6 +71,7 @@ def analysis(params, results_dir="results", file_name=""):
         plt.title(file_name + "Distribution of Block Sizes", **title_font)
         plt.xlabel("Size (bytes)", **axes_font)
         plt.ylabel("Frequency", **axes_font)
+        plt.tight_layout()
         plt.savefig(results_dir + "/block_sizes.png", dpi=1200)
         plt.clf()
 
@@ -78,6 +82,7 @@ def analysis(params, results_dir="results", file_name=""):
     plt.title(file_name + "Distrbution of Stride Size", **title_font)
     plt.xlabel("Size (bytes)", **axes_font)
     plt.ylabel("Frequency", **axes_font)
+    plt.tight_layout()
     plt.savefig(results_dir + "/stride.png", dpi=1200)
     plt.clf()
 
