@@ -63,7 +63,7 @@ def analysis(params, results_dir="results", file_name=""):
     else:
         print("blocksize: " + str(params.blocksize_mean()))
         print("blocksize stdev: " + str(params.blocksize_stdev()))
-        print("nremote dist: " + params.blocksize_dist())
+        print("blocksize dist: " + params.blocksize_dist())
         plt.hist(params.blocksize, bins=20, color="#00416d")
         plt.title(file_name + "Distribution of Block Sizes", **title_font)
         plt.xlabel("Size (bytes)", **axes_font)
