@@ -1,2 +1,0 @@
-WARNING: using a config file will override all other CLI argument values used for setting mean and standard deviation.
-15 total processes killed (some possibly by mpirun during cleanup)
