@@ -143,6 +143,7 @@ static int irregularity_neighbors = 1;
 static int irregularity_stride = 1;
 static int irregularity_blocksz = 1;
 static int irregularity_remote = 1;
+static int report_params = 1;
 static int seed = -1;
 static memspace_t memspace = MEMSPACE_HOST;
 
@@ -187,6 +188,7 @@ static struct option long_options[] = {
     {"disable-irregularity-stride", no_argument, &irregularity_stride, 0},
     {"disable-irregularity-blocksize", no_argument, &irregularity_blocksz, 0},
     {"disable-irregularity-remote", no_argument, &irregularity_remote, 0},
+    {"report-params", no_argument, &report_params, 0},
     {0, 0, 0, 0}
 };
 
@@ -1018,6 +1020,13 @@ int benchmark(int penum) {
                     }
                 }
 
+                if (report_params) {
+                    printf("PARAM: nowned - %d\n", nowned);
+                    printf("PARAM: nremote - %d\n", nremote);
+                    printf("PARAM: blocksize - %d\n", blocksz);
+                    printf("PARAM: stride - %d\n", stride);
+                    printf("PARAM: nneighbors - %d\n", nneighbors);
+                }
 
                 // print benchmark status each iteration
                 if (penum == 0) {
