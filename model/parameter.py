@@ -33,9 +33,6 @@ class Parameter:
             self.generate_file(results_dir, bin_count)
 
     def xrage_data_parser(self, param_file):
-        # size in bytes of the type being communicated
-        type_size = 8
-
         line_num = 0
         for param_line in param_file:
             param_line = param_line.strip()
@@ -45,8 +42,8 @@ class Parameter:
                 split_line = [int(float(x)) for x in split_line]
                 rank = split_line[0]
                 token_id = split_line[1]
-                self.nowned.append((split_line[2] + split_line[3]) * type_size)
-                self.nremote.append(split_line[2] * type_size)
+                self.nowned.append(split_line[2] + split_line[3])
+                self.nremote.append(split_line[2])
                 self.comm_partners.append(split_line[5])
             line_num += 1
 
