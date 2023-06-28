@@ -488,7 +488,7 @@ void usage_long(char *exename, int penum) {
     if (penum == 0) {
         fprintf(stdout,
             "usage: %s [-t typesize] [-I samples] [-i iterations] [-n neighbors] [-o owned] [-r remote] [-b blocksize] [-s stride] [-S seed] [-m memspace]\n\n"
-            "[ -f filepath       ]\tspecify the path to the BENCHMARK_CONFIG file"
+            "[ -f filepath       ]\tspecify the path to the BENCHMARK_CONFIG file\n"
             "[ -t typesize       ]\tspecify the size of the variable being sent (in bytes)\n"
             "[ -I samples        ]\tspecify the number of random samples to generate\n"
             "[ -i iterations     ]\tspecify the number of updates each sample performs\n"
