@@ -51,6 +51,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <random>
 
 // facilitates CLI-arg parsing
 #include <getopt.h>
@@ -144,7 +145,6 @@ static int irregularity_stride = 1;
 static int irregularity_blocksz = 1;
 static int irregularity_remote = 1;
 static int report_params = 0;
-static int seed = -1;
 static memspace_t memspace = MEMSPACE_HOST;
 
 float finalLatencyMean = 0;
@@ -178,7 +178,6 @@ static struct option long_options[] = {
     {"blocksize_stdv", required_argument, 0, 'B'},
     {"stride",         required_argument, 0, 's'},
     {"stride_stdv",    required_argument, 0, 'T'},
-    {"seed",           required_argument, 0, 'S'},
     {"memspace",       required_argument, 0, 'm'},
     {"distribution",   required_argument, 0, 'd'},
     {"units",          required_argument, 0, 'u'},
@@ -281,15 +280,21 @@ void parse_config_file() {
 // implementation of the following
 // https://en.wikipedia.org/wiki/Box–Muller_transform
 int gauss_dist(double mean, double stdev) {
+    // Create a random number generator
+    // seeded with device hardware characteristics
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+     std::uniform_real_distribution<double> dis(0.0, 1.0);
+    
     // generates two random numbers that form the seeds
     // of the transform
-
     double u1, u2, r, theta;
     int generated = -1;
 
     while (generated <= 0) {
-        u1 = (double)rand() / RAND_MAX;
-        u2 = (double)rand() / RAND_MAX;
+        u1 = dis(gen);
+        u2 = dis(gen);
 
         // generates the R and Theta values from the above
         // documentation
@@ -394,8 +399,16 @@ int empirical_dist(char param[]) {
         return dataMin; // could also return data max, is arbitrary
     }
 
+    // Create a random number seed
+    // based on device hardware
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    // Create a uniform real distribution between 0 and 1
+    std::uniform_real_distribution<double> dis(0.0, 1.0);
+
     // chose a uniformly distributed value between (0,1)
-    double binSelection  = ((double)rand()) / RAND_MAX;
+    double binSelection  = dis(gen);
 
     // used to track if we have checked a bin
     // if we have/are, the bin's proportion of the total dataset
@@ -487,7 +500,7 @@ void usage(char *exename, int penum)
 void usage_long(char *exename, int penum) {
     if (penum == 0) {
         fprintf(stdout,
-            "usage: %s [-t typesize] [-I samples] [-i iterations] [-n neighbors] [-o owned] [-r remote] [-b blocksize] [-s stride] [-S seed] [-m memspace]\n\n"
+            "usage: %s [-t typesize] [-I samples] [-i iterations] [-n neighbors] [-o owned] [-r remote] [-b blocksize] [-s stride] [-m memspace]\n\n"
             "[ -f filepath       ]\tspecify the path to the BENCHMARK_CONFIG file\n"
             "[ -t typesize       ]\tspecify the size of the variable being sent (in bytes)\n"
             "[ -I samples        ]\tspecify the number of random samples to generate\n"
@@ -502,7 +515,6 @@ void usage_long(char *exename, int penum) {
             "[ -B blocksize_stdv ]\tspecify average size of transmitted blocks\n"
             "[ -s stride         ]\tspecify average size of stride\n"
             "[ -T stride_stdv    ]\tspecify stdev size of stride\n"
-            "[ -S seed           ]\tspecify positive integer to be used as seed for random number generation (current time used as default)\n"
             "[ -m memspace       ]\tchoose from: host, cuda, openmp, opencl\n"
             "[ -d distribution   ]\tchoose from: gaussian (default), empirical\n"
             "[ -u units          ]\tchoose from: a,b,k,m,g (auto, bytes, kilobytes, etc.)\n\n"
@@ -524,7 +536,7 @@ void parse_arguments(int argc, char **argv, int penum)
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        c = getopt_long (argc, argv, ":h:f:t:i:I:n:N:o:O:r:R:b:B:s:T:S:m:d:u:",
+        c = getopt_long (argc, argv, ":h:f:t:i:I:n:N:o:O:r:R:b:B:s:T:m:d:u:",
                        long_options, &option_index);
         if (c == -1) {
             break;
@@ -604,11 +616,6 @@ void parse_arguments(int argc, char **argv, int penum)
                 // used to set stride size value
                 stride_stdv = atoi(optarg);
                 if (stride_stdv < 0) usage(argv[0], penum);
-                break;
-            case 'S':
-                // used to set stride size value
-                seed = atoi(optarg);
-                if (seed < 0) usage(argv[0], penum);
                 break;
             case 'm':
                 // used to set memory space
@@ -770,7 +777,7 @@ enum  L7_Datatype typesize_to_l7type(int type_size)
         case 8:
             return L7_DOUBLE;
         default:
-            return -1;
+            return L7_INT;
    }
 }
 
@@ -1298,17 +1305,6 @@ int main(int argc, char *argv[])
     // parse CLI arguments
     parse_arguments(argc, argv, penum);
 
-
-    // sets random seed for generating random distributions
-    if (irregularity) {
-        if (seed == -1) {
-            seed = time(0);
-        }
-        if (penum == 0) {
-            printf("Irregularity Seed: %d\n", seed);
-        }
-        srand(seed);
-    }
 
     // run benchmark
     benchmark(penum);
