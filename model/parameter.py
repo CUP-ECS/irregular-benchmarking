@@ -2,6 +2,7 @@ import statistics
 import os
 import numpy as np
 import concurrent.futures
+from fitter import Fitter
 
 
 class Parameter:

@@ -286,7 +286,7 @@ int gauss_dist(double mean, double stdev) {
     std::mt19937 gen(rd());
 
      std::uniform_real_distribution<double> dis(0.0, 1.0);
-    
+
     // generates two random numbers that form the seeds
     // of the transform
     double u1, u2, r, theta;
