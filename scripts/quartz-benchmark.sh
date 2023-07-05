@@ -35,6 +35,7 @@ do
     cd ${JOB_DIR}
 
     export CONFIG_PATH=${SOURCE_DIR}/results/${APP_NAME}_QUARTZ_${NUM_NODES}_${NUM_PROC_PER_NODE}/BENCHMARK_CONFIG
+    cp ${CONFIG_PATH} ${JOB_DIR}/
     
     echo "#!/bin/bash" > temp_sbatch
     echo "#SBATCH --job-name=${APP_NAME}" >> temp_sbatch
@@ -46,9 +47,9 @@ do
     echo "#SBATCH --cores-per-socket=18" >> temp_sbatch
     echo "#SBATCH --partition=pbatch" >> temp_sbatch
     echo "module load gcc/10.3.1 openmpi/4.1.2" >> temp_sbatch
-    echo "mpirun -np ${NUM_PROCS} -npernode ${NUM_PROC_PER_NODE} ./benchmark --report-params -f ${CONFIG_PATH} -d empirical > ${JOB_DIR}/results.txt" >> temp_sbatch
+    echo "mpirun -np ${NUM_PROCS} -npernode ${NUM_PROC_PER_NODE} ./benchmark -I 100 -i 10000 --report-params -f ./BENCHMARK_CONFIG -d empirical > ${JOB_DIR}/results.txt" >> temp_sbatch
     echo "cd ${JOB_DIR}" >> temp_sbatch
-    echo "rm out*" >> temp_sbatch
+    echo "rm -rf out*" >> temp_sbatch
     
     # Launch generated script
     sbatch temp_sbatch
