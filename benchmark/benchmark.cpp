@@ -396,7 +396,7 @@ int empirical_dist(char param[]) {
         // close file as reading is no longer required
         fclose(fp);
 
-        return dataMin; // could also return data max, is arbitrary
+        return dataMin; // could also return data max, it is arbitrary
     }
 
     // Create a random number seed
@@ -444,12 +444,15 @@ int empirical_dist(char param[]) {
         binMax = atoi(token);
 
         // gets the binProp value and adds it to the binSum
+        // NOTE: I don't think this will ever chose a bin
+        //       that has a prop value of 0, as binSum would remain
+        //       the same and would not trigger the binSelection check
         token = strtok(NULL, ",");
         binSum += strtod(token, NULL);
 
         // if so, then the selection is in the most
-        // recently search bin, so we can proceed to
-        // generating a random value
+        // recently searched bin, so we can proceed
+        // to generating a random value
         if (binSelection < binSum) {
 
             // if the bin is the correct one,
@@ -470,7 +473,6 @@ int empirical_dist(char param[]) {
             // return a normally distributed value with the
             // mean and standard deviation from the
             // chosen bin
-
             return gauss_dist(binMean, binStdev);
         }
 
