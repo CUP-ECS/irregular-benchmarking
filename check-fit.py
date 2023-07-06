@@ -11,42 +11,56 @@ def print_stats(param, statistic, p_value, alpha):
     if p_value >= alpha:
         print("\tThis is a good fit!\n")
     else:
-        print("\tThis is a bad fit!\n")
+        print("\tThis is a bad fit!")
 
 
 def check_fit(observed_params, generated_params):
     if observed_params.nowned and generated_params.nowned:
         # Perform the Kolmogorov-Smirnov test for N-Owned
         statistic, p_value = ks_2samp(observed_params.nowned, generated_params.nowned)
-        print_stats("N-Owned", statistic, p_value, .05)
+        print_stats("N-Owned", statistic, p_value, 0.05)
+        print(f"\tObserved Data Count: {len(observed_params.nowned)}")
+        print(f"\tGenerated Data Count: {len(generated_params.nowned)}\n")
     else:
         print("Skipped N-Owned because parameter is empty.\n")
 
     if observed_params.nremote and generated_params.nremote:
         # Perform the Kolmogorov-Smirnov test for N-Remote
         statistic, p_value = ks_2samp(observed_params.nremote, generated_params.nremote)
-        print_stats("N-Remote", statistic, p_value, .05)
+        print_stats("N-Remote", statistic, p_value, 0.05)
+        print(f"\tObserved Data Count: {len(observed_params.nremote)}")
+        print(f"\tGenerated Data Count: {len(generated_params.nremote)}\n")
     else:
         print("Skipped N-Remote because parameter is empty.\n")
 
     if observed_params.blocksize and generated_params.blocksize:
         # Perform the Kolmogorov-Smirnov test for Blocksize
-        statistic, p_value = ks_2samp(observed_params.blocksize, generated_params.blocksize)
-        print_stats("Blocksize", statistic, p_value, .05)
+        statistic, p_value = ks_2samp(
+            observed_params.blocksize, generated_params.blocksize
+        )
+        print_stats("Blocksize", statistic, p_value, 0.05)
+        print(f"\tObserved Data Count: {len(observed_params.blocksize)}")
+        print(f"\tGenerated Data Count: {len(generated_params.blocksize)}\n")
     else:
         print("Skipped Blocksize because parameter is empty.\n")
 
     if observed_params.stride and generated_params.stride:
         # Perform the Kolmogorov-Smirnov test for Stride
         statistic, p_value = ks_2samp(observed_params.stride, generated_params.stride)
-        print_stats("Stride", statistic, p_value, .05)
+        print_stats("Stride", statistic, p_value, 0.05)
+        print(f"\tObserved Data Count: {len(observed_params.stride)}")
+        print(f"\tGenerated Data Count: {len(generated_params.stride)}\n")
     else:
         print("Skipped Stride because parameter is empty.\n")
 
     if observed_params.comm_partners and generated_params.comm_partners:
         # Perform the Kolmogorov-Smirnov test for num_comm_partners
-        statistic, p_value = ks_2samp(observed_params.comm_partners, generated_params.comm_partners)
-        print_stats("comm_partners", statistic, p_value, .05)
+        statistic, p_value = ks_2samp(
+            observed_params.comm_partners, generated_params.comm_partners
+        )
+        print_stats("comm_partners", statistic, p_value, 0.05)
+        print(f"\tObserved Data Count: {len(observed_params.comm_partners)}")
+        print(f"\tGenerated Data Count: {len(generated_params.comm_partners)}\n")
     else:
         print("Skipped num_comm_partners because parameter is empty.\n")
 
@@ -91,17 +105,9 @@ if __name__ == "__main__":
         )
 
     # run analysis on parameter data
-    observed_params = Parameter(
-        observed_data,
-        fit_distribution=False
-    )
+    observed_params = Parameter(observed_data, fit_distribution=False)
 
-    generated_params = Parameter(
-        generated_data,
-        fit_distribution=False
-    )
+    generated_params = Parameter(generated_data, fit_distribution=False)
 
     # generate distribution plots
     check_fit(observed_params, generated_params)
-
-
