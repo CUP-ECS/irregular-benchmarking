@@ -210,24 +210,24 @@ class Parameter:
                 futures.append(
                     executor.submit(self.binify, "nowned", self.nowned, bin_count)
                 )
-            # if len(self.nremote) > 0:
-            #     futures.append(
-            #         executor.submit(self.binify, "nremote", self.nremote, bin_count)
-            #     )
-            # if len(self.blocksize) > 0:
-            #     futures.append(
-            #         executor.submit(self.binify, "blocksize", self.blocksize, bin_count)
-            #     )
-            # if len(self.stride) > 0:
-            #     futures.append(
-            #         executor.submit(self.binify, "stride", self.stride, bin_count)
-            #     )
-            # if len(self.comm_partners) > 0:
-            #     futures.append(
-            #         executor.submit(
-            #             self.binify, "comm_partners", self.comm_partners, bin_count
-            #         )
-            #     )
+            if len(self.nremote) > 0:
+                futures.append(
+                    executor.submit(self.binify, "nremote", self.nremote, bin_count)
+                )
+            if len(self.blocksize) > 0:
+                futures.append(
+                    executor.submit(self.binify, "blocksize", self.blocksize, bin_count)
+                )
+            if len(self.stride) > 0:
+                futures.append(
+                    executor.submit(self.binify, "stride", self.stride, bin_count)
+                )
+            if len(self.comm_partners) > 0:
+                futures.append(
+                    executor.submit(
+                        self.binify, "comm_partners", self.comm_partners, bin_count
+                    )
+                )
 
             results = [f.result() for f in concurrent.futures.as_completed(futures)]
 
