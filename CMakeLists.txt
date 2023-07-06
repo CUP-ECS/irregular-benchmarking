@@ -379,7 +379,7 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/PowerParser" AND IS_DIRECTORY "${CMAKE_SOURCE_DI
 endif (EXISTS "${CMAKE_SOURCE_DIR}/PowerParser" AND IS_DIRECTORY "${CMAKE_SOURCE_DIR}/PowerParser")
 
 ########### benchmark target ###############
-add_executable(benchmark benchmark/benchmark.cpp benchmark/l7_update_host.cpp)
+add_executable(benchmark benchmark/benchmark.c benchmark/l7_update_host.c)
 
 # Add source files we need for different accelerators
 if(L7_CUDA_OFFLOAD)
@@ -403,8 +403,8 @@ if(OpenCL_FOUND)
 
    set_target_properties(benchmark PROPERTIES COMPILE_DEFINITIONS HAVE_OPENCL)
 
-   target_sources(benchmark PRIVATE benchmark/l7_update_opencl.cpp)
-   add_custom_target(l7_update_opencl.cpp DEPENDS l7_update_kern_source)
+   target_sources(benchmark PRIVATE benchmark/l7_update_opencl.c)
+   add_custom_target(l7_update_opencl.c DEPENDS l7_update_kern_source)
 
    target_link_libraries(benchmark PRIVATE ${OpenCL_LIBRARIES})
 endif(OpenCL_FOUND)
@@ -418,7 +418,7 @@ if(OpenMP_FOUND)
       if(OpenMP_C_VERSION VERSION_GREATER_EQUAL "4.5")
          add_definitions(-DL7_OPENMP_OFFLOAD)
          message("Compiling benchmark with OpenMP accelerator support")
-         target_sources(benchmark PRIVATE benchmark/l7_update_openmp.cpp)
+         target_sources(benchmark PRIVATE benchmark/l7_update_openmp.c)
          set_property(TARGET benchmark PROPERTY CUDA_ARCHITECTURES 35 70)
          target_link_libraries(benchmark PRIVATE OpenMP::OpenMP_C)
          if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
