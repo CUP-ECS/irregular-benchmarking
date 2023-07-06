@@ -210,24 +210,24 @@ class Parameter:
                 futures.append(
                     executor.submit(self.binify, "nowned", self.nowned, bin_count)
                 )
-            if len(self.nremote) > 0:
-                futures.append(
-                    executor.submit(self.binify, "nremote", self.nremote, bin_count)
-                )
-            if len(self.blocksize) > 0:
-                futures.append(
-                    executor.submit(self.binify, "blocksize", self.blocksize, bin_count)
-                )
-            if len(self.stride) > 0:
-                futures.append(
-                    executor.submit(self.binify, "stride", self.stride, bin_count)
-                )
-            if len(self.comm_partners) > 0:
-                futures.append(
-                    executor.submit(
-                        self.binify, "comm_partners", self.comm_partners, bin_count
-                    )
-                )
+            # if len(self.nremote) > 0:
+            #     futures.append(
+            #         executor.submit(self.binify, "nremote", self.nremote, bin_count)
+            #     )
+            # if len(self.blocksize) > 0:
+            #     futures.append(
+            #         executor.submit(self.binify, "blocksize", self.blocksize, bin_count)
+            #     )
+            # if len(self.stride) > 0:
+            #     futures.append(
+            #         executor.submit(self.binify, "stride", self.stride, bin_count)
+            #     )
+            # if len(self.comm_partners) > 0:
+            #     futures.append(
+            #         executor.submit(
+            #             self.binify, "comm_partners", self.comm_partners, bin_count
+            #         )
+            #     )
 
             results = [f.result() for f in concurrent.futures.as_completed(futures)]
 
@@ -295,8 +295,16 @@ class Parameter:
             else:
                 bin_count = int(bin_count)
 
-            # write the number of bins to ease the parsing in benchmark
-            contents += "BIN_COUNT: " + str(bin_count) + "\n"
+            # checks to ensure that `bin_count` does not exceed number
+            # of unique values in a parameter's data set
+            # if this occurs, `bin_count` is set to number of unique values
+            if bin_count > len(set(data)):
+                bin_count = len(set(data))
+                # write the number of bins to ease the parsing in benchmark
+                contents += "BIN_COUNT: " + str(len(set(data))) + "\n"
+            else:
+                # write the number of bins to ease the parsing in benchmark
+                contents += "BIN_COUNT: " + str(bin_count) + "\n"
 
             # write distribution data to benchmark config file
             contents += "MIN: " + str(data_min) + "\n"
@@ -308,6 +316,7 @@ class Parameter:
             binSize = (data_max - data_min) / bin_count
 
             # identify the upper and lower bounds of each bin
+            # creates a list of bin end points that are `binSize` apart
             bins = []
             i = data_min
             for x in range(0, bin_count + 1):
@@ -319,14 +328,19 @@ class Parameter:
             for index, value in enumerate(bins):
                 # don't perform bin calculations once on the last element
                 if index != len(bins) - 1:
+                    # `mini_data` stores data for a single bin
                     mini_data = []
                     bin_min = value
                     bin_max = bins[index + 1]
                     for parameter in data:
+                        # check if parameter value should be sorted into
+                        # a corresponding bin
                         if parameter < bin_max:
                             # if value is less than bin_max, ensure it is
                             # larger than bin_min
                             if parameter >= bin_min:
+                                # if the data fits in the bin,
+                                # append the data to mini_data
                                 mini_data.append(parameter)
                         else:
                             # because list is sorted, if value is not less
@@ -337,8 +351,10 @@ class Parameter:
                     # belongs to this specific bin
                     bin_prop = len(mini_data) / len(data)
 
+                    # if there is more than one value in a bin's
+                    # parameter list
                     if len(mini_data) >= 2:
-                        contents += (
+                        new_line = (
                             str(bin_min)
                             + ", "
                             + str(bin_max)
@@ -350,9 +366,11 @@ class Parameter:
                             + str(round(statistics.stdev(mini_data)))
                             + "\n"
                         )
+                        if contents.splitlines()[-1].strip() != new_line.strip():
+                            contents += new_line
                     elif len(mini_data) == 1:
                         # handles case where only 1 data point occurs in a bin
-                        contents += (
+                        new_line = (
                             str(bin_min)
                             + ", "
                             + str(bin_max)
@@ -364,9 +382,11 @@ class Parameter:
                             + str(0)
                             + "\n"
                         )
+                        if contents.splitlines()[-1].strip() != new_line.strip():
+                            contents += new_line
                     else:
                         # handles the case where no data belongs to a bin
-                        contents += (
+                        new_line = (
                             str(bin_min)
                             + ", "
                             + str(bin_max)
@@ -378,5 +398,7 @@ class Parameter:
                             + str(0.0)
                             + "\n"
                         )
+                        if contents.splitlines()[-1].strip() != new_line.strip():
+                            contents += new_line
 
             return contents
