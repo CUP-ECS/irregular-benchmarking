@@ -35,7 +35,6 @@
 build/
 *-build/
 .benchmark_stage/
-#results/
 
 # Ignore log files
 *.log
@@ -48,3 +47,9 @@ __pycache__/
 
 # Ignore Emacs Files
 *~
+
+# Ignore specific, uncompressed data files
+data/CLAMR/
+data/CLAMR-BR/
+data/CabanaMD/
+data/CABANAMD-BR/
