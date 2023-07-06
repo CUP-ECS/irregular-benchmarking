@@ -29,7 +29,7 @@ def analysis(params, results_dir="results", file_name=""):
     if file_name != "":
         file_name += "\n"
 
-    file_name=""
+    file_name = ""
     print("N-Owned: " + str(params.nowned_mean()))
     print("N-Owned stdev: " + str(params.nowned_stdev()))
     print("N-Owned dist: " + params.nowned_dist())
