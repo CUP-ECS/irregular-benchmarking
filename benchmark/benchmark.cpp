@@ -453,7 +453,8 @@ int empirical_dist(char param[]) {
         // if so, then the selection is in the most
         // recently searched bin, so we can proceed
         // to generating a random value
-        if (binSelection < binSum) {
+        // also triggers if on the last bin and no value has been selected
+        if (binSelection < binSum || i == (binCount-1)) {
 
             // if the bin is the correct one,
             // get the mean of the data points
@@ -481,9 +482,12 @@ int empirical_dist(char param[]) {
     // if we have somehow made it to this point
     // without generating a value, we should throw an error
     printf("Error: empirical value could not be generated due to an unknown error.\n");
-    printf("\tParameter type being generated: %s\n", param);
-    printf("\tConfig file which could have caused this error: %s\n", filepath);
-    printf("\tIf you encounter a bug which causes this for any reason, please open an issue on Github\n");
+    printf("Parameter type being generated: %s\n", param);
+    printf("Config file which could have caused this error: %s\n", filepath);
+    printf("If you encounter a bug which causes this for any reason, please open an issue on Github\n");
+    printf("Here is additional debugging information\n");
+    printf("\tbinSelection: %f\n", binSelection);
+    printf("\tbinSum: %f\n", binSum);
     exit(1);
 }
 
