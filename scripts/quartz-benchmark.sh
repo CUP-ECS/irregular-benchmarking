@@ -47,7 +47,7 @@ do
     echo "#SBATCH --cores-per-socket=18" >> temp_sbatch
     echo "#SBATCH --partition=pbatch" >> temp_sbatch
     echo "module load gcc/10.3.1 openmpi/4.1.2" >> temp_sbatch
-    echo "mpirun -np ${NUM_PROCS} -npernode ${NUM_PROC_PER_NODE} ./benchmark -I 100 -i 10000 --report-params -f ./BENCHMARK_CONFIG -d empirical > ${JOB_DIR}/results.txt" >> temp_sbatch
+    echo "mpirun -np ${NUM_PROCS} -npernode ${NUM_PROC_PER_NODE} ./benchmark -I 1000 -i 1000 --report-params -f ./BENCHMARK_CONFIG -d empirical > ${JOB_DIR}/results.txt" >> temp_sbatch
     echo "cd ${JOB_DIR}" >> temp_sbatch
     echo "rm -rf out*" >> temp_sbatch
     
