@@ -18,8 +18,8 @@ def cleanup_file(file_path, cleaned_path):
         file.writelines(cleaned_lines)
 
 # Provide the path to your file
-file_path = '../data/CLAMR-BR/16/results.txt'
-cleaned_path = '../data/CLAMR-BR/16/results-cleaned.txt'
+file_path = '../data/CLAMR-BR/2/results.txt'
+cleaned_path = '../data/CLAMR-BR/2/results-cleaned.txt'
 
 # Clean up the file
 cleanup_file(file_path, cleaned_path)
