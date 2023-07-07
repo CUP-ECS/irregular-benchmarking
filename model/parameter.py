@@ -291,7 +291,7 @@ class Parameter:
         else:
             # calculate a good bin count if auto is set
             if bin_count == "auto":
-                bin_count = round(len(data) / 1000)
+                bin_count = round(len(data) / 10)
             else:
                 bin_count = int(bin_count)
 
@@ -349,7 +349,7 @@ class Parameter:
 
                     # calculate what the proportion of the total data
                     # belongs to this specific bin
-                    bin_prop = len(mini_data) / len(data)
+                    bin_prop = round(len(mini_data) / len(data), 4)
 
                     # if there is more than one value in a bin's
                     # parameter list
