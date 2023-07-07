@@ -16,11 +16,24 @@ def print_stats(param, statistic, p_value, alpha):
 
 def check_fit(observed_params, generated_params):
     if observed_params.nowned and generated_params.nowned:
+        # max_gen = max(generated_params.nowned)
+        # min_gen = min(generated_params.nowned)
+        # observed_nowned = [x for x in observed_params.nowned if x < max_gen]
+        # observed_nowned = [x for x in observed_nowned if x > min_gen]
+        # if max_gen >= max(observed_nowned):
+        #     print("Removed Upper Outliers")
+        # if min_gen <= min(observed_nowned):
+        #     print("Removed Lower Outliers")
+
         # Perform the Kolmogorov-Smirnov test for N-Owned
         statistic, p_value = ks_2samp(observed_params.nowned, generated_params.nowned)
         print_stats("N-Owned", statistic, p_value, 0.05)
         print(f"\tObserved Data Count: {len(observed_params.nowned)}")
-        print(f"\tGenerated Data Count: {len(generated_params.nowned)}\n")
+        print(f"\tObserved Data Count Min: {min(observed_params.nowned)}")
+        print(f"\tObserved Data Count Max: {max(observed_params.nowned)}")
+        print(f"\tGenerated Data Count: {len(generated_params.nowned)}")
+        print(f"\tGenerated Data Count Min: {min(generated_params.nowned)}")
+        print(f"\tGenerated Data Count Max: {max(generated_params.nowned)}\n")
     else:
         print("Skipped N-Owned because parameter is empty.\n")
 
@@ -29,7 +42,11 @@ def check_fit(observed_params, generated_params):
         statistic, p_value = ks_2samp(observed_params.nremote, generated_params.nremote)
         print_stats("N-Remote", statistic, p_value, 0.05)
         print(f"\tObserved Data Count: {len(observed_params.nremote)}")
-        print(f"\tGenerated Data Count: {len(generated_params.nremote)}\n")
+        print(f"\tObserved Data Count Min: {min(observed_params.nremote)}")
+        print(f"\tObserved Data Count Max: {max(observed_params.nremote)}")
+        print(f"\tGenerated Data Count: {len(generated_params.nremote)}")
+        print(f"\tGenerated Data Count Min: {min(generated_params.nremote)}")
+        print(f"\tGenerated Data Count Max: {max(generated_params.nremote)}\n")
     else:
         print("Skipped N-Remote because parameter is empty.\n")
 
@@ -40,7 +57,11 @@ def check_fit(observed_params, generated_params):
         )
         print_stats("Blocksize", statistic, p_value, 0.05)
         print(f"\tObserved Data Count: {len(observed_params.blocksize)}")
-        print(f"\tGenerated Data Count: {len(generated_params.blocksize)}\n")
+        print(f"\tObserved Data Count Min: {min(observed_params.blocksize)}")
+        print(f"\tObserved Data Count Max: {max(observed_params.blocksize)}")
+        print(f"\tGenerated Data Count: {len(generated_params.blocksize)}")
+        print(f"\tGenerated Data Count Min: {min(generated_params.blocksize)}")
+        print(f"\tGenerated Data Count Max: {max(generated_params.blocksize)}\n")
     else:
         print("Skipped Blocksize because parameter is empty.\n")
 
@@ -49,7 +70,12 @@ def check_fit(observed_params, generated_params):
         statistic, p_value = ks_2samp(observed_params.stride, generated_params.stride)
         print_stats("Stride", statistic, p_value, 0.05)
         print(f"\tObserved Data Count: {len(observed_params.stride)}")
-        print(f"\tGenerated Data Count: {len(generated_params.stride)}\n")
+        print(f"\tObserved Data Count Min: {min(observed_params.stride)}")
+        print(f"\tObserved Data Count Max: {max(observed_params.stride)}")
+        print(f"\tGenerated Data Count: {len(generated_params.stride)}")
+        print(f"\tGenerated Data Count Min: {min(generated_params.stride)}")
+        print(f"\tGenerated Data Count Max: {max(generated_params.stride)}\n")
+
     else:
         print("Skipped Stride because parameter is empty.\n")
 
@@ -60,7 +86,12 @@ def check_fit(observed_params, generated_params):
         )
         print_stats("comm_partners", statistic, p_value, 0.05)
         print(f"\tObserved Data Count: {len(observed_params.comm_partners)}")
-        print(f"\tGenerated Data Count: {len(generated_params.comm_partners)}\n")
+        print(f"\tObserved Data Count Min: {min(observed_params.comm_partners)}")
+        print(f"\tObserved Data Count Max: {max(observed_params.comm_partners)}")
+        print(f"\tGenerated Data Count: {len(generated_params.comm_partners)}")
+        print(f"\tGenerated Data Count Min: {min(generated_params.comm_partners)}")
+        print(f"\tGenerated Data Count Max: {max(generated_params.comm_partners)}\n")
+
     else:
         print("Skipped num_comm_partners because parameter is empty.\n")
 
