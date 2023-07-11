@@ -172,7 +172,7 @@ void parse_arguments(int argc, char **argv)
 
 // implementation of the following
 // https://en.wikipedia.org/wiki/Box–Muller_transform
-int gauss_dist(double mean, double stdev) {
+int gauss_dist(int mean, int stdev) {
     // generates two random numbers that form the seeds
     // of the transform
     double u1, u2, r, theta;
@@ -190,7 +190,6 @@ int gauss_dist(double mean, double stdev) {
         // an additional number can be generated in the
         // same distribution using the alternate form
         // ((r*sin(theta)) * stdev) + mean
-
         generated = round(((r*cos(theta)) * stdev ) + mean);
     }
     return generated;
@@ -279,7 +278,6 @@ int empirical_dist(char param[], FILE* fp) {
     // chose a uniformly distributed value between (0,1)
     double binSelection = (double)rand() / RAND_MAX;
 
-
     // used to track if we have checked a bin
     // if we have/are, the bin's proportion of the total dataset
     // is added to the binSum.
@@ -342,6 +340,12 @@ int empirical_dist(char param[], FILE* fp) {
             // return a normally distributed value with the
             // mean and standard deviation from the
             // chosen bin
+
+            if (i == (binCount-1) && binMean == 0 && binStdev == 0) {
+               printf("binSelection: %f | binSum: %f\n", binSelection, binSum);
+               return -1;
+            }
+            if (binMean == 0 && binStdev == 0) { exit(1); }
             return gauss_dist(binMean, binStdev);
         }
 
@@ -378,7 +382,7 @@ int main(int argc, char *argv[])
 
     const char* strings[] = { "nowned", "nremote", "blocksize", "comm_partners", "stride" };
     const int numStrings = sizeof(strings) / sizeof(strings[0]);
-    const int iterations = 100000;
+    const int iterations = 1000000;
 
     int i, j;
     for (i = 0; i < iterations; i++) {
@@ -389,10 +393,17 @@ int main(int argc, char *argv[])
         printf("Progress: %.2f%%\n", progress);
 
         for (j = 0; j < numStrings; j++) {
-            // printf("Progress generating: %s", strings[j]);
-            printf("PARAM: %s - %d\n", strings[j], empirical_dist(strings[j], fp));
+            // printf("Generating %s\n", strings[j]);
+            int generated_number = empirical_dist(strings[j], fp);
+            if (generated_number != -1) {
+               printf("PARAM: %s - %d\n", strings[j], generated_number);
+            } else {
+               //if search failed, generating again
+               j--;
+            }
         }
     }
+    printf("Progress: 100%%\n");
 
     // close file as reading is no longer required
     fclose(fp);
