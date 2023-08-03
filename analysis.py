@@ -7,6 +7,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from scipy.stats import shapiro
 from model.parameter import Parameter
+import numpy as np
 
 
 def bootstrap_results(results_dir=Path("results"), clean=False):
@@ -22,7 +23,7 @@ def bootstrap_results(results_dir=Path("results"), clean=False):
         os.makedirs(results_dir, exist_ok=True)
 
 
-def analysis(params, results_dir="results", file_name=""):
+def analysis(params, results_dir="results", file_name="", DPI=800):
     title_font = {"family": "Serif", "weight": "normal", "size": 16}
     axes_font = {"family": "Serif", "weight": "normal", "size": 12}
 
@@ -38,7 +39,7 @@ def analysis(params, results_dir="results", file_name=""):
     plt.xlabel("Size (bytes)", **axes_font)
     plt.ylabel("Frequency", **axes_font)
     plt.tight_layout()
-    plt.savefig(results_dir + "/nowned.png", dpi=1200)
+    plt.savefig(results_dir + "/nowned.png", dpi=DPI)
     plt.clf()
 
     print("N-Remote: " + str(params.nremote_mean()))
@@ -49,16 +50,20 @@ def analysis(params, results_dir="results", file_name=""):
     plt.xlabel("Size (bytes)", **axes_font)
     plt.ylabel("Frequency", **axes_font)
     plt.tight_layout()
-    plt.savefig(results_dir + "/nremote.png", dpi=1200)
+    plt.savefig(results_dir + "/nremote.png", dpi=DPI)
     plt.clf()
 
     print("num_comm_partners: " + str(params.comm_partners_mean()) + "\n")
-    plt.hist(params.comm_partners, bins=20, color="#00416d")
+    #the_bins =  (max(params.comm_partners) - min(params.comm_partners)) + 1
+    the_data, the_counts = np.unique(params.comm_partners, return_counts=True)
+
+    plt.bar(the_data, height=the_counts, color="#00416d")
     plt.title(file_name + "Distribution of Comm-Partners Count", **title_font)
     plt.xlabel("Number of Partners", **axes_font)
     plt.ylabel("Frequency", **axes_font)
+    plt.xticks(ticks=np.arange(min(params.comm_partners), max(params.comm_partners)+1), labels=np.arange(min(params.comm_partners), max(params.comm_partners)+1), minor=False)
     plt.tight_layout()
-    plt.savefig(results_dir + "/comm_partners.png", dpi=1200)
+    plt.savefig(results_dir + "/comm_partners.png", dpi=DPI)
     plt.clf()
 
     if len(params.blocksize) == 0:
@@ -72,7 +77,7 @@ def analysis(params, results_dir="results", file_name=""):
         plt.xlabel("Size (bytes)", **axes_font)
         plt.ylabel("Frequency", **axes_font)
         plt.tight_layout()
-        plt.savefig(results_dir + "/block_sizes.png", dpi=1200)
+        plt.savefig(results_dir + "/block_sizes.png", dpi=DPI)
         plt.clf()
 
     print("Stride: " + str(params.stride_mean()) + "\n")
@@ -83,7 +88,7 @@ def analysis(params, results_dir="results", file_name=""):
     plt.xlabel("Size (bytes)", **axes_font)
     plt.ylabel("Frequency", **axes_font)
     plt.tight_layout()
-    plt.savefig(results_dir + "/stride.png", dpi=1200)
+    plt.savefig(results_dir + "/stride.png", dpi=DPI)
     plt.clf()
 
     print("updates_per_setup: " + str(params.updates_per_setup_mean()))
@@ -96,8 +101,8 @@ if __name__ == "__main__":
     parser.add_argument(
         dest="param_path",
         action="store",
-        nargs="?",
-        type=str,
+        nargs="+",
+        type=argparse.FileType("r"),
         help="Specify path to file where parameter data is stored",
     )
     parser.add_argument(
@@ -133,38 +138,39 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # parameter path must be specified
-    if not args.param_path:
-        raise SystemExit("Error: no path to parameter log file specified")
-
     if args.bin_count != "auto":
         if not args.bin_count.isnumeric():
             sys.exit("Error: the bin-count argument must be an integer or auto")
 
-    # bootstrap results directory
-    file_name = args.param_path.split("/")[-1].split(".")[0]
-    print("Analyzing: " + file_name)
-    results = os.path.join(args.rpath, file_name)
-    bootstrap_results(results, clean=args.clean)
+    all_results   = []
+    all_params = []
+    for input_file in args.param_path:
+        # bootstrap results directory
+        file_name = input_file.name.split("/")[-1].split(".")[0]
+        print("Analyzing: " + file_name)
+        results = os.path.join(args.rpath, file_name)
+        bootstrap_results(results, clean=args.clean)
+        all_results.append(results)
 
-    # tries to read file containing parameter data
-    # fails if file does not exist, cannot be read, etc.
-    try:
-        param_file = open(args.param_path, "r")
-        param_output = param_file.readlines()
-        param_file.close()
-    except:
-        raise SystemExit(
-            "Error: could not read parameter output file. Are you sure that file exists?"
+        # tries to read file containing parameter data
+        # fails if file does not exist, cannot be read, etc.
+        try:
+            with open(input_file.name, "r") as param_file:
+                print("Parsing: " + input_file.name)
+                param_output = param_file.readlines()
+        except:
+            print(
+                "Error: could not read parameter output file: %s. Are you sure that file exists?" % input_file.name
+            )
+
+        params = Parameter(
+            param_output,
+            fit_distribution=args.enable_distribution_fitting,
+            results_dir=None,
+            bin_count=args.bin_count,
         )
+        all_params.append(params)
 
-    # run analysis on parameter data
-    params = Parameter(
-        param_output,
-        fit_distribution=args.enable_distribution_fitting,
-        results_dir=results,
-        bin_count=args.bin_count,
-    )
-
-    # generate distribution plots
-    analysis(params, results, file_name)
+        # generate distribution plots
+        analysis(params, results, file_name)
+        
