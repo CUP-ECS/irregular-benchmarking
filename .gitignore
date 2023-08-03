@@ -55,3 +55,6 @@ data/CLAMR-BR/
 data/CabanaMD/
 data/CABANAMD/
 data/CABANAMD-BR/
+
+# Results folder
+results/**
