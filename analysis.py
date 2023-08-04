@@ -24,10 +24,11 @@ def bootstrap_results(results_dir=Path("results"), clean=False):
         os.makedirs(results_dir, exist_ok=True)
 
 
-def analysis_combined(params, results_dir="results", filename="0", app_names=[], DPI=700):
-    fig_font = {"family": "Serif", "weight": "normal", "size": 11}
-    title_font = {"family": "Serif", "weight": "normal", "size": 10}
+def analysis_combined(params, results_dir="results", filename="0", app_names=[], DPI=800):
+    fig_font = {"family": "Serif", "weight": "normal", "size": 12}
+    title_font = {"family": "Serif", "weight": "normal", "size": 11}
     axes_font = {"family": "Serif", "weight": "normal", "size": 9}
+    y_tick_font = {"size": 10}
 
     rows = len(params)
     cols = 3
@@ -50,7 +51,7 @@ def analysis_combined(params, results_dir="results", filename="0", app_names=[],
         ax.set_ylabel("Frequency", **axes_font)
         ax.set_xbound(min(params[param_idx].nowned), max(params[param_idx].nowned))
         ax.set_yscale('log')
-        #ax.ticklabel_format(style='plain')
+        ax.tick_params(axis='y', **y_tick_font)
         plt.tight_layout()
         ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha='right')
 
@@ -61,7 +62,7 @@ def analysis_combined(params, results_dir="results", filename="0", app_names=[],
         ax.set_xlabel("Size (bytes)", **axes_font)
         ax.set_xbound(min(params[param_idx].nremote), max(params[param_idx].nremote))
         ax.set_yscale('log')
-        #ax.ticklabel_format(style='plain')
+        ax.tick_params(axis='y', **y_tick_font)
         plt.tight_layout()
         ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha='right')
         
@@ -76,7 +77,7 @@ def analysis_combined(params, results_dir="results", filename="0", app_names=[],
         ax.set_xlabel("Number of Partners", **axes_font)
         ax.set_xticks(ticks=np.arange(the_min, the_max+1), labels=np.arange(the_min, the_max+1), minor=False)
         ax.set_yscale('log')
-        #ax.ticklabel_format(axis="y",style='plain')
+        ax.tick_params(axis='y', **y_tick_font)
         if(len(the_data) > 5):
             ax.set_xticks(the_data[::5], the_data[::5])
 
