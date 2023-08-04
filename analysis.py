@@ -32,7 +32,10 @@ def analysis_combined(params, results_dir="results", filename="0", app_names=[],
     rows = len(params)
     cols = 3
     figure_size = plt.rcParams["figure.figsize"]
-    figure_size[1] = figure_size[1]*1.5
+    plt.rcParams['axes.formatter.useoffset'] = False
+    if(rows > 2):
+        figure_size[1] = figure_size[1]*1.75
+
     fig, axs = plt.subplots(figsize=figure_size, nrows=rows, ncols=cols)
     if(int(filename) == 1 ):
         fig.suptitle("Parameter Distribution for "+filename +" Node, 32 Processes", **fig_font)
@@ -46,6 +49,8 @@ def analysis_combined(params, results_dir="results", filename="0", app_names=[],
         ax.set_xlabel("Size (bytes)", **axes_font)
         ax.set_ylabel("Frequency", **axes_font)
         ax.set_xbound(min(params[param_idx].nowned), max(params[param_idx].nowned))
+        ax.set_yscale('log')
+        #ax.ticklabel_format(style='plain')
         plt.tight_layout()
         ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha='right')
 
@@ -55,6 +60,8 @@ def analysis_combined(params, results_dir="results", filename="0", app_names=[],
         ax.set_title("N-Remote Size", **title_font)
         ax.set_xlabel("Size (bytes)", **axes_font)
         ax.set_xbound(min(params[param_idx].nremote), max(params[param_idx].nremote))
+        ax.set_yscale('log')
+        #ax.ticklabel_format(style='plain')
         plt.tight_layout()
         ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha='right')
         
@@ -63,10 +70,15 @@ def analysis_combined(params, results_dir="results", filename="0", app_names=[],
         the_min = min(params[param_idx].comm_partners)
         the_max = max(params[param_idx].comm_partners)
 
-        axs[param_idx, 2].bar(the_data, height=the_counts, color="#00416d")
-        axs[param_idx, 2].set_title(" Comm-Partners", **title_font)
-        axs[param_idx, 2].set_xlabel("Number of Partners", **axes_font)
-        axs[param_idx, 2].set_xticks(ticks=np.arange(the_min, the_max+1), labels=np.arange(the_min, the_max+1), minor=False)
+        ax = axs[param_idx, 2]
+        ax.bar(the_data, height=the_counts, color="#00416d")
+        ax.set_title(" Comm-Partners", **title_font)
+        ax.set_xlabel("Number of Partners", **axes_font)
+        ax.set_xticks(ticks=np.arange(the_min, the_max+1), labels=np.arange(the_min, the_max+1), minor=False)
+        ax.set_yscale('log')
+        #ax.ticklabel_format(axis="y",style='plain')
+        if(len(the_data) > 5):
+            ax.set_xticks(the_data[::5], the_data[::5])
 
     plt.tight_layout()
 
