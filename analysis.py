@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import shapiro
 from model.parameter import Parameter
 import numpy as np
+from matplotlib.gridspec import SubplotSpec
 
 
 def bootstrap_results(results_dir=Path("results"), clean=False):
@@ -23,13 +24,18 @@ def bootstrap_results(results_dir=Path("results"), clean=False):
         os.makedirs(results_dir, exist_ok=True)
 
 
-def analysis_combined(params, results_dir="results", filename="0", param_names=[], DPI=800):
-    title_font = {"family": "Serif", "weight": "normal", "size": 11}
-    axes_font = {"family": "Serif", "weight": "normal", "size": 10}
+def analysis_combined(params, results_dir="results", filename="0", app_names=[], DPI=800):
+    fig_font = {"family": "Serif", "weight": "normal", "size": 11}
+    title_font = {"family": "Serif", "weight": "normal", "size": 10}
+    axes_font = {"family": "Serif", "weight": "normal", "size": 9}
 
     rows = len(params)
     cols = 3
     fig, axs = plt.subplots(rows, cols)
+    if(int(filename) == 1 ):
+        fig.suptitle("Parameter Distribution for "+filename +" Node, 32 Processes", **fig_font)
+    else:
+        fig.suptitle("Parameter Distribution for "+filename +" Nodes, 32 Processes per Node", **fig_font)
     for param_idx in range(0, len(params)):
         print("Making N-Owned Graph for: " + str(param_idx))
         ax = axs[param_idx, 0]
@@ -61,6 +67,22 @@ def analysis_combined(params, results_dir="results", filename="0", param_names=[
         axs[param_idx, 2].set_xticks(ticks=np.arange(the_min, the_max+1), labels=np.arange(the_min, the_max+1), minor=False)
 
     plt.tight_layout()
+
+    def create_subtitle(fig: plt.Figure, grid: SubplotSpec, title: str):
+        "Sign sets of subplots with title"
+        row = fig.add_subplot(grid)
+        # the '\n' is important
+        row.set_title(f'{title}\n', **title_font)
+        # hide subplot
+        row.set_frame_on(False)
+        row.axis('off')
+
+    grid = plt.GridSpec(rows, cols)
+    for x in range(0, rows):
+        create_subtitle(fig, grid[x, ::], app_names[x])
+    fig.tight_layout()
+    fig.set_facecolor('w')
+
     plt.savefig(results_dir + "/"+ filename, dpi=DPI)
     plt.clf()
 
@@ -185,12 +207,12 @@ if __name__ == "__main__":
 
     all_results = []
     all_params  = []
-    param_names =[]
+    app_names =[]
     for input_file in args.param_path:
         # bootstrap results directory
-        param_names.append(input_file.name)
         file_name = input_file.name.split("/")[-1].split(".")[0]
         procs = input_file.name.split("/")[-1].split("_")[-2]
+        app_names.append(input_file.name.split("/")[-1].split("_")[0])
         print("Procs: " + procs)
         print("Analyzing: " + file_name)
         results = os.path.join(args.rpath, file_name)
@@ -217,5 +239,5 @@ if __name__ == "__main__":
         all_params.append(params)
 
     # generate distribution plots
-    analysis_combined(all_params, filename=procs, param_names=param_names)
+    analysis_combined(all_params, filename=procs, app_names=app_names)
         
