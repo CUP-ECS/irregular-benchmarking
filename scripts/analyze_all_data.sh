@@ -4,7 +4,6 @@
 #!/bin/bash
 
 declare -a APP_STRING_ARRAY=("CLAMR" "CABANAMD" "XRAGE")
-#declare -a APP_STRING_ARRAY=("XRAGE")
 
 for i in {1,2,4,8,16}
 do
@@ -15,7 +14,7 @@ do
         if [[ -f "${FILE_STRING}" ]]; then
             FILES_TO_LOOK_AT+="${FILE_STRING} "
         else
-            echo "@ No: ${FILE_STRING}"
+            echo "@ No such file: ${FILE_STRING}"
         fi
 
     done

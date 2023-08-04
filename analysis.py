@@ -1,8 +1,6 @@
 import argparse
-import statistics
 import os
 import shutil
-import math
 from pathlib import Path
 import matplotlib.pyplot as plt
 from scipy.stats import shapiro
@@ -132,9 +130,7 @@ def analysis(params, results_dir="results", file_name="", DPI=800):
     plt.clf()
 
     print("num_comm_partners: " + str(params.comm_partners_mean()) + "\n")
-    #the_bins =  (max(params.comm_partners) - min(params.comm_partners)) + 1
     the_data, the_counts = np.unique(params.comm_partners, return_counts=True)
-
     plt.bar(the_data, height=the_counts, color="#00416d")
     plt.title(file_name + "Distribution of Comm-Partners Count", **title_font)
     plt.xlabel("Number of Partners", **axes_font)
@@ -228,8 +224,7 @@ if __name__ == "__main__":
         file_name = input_file.name.split("/")[-1].split(".")[0]
         procs = input_file.name.split("/")[-1].split("_")[-2]
         app_names.append(input_file.name.split("/")[-1].split("_")[0])
-        print("Procs: " + procs)
-        print("Analyzing: " + file_name)
+        print("Analyzing: " + file_name + " with " + procs + " procs.")
         results = os.path.join(args.rpath, file_name)
         bootstrap_results(results, clean=args.clean)
         all_results.append(results)
@@ -254,5 +249,8 @@ if __name__ == "__main__":
         all_params.append(params)
 
     # generate distribution plots
-    analysis_combined(all_params, filename=procs, app_names=app_names)
+    if(len(args.param_path) > 1):
+        analysis_combined(all_params, filename=procs, app_names=app_names)
+    else:
+        analysis(all_params[0], all_results[0], file_name)
         
