@@ -23,6 +23,47 @@ def bootstrap_results(results_dir=Path("results"), clean=False):
         os.makedirs(results_dir, exist_ok=True)
 
 
+def analysis_combined(params, results_dir="results", filename="0", param_names=[], DPI=800):
+    title_font = {"family": "Serif", "weight": "normal", "size": 11}
+    axes_font = {"family": "Serif", "weight": "normal", "size": 10}
+
+    rows = len(params)
+    cols = 3
+    fig, axs = plt.subplots(rows, cols)
+    for param_idx in range(0, len(params)):
+        print("Making N-Owned Graph for: " + str(param_idx))
+        ax = axs[param_idx, 0]
+        ax.hist(params[param_idx].nowned, bins=20, color="#00416d")
+        ax.set_title("N-Owned Size", **title_font)
+        ax.set_xlabel("Size (bytes)", **axes_font)
+        ax.set_ylabel("Frequency", **axes_font)
+        ax.set_xbound(min(params[param_idx].nowned), max(params[param_idx].nowned))
+        plt.tight_layout()
+        ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha='right')
+
+        print("Making N-Remote Graph for: " + str(param_idx))
+        ax = axs[param_idx, 1]
+        ax.hist(params[param_idx].nremote, bins=20, color="#00416d")
+        ax.set_title("N-Remote Size", **title_font)
+        ax.set_xlabel("Size (bytes)", **axes_font)
+        ax.set_xbound(min(params[param_idx].nremote), max(params[param_idx].nremote))
+        plt.tight_layout()
+        ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha='right')
+        
+        print("Making N-Remote Graph for: " + str(param_idx))
+        the_data, the_counts = np.unique(params[param_idx].comm_partners, return_counts=True)
+        the_min = min(params[param_idx].comm_partners)
+        the_max = max(params[param_idx].comm_partners)
+
+        axs[param_idx, 2].bar(the_data, height=the_counts, color="#00416d")
+        axs[param_idx, 2].set_title(" Comm-Partners", **title_font)
+        axs[param_idx, 2].set_xlabel("Number of Partners", **axes_font)
+        axs[param_idx, 2].set_xticks(ticks=np.arange(the_min, the_max+1), labels=np.arange(the_min, the_max+1), minor=False)
+
+    plt.tight_layout()
+    plt.savefig(results_dir + "/"+ filename, dpi=DPI)
+    plt.clf()
+
 def analysis(params, results_dir="results", file_name="", DPI=800):
     title_font = {"family": "Serif", "weight": "normal", "size": 16}
     axes_font = {"family": "Serif", "weight": "normal", "size": 12}
@@ -142,11 +183,15 @@ if __name__ == "__main__":
         if not args.bin_count.isnumeric():
             sys.exit("Error: the bin-count argument must be an integer or auto")
 
-    all_results   = []
-    all_params = []
+    all_results = []
+    all_params  = []
+    param_names =[]
     for input_file in args.param_path:
         # bootstrap results directory
+        param_names.append(input_file.name)
         file_name = input_file.name.split("/")[-1].split(".")[0]
+        procs = input_file.name.split("/")[-1].split("_")[-2]
+        print("Procs: " + procs)
         print("Analyzing: " + file_name)
         results = os.path.join(args.rpath, file_name)
         bootstrap_results(results, clean=args.clean)
@@ -171,6 +216,6 @@ if __name__ == "__main__":
         )
         all_params.append(params)
 
-        # generate distribution plots
-        analysis(params, results, file_name)
+    # generate distribution plots
+    analysis_combined(all_params, filename=procs, param_names=param_names)
         
