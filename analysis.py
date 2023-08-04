@@ -24,14 +24,16 @@ def bootstrap_results(results_dir=Path("results"), clean=False):
         os.makedirs(results_dir, exist_ok=True)
 
 
-def analysis_combined(params, results_dir="results", filename="0", app_names=[], DPI=800):
+def analysis_combined(params, results_dir="results", filename="0", app_names=[], DPI=700):
     fig_font = {"family": "Serif", "weight": "normal", "size": 11}
     title_font = {"family": "Serif", "weight": "normal", "size": 10}
     axes_font = {"family": "Serif", "weight": "normal", "size": 9}
 
     rows = len(params)
     cols = 3
-    fig, axs = plt.subplots(rows, cols)
+    figure_size = plt.rcParams["figure.figsize"]
+    figure_size[1] = figure_size[1]*1.5
+    fig, axs = plt.subplots(figsize=figure_size, nrows=rows, ncols=cols)
     if(int(filename) == 1 ):
         fig.suptitle("Parameter Distribution for "+filename +" Node, 32 Processes", **fig_font)
     else:
