@@ -98,7 +98,8 @@ $ python3 analysis.py --help
 usage: analysis.py [-h] [-r [RPATH]] [--bin-count [BIN_COUNT]] [-c] [--disable-distribution-fitting] [param_path]
 
 positional arguments:
-  param_path            Specify path to file where parameter data is stored
+  param_path            Specify path to file where parameter data is stored. Multiple files may be specified,
+                        separated by a space.
 
 options:
   -h, --help            show this help message and exit
@@ -108,6 +109,8 @@ options:
   -c, --clean           Removes previously generated files
   --enable-distribution-fitting
                         Enables lengthy process of fitting parameters to best distribution
+  --separate-results    When multiple input files are provided, this option produces individual in addition to the
+                        combined output
 ```
 You must specify a path to a file where your parameter data is stored.
 This script generates a results directory named the same name as the parameter data file name. 

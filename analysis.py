@@ -22,7 +22,9 @@ def bootstrap_results(results_dir=Path("results"), clean=False):
         os.makedirs(results_dir, exist_ok=True)
 
 
-def analysis_combined(params, results_dir="results", filename="0", app_names=[], DPI=800):
+def analysis_combined(
+    params, results_dir="results", filename="0", app_names=[], DPI=800
+):
     fig_font = {"family": "Serif", "weight": "normal", "size": 12}
     title_font = {"family": "Serif", "weight": "normal", "size": 11}
     axes_font = {"family": "Serif", "weight": "normal", "size": 9}
@@ -31,15 +33,20 @@ def analysis_combined(params, results_dir="results", filename="0", app_names=[],
     rows = len(params)
     cols = 3
     figure_size = plt.rcParams["figure.figsize"]
-    plt.rcParams['axes.formatter.useoffset'] = False
-    if(rows > 2):
-        figure_size[1] = figure_size[1]*1.75
+    plt.rcParams["axes.formatter.useoffset"] = False
+    if rows > 2:
+        figure_size[1] = figure_size[1] * 1.75
 
     fig, axs = plt.subplots(figsize=figure_size, nrows=rows, ncols=cols)
-    if(int(filename) == 1 ):
-        fig.suptitle("Parameter Distribution for "+filename +" Node, 32 Processes", **fig_font)
+    if int(filename) == 1:
+        fig.suptitle(
+            "Parameter Distribution for " + filename + " Node, 32 Processes", **fig_font
+        )
     else:
-        fig.suptitle("Parameter Distribution for "+filename +" Nodes, 32 Processes per Node", **fig_font)
+        fig.suptitle(
+            "Parameter Distribution for " + filename + " Nodes, 32 Processes per Node",
+            **fig_font,
+        )
     for param_idx in range(0, len(params)):
         print("Making N-Owned Graph for: " + str(param_idx))
         ax = axs[param_idx, 0]
@@ -48,10 +55,10 @@ def analysis_combined(params, results_dir="results", filename="0", app_names=[],
         ax.set_xlabel("Size (bytes)", **axes_font)
         ax.set_ylabel("Frequency", **axes_font)
         ax.set_xbound(min(params[param_idx].nowned), max(params[param_idx].nowned))
-        ax.set_yscale('log')
-        ax.tick_params(axis='y', **y_tick_font)
+        ax.set_yscale("log")
+        ax.tick_params(axis="y", **y_tick_font)
         plt.tight_layout()
-        ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha='right')
+        ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha="right")
 
         print("Making N-Remote Graph for: " + str(param_idx))
         ax = axs[param_idx, 1]
@@ -59,13 +66,15 @@ def analysis_combined(params, results_dir="results", filename="0", app_names=[],
         ax.set_title("N-Remote Size", **title_font)
         ax.set_xlabel("Size (bytes)", **axes_font)
         ax.set_xbound(min(params[param_idx].nremote), max(params[param_idx].nremote))
-        ax.set_yscale('log')
-        ax.tick_params(axis='y', **y_tick_font)
+        ax.set_yscale("log")
+        ax.tick_params(axis="y", **y_tick_font)
         plt.tight_layout()
-        ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha='right')
-        
+        ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha="right")
+
         print("Making N-Remote Graph for: " + str(param_idx))
-        the_data, the_counts = np.unique(params[param_idx].comm_partners, return_counts=True)
+        the_data, the_counts = np.unique(
+            params[param_idx].comm_partners, return_counts=True
+        )
         the_min = min(params[param_idx].comm_partners)
         the_max = max(params[param_idx].comm_partners)
 
@@ -73,10 +82,14 @@ def analysis_combined(params, results_dir="results", filename="0", app_names=[],
         ax.bar(the_data, height=the_counts, color="#00416d")
         ax.set_title(" Comm-Partners", **title_font)
         ax.set_xlabel("Number of Partners", **axes_font)
-        ax.set_xticks(ticks=np.arange(the_min, the_max+1), labels=np.arange(the_min, the_max+1), minor=False)
-        ax.set_yscale('log')
-        ax.tick_params(axis='y', **y_tick_font)
-        if(len(the_data) > 5):
+        ax.set_xticks(
+            ticks=np.arange(the_min, the_max + 1),
+            labels=np.arange(the_min, the_max + 1),
+            minor=False,
+        )
+        ax.set_yscale("log")
+        ax.tick_params(axis="y", **y_tick_font)
+        if len(the_data) > 5:
             ax.set_xticks(the_data[::5], the_data[::5])
 
     plt.tight_layout()
@@ -85,19 +98,20 @@ def analysis_combined(params, results_dir="results", filename="0", app_names=[],
         "Sign sets of subplots with title"
         row = fig.add_subplot(grid)
         # the '\n' is important
-        row.set_title(f'{title}\n', **title_font)
+        row.set_title(f"{title}\n", **title_font)
         # hide subplot
         row.set_frame_on(False)
-        row.axis('off')
+        row.axis("off")
 
     grid = plt.GridSpec(rows, cols)
     for x in range(0, rows):
         create_subtitle(fig, grid[x, ::], app_names[x])
     fig.tight_layout()
-    fig.set_facecolor('w')
+    fig.set_facecolor("w")
 
-    plt.savefig(results_dir + "/"+ filename, dpi=DPI)
+    plt.savefig(results_dir + "/Combined/" + filename, dpi=DPI)
     plt.clf()
+
 
 def analysis(params, results_dir="results", file_name="", DPI=800):
     title_font = {"family": "Serif", "weight": "normal", "size": 16}
@@ -135,7 +149,11 @@ def analysis(params, results_dir="results", file_name="", DPI=800):
     plt.title(file_name + "Distribution of Comm-Partners Count", **title_font)
     plt.xlabel("Number of Partners", **axes_font)
     plt.ylabel("Frequency", **axes_font)
-    plt.xticks(ticks=np.arange(min(params.comm_partners), max(params.comm_partners)+1), labels=np.arange(min(params.comm_partners), max(params.comm_partners)+1), minor=False)
+    plt.xticks(
+        ticks=np.arange(min(params.comm_partners), max(params.comm_partners) + 1),
+        labels=np.arange(min(params.comm_partners), max(params.comm_partners) + 1),
+        minor=False,
+    )
     plt.tight_layout()
     plt.savefig(results_dir + "/comm_partners.png", dpi=DPI)
     plt.clf()
@@ -177,7 +195,10 @@ if __name__ == "__main__":
         action="store",
         nargs="+",
         type=argparse.FileType("r"),
-        help="Specify path to file where parameter data is stored",
+        help="""
+             Specify path to file where parameter data is stored. 
+             Multiple files may be specified, separated by a space.
+             """,
     )
     parser.add_argument(
         "-r",
@@ -197,7 +218,7 @@ if __name__ == "__main__":
         type=str,
         required=False,
         help="""
-             Specify number of bins for empirical distribution fitting\n
+             Specify number of bins for empirical distribution fitting.
              Can be a numerical value or \"auto\" to set the value dynamically.
              """,
     )
@@ -209,6 +230,14 @@ if __name__ == "__main__":
         action="store_true",
         help="enables lengthy process of fitting parameters to best distribution",
     )
+    parser.add_argument(
+        "--separate-results",
+        action="store_true",
+        help="""
+             When multiple input files are provided, this option produces individual
+             in addition to the combined output.
+             """,
+    )
 
     args = parser.parse_args()
 
@@ -217,8 +246,8 @@ if __name__ == "__main__":
             sys.exit("Error: the bin-count argument must be an integer or auto")
 
     all_results = []
-    all_params  = []
-    app_names =[]
+    all_params = []
+    app_names = []
     for input_file in args.param_path:
         # bootstrap results directory
         file_name = input_file.name.split("/")[-1].split(".")[0]
@@ -230,14 +259,16 @@ if __name__ == "__main__":
         all_results.append(results)
 
         # tries to read file containing parameter data
-        # fails if file does not exist, cannot be read, etc.
+        # skips the file if does not exist, cannot be read, etc.
         try:
             with open(input_file.name, "r") as param_file:
                 print("Parsing: " + input_file.name)
                 param_output = param_file.readlines()
         except:
             print(
-                "Error: could not read parameter output file: %s. Are you sure that file exists?" % input_file.name
+                "Error: could not read parameter output file: %s. Are you sure that"
+                " file exists?"
+                % input_file.name
             )
 
         params = Parameter(
@@ -248,9 +279,11 @@ if __name__ == "__main__":
         )
         all_params.append(params)
 
-    # generate distribution plots
-    if(len(args.param_path) > 1):
+        # generate distribution plots
+        if args.separate_results or len(args.param_path) == 1:
+            analysis(params, results, file_name)
+
+    # generate combined distribution plots
+    if len(args.param_path) > 1:
+        bootstrap_results(args.rpath + "/Combined", clean=args.clean)
         analysis_combined(all_params, filename=procs, app_names=app_names)
-    else:
-        analysis(all_params[0], all_results[0], file_name)
-        
