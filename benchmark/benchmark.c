@@ -214,10 +214,11 @@ void parse_config_file() {
         char* line = NULL;
         size_t linecap = 0;
         ssize_t linelen;
+        bool found = false;
 
         // iterates through lines in the file until we get to the line
         // that contains the parameter we're trying to generate for
-        while ((linelen = getline(&line, &linecap, fp)) != -1) {
+        while (false == found && (linelen = getline(&line, &linecap, fp)) != -1) {
             // remove trailing new line to better do comparison
             if (linelen > 0 && line[linelen-1] == '\n') {
                 line[linelen-1] = '\0';
@@ -226,8 +227,14 @@ void parse_config_file() {
             // if the correct parameter is found,
             // stop iterating through the file
             if (strcmp(param_key, line) == 0) {
-                break;
+                found = true;
             }
+        }
+
+        if(!found)
+        {
+            printf("%s not found!\n",params[index]);
+            continue;
         }
 
         // iterates through non-bin data points
