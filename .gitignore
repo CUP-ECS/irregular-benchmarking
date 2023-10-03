@@ -49,7 +49,12 @@ __pycache__/
 *~
 
 # Ignore specific, uncompressed data files
+data/XRAGE/
 data/CLAMR/
 data/CLAMR-BR/
 data/CabanaMD/
+data/CABANAMD/
 data/CABANAMD-BR/
+
+# Results folder
+results/**
