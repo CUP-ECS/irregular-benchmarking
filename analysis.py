@@ -38,15 +38,8 @@ def analysis_combined(
         figure_size[1] = figure_size[1] * 1.75
 
     fig, axs = plt.subplots(figsize=figure_size, nrows=rows, ncols=cols)
-    if int(filename) == 1:
-        fig.suptitle(
-            "Parameter Distribution for " + filename + " Node, 32 Processes", **fig_font
-        )
-    else:
-        fig.suptitle(
-            "Parameter Distribution for " + filename + " Nodes, 32 Processes per Node",
-            **fig_font,
-        )
+    fig.suptitle("Parameter Distribution Across Applications", **fig_font)
+
     for param_idx in range(0, len(params)):
         print("Making N-Owned Graph for: " + str(param_idx))
         ax = axs[param_idx, 0]
@@ -80,7 +73,7 @@ def analysis_combined(
 
         ax = axs[param_idx, 2]
         ax.bar(the_data, height=the_counts, color="#00416d")
-        ax.set_title(" Comm-Partners", **title_font)
+        ax.set_title("Comm-Partners", **title_font)
         ax.set_xlabel("Number of Partners", **axes_font)
         ax.set_xticks(
             ticks=np.arange(the_min, the_max + 1),
@@ -95,7 +88,6 @@ def analysis_combined(
     plt.tight_layout()
 
     def create_subtitle(fig: plt.Figure, grid: SubplotSpec, title: str):
-        "Sign sets of subplots with title"
         row = fig.add_subplot(grid)
         # the '\n' is important
         row.set_title(f"{title}\n", **title_font)
@@ -113,19 +105,15 @@ def analysis_combined(
     plt.clf()
 
 
-def analysis(params, results_dir="results", file_name="", DPI=800):
+def analysis(params, results_dir="results", DPI=800):
     title_font = {"family": "Serif", "weight": "normal", "size": 16}
     axes_font = {"family": "Serif", "weight": "normal", "size": 12}
 
-    if file_name != "":
-        file_name += "\n"
-
-    file_name = ""
     print("N-Owned: " + str(params.nowned_mean()))
     print("N-Owned stdev: " + str(params.nowned_stdev()))
     print("N-Owned dist: " + params.nowned_dist())
     plt.hist(params.nowned, bins=20, color="#00416d")
-    plt.title(file_name + "Distribution of N-Owned Size", **title_font)
+    plt.title("Distribution of N-Owned Size", **title_font)
     plt.xlabel("Size (bytes)", **axes_font)
     plt.ylabel("Frequency", **axes_font)
     plt.tight_layout()
@@ -136,17 +124,18 @@ def analysis(params, results_dir="results", file_name="", DPI=800):
     print("N-Remote stdev: " + str(params.nremote_stdev()))
     print("N-Remote dist: " + params.nremote_dist())
     plt.hist(params.nremote, bins=20, color="#00416d")
-    plt.title(file_name + "Distribution of N-Remote Size", **title_font)
+    plt.title("Distribution of N-Remote Size", **title_font)
     plt.xlabel("Size (bytes)", **axes_font)
     plt.ylabel("Frequency", **axes_font)
     plt.tight_layout()
     plt.savefig(results_dir + "/nremote.png", dpi=DPI)
     plt.clf()
 
+    print("Number of entries for num_comm_partners: " + str(len(params.comm_partners)) + "\n")
     print("num_comm_partners: " + str(params.comm_partners_mean()) + "\n")
     the_data, the_counts = np.unique(params.comm_partners, return_counts=True)
     plt.bar(the_data, height=the_counts, color="#00416d")
-    plt.title(file_name + "Distribution of Comm-Partners Count", **title_font)
+    plt.title("Distribution of Comm-Partners Count", **title_font)
     plt.xlabel("Number of Partners", **axes_font)
     plt.ylabel("Frequency", **axes_font)
     plt.xticks(
@@ -165,7 +154,7 @@ def analysis(params, results_dir="results", file_name="", DPI=800):
         print("blocksize stdev: " + str(params.blocksize_stdev()))
         print("blocksize dist: " + params.blocksize_dist())
         plt.hist(params.blocksize, bins=20, color="#00416d")
-        plt.title(file_name + "Distribution of Block Sizes", **title_font)
+        plt.title("Distribution of Block Sizes", **title_font)
         plt.xlabel("Size (bytes)", **axes_font)
         plt.ylabel("Frequency", **axes_font)
         plt.tight_layout()
@@ -176,7 +165,7 @@ def analysis(params, results_dir="results", file_name="", DPI=800):
     print("Stride stdev: " + str(params.stride_stdev()) + "\n")
     print("Stride distribution: " + params.stride_dist() + "\n")
     plt.hist(params.stride, bins=20, color="#00416d")
-    plt.title(file_name + "Distrbution of Stride Size", **title_font)
+    plt.title("Distribution of Stride Size", **title_font)
     plt.xlabel("Size (bytes)", **axes_font)
     plt.ylabel("Frequency", **axes_font)
     plt.tight_layout()
@@ -267,8 +256,7 @@ if __name__ == "__main__":
         except:
             print(
                 "Error: could not read parameter output file: %s. Are you sure that"
-                " file exists?"
-                % input_file.name
+                " file exists?" % input_file.name
             )
 
         params = Parameter(
@@ -286,4 +274,4 @@ if __name__ == "__main__":
     # generate combined distribution plots
     if len(args.param_path) > 1:
         bootstrap_results(args.rpath + "/Combined", clean=args.clean)
-        analysis_combined(all_params, filename=procs, app_names=app_names)
+        analysis_combined(all_params, image_filename=procs, app_names=app_names)
