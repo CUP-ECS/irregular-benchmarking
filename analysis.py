@@ -134,13 +134,16 @@ def analysis(params, results_dir="results", DPI=800):
     print("Number of entries for num_comm_partners: " + str(len(params.comm_partners)) + "\n")
     print("num_comm_partners: " + str(params.comm_partners_mean()) + "\n")
     the_data, the_counts = np.unique(params.comm_partners, return_counts=True)
+    print("counts determined!")
     plt.bar(the_data, height=the_counts, color="#00416d")
     plt.title("Distribution of Comm-Partners Count", **title_font)
     plt.xlabel("Number of Partners", **axes_font)
     plt.ylabel("Frequency", **axes_font)
+    the_min = min(params.comm_partners)
+    the_max = max(params.comm_partners)
     plt.xticks(
-        ticks=np.arange(min(params.comm_partners), max(params.comm_partners) + 1),
-        labels=np.arange(min(params.comm_partners), max(params.comm_partners) + 1),
+        ticks=np.arange(the_min, the_max + 1),
+        labels=np.arange(the_min, the_max + 1),
         minor=False,
     )
     plt.tight_layout()
