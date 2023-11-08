@@ -277,4 +277,4 @@ if __name__ == "__main__":
     # generate combined distribution plots
     if len(args.param_path) > 1:
         bootstrap_results(args.rpath + "/Combined", clean=args.clean)
-        analysis_combined(all_params, image_filename=procs, app_names=app_names)
+        analysis_combined(all_params, filename=procs, app_names=app_names)
