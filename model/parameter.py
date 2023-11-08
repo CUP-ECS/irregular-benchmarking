@@ -43,8 +43,8 @@ class Parameter:
             #rank = split_line[0]
             #token_id = split_line[1]
             self.nowned.append(int(split_line[5]))
-            self.nremote.append(int(split_line[2]))
-            self.comm_partners.append(int(split_line[4]))
+            self.nremote.append(int(float(split_line[2])))
+            self.comm_partners.append(int(float(split_line[4])))
 
     def data_parser(self, param_file):
         for param_line in param_file:
