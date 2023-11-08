@@ -17,10 +17,12 @@ class Parameter:
         self.updates_per_setup = []
         self.fit_distribution = fit_distribution
 
+        print("Starting parsing!\n")
         if "|" in param_file[0]:
             self.xrage_data_parser(param_file)
         else:
             self.data_parser(param_file)
+        print("Done parsing!\n")
 
         if fit_distribution == True:
             self.nowned_distr = self._dist_test(self.nowned)
@@ -34,19 +36,15 @@ class Parameter:
             self.generate_file(results_dir, bin_count)
 
     def xrage_data_parser(self, param_file):
+        print("xRage Parsing!\n")
         line_num = 0
         for param_line in param_file:
-            param_line = param_line.strip()
-            if line_num != 0:
-                split_line = param_line.split("|")
-                split_line.pop()
-                split_line = [int(float(x)) for x in split_line]
-                rank = split_line[0]
-                token_id = split_line[1]
-                self.nowned.append(split_line[2] + split_line[3])
-                self.nremote.append(split_line[2])
-                self.comm_partners.append(split_line[5])
-            line_num += 1
+            split_line = param_line.strip().split("|")
+            #rank = split_line[0]
+            #token_id = split_line[1]
+            self.nowned.append(int(split_line[5]))
+            self.nremote.append(int(split_line[2]))
+            self.comm_partners.append(int(split_line[4]))
 
     def data_parser(self, param_file):
         for param_line in param_file:

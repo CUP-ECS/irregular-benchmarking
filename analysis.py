@@ -245,7 +245,7 @@ if __name__ == "__main__":
         file_name = input_file.name.split("/")[-1].split(".")[0]
         procs = input_file.name.split("/")[-1].split("_")[-2]
         app_names.append(input_file.name.split("/")[-1].split("_")[0])
-        print("Analyzing: " + file_name + " with " + procs + " procs.")
+        print("Analyzing: " + file_name + " with " + procs + " procs.\n")
         results = os.path.join(args.rpath, file_name)
         bootstrap_results(results, clean=args.clean)
         all_results.append(results)
@@ -254,7 +254,7 @@ if __name__ == "__main__":
         # skips the file if does not exist, cannot be read, etc.
         try:
             with open(input_file.name, "r") as param_file:
-                print("Parsing: " + input_file.name)
+                print("Parsing: " + input_file.name + "\n")
                 param_output = param_file.readlines()
         except:
             print(
