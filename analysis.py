@@ -23,7 +23,7 @@ def bootstrap_results(results_dir=Path("results"), clean=False):
 
 
 def analysis_combined(
-    params, results_dir="results", filename="0", app_names=[], DPI=800
+    params, results_dir="results", filename="0", app_names=[], DPI=800.0
 ):
     fig_font = {"family": "Serif", "weight": "normal", "size": 12}
     title_font = {"family": "Serif", "weight": "normal", "size": 11}
@@ -105,7 +105,7 @@ def analysis_combined(
     plt.clf()
 
 
-def analysis(params, results_dir="results", DPI=800):
+def analysis(params, results_dir="results", DPI=800.0):
     title_font = {"family": "Serif", "weight": "normal", "size": 16}
     axes_font = {"family": "Serif", "weight": "normal", "size": 12}
 
@@ -272,7 +272,7 @@ if __name__ == "__main__":
 
         # generate distribution plots
         if args.separate_results or len(args.param_path) == 1:
-            analysis(params, results, file_name)
+            analysis(params, results)
 
     # generate combined distribution plots
     if len(args.param_path) > 1:
