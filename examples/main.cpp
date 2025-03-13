@@ -215,7 +215,9 @@ void migrationExample() {
             slice_ranks(i) = -1;
             slice_ids(i) = i + (num_tuple * comm_rank);
         }
-
+        std::sort(partner_pe.begin(), partner_pe.end());
+        auto unique_end = std::unique(partner_pe.begin(), partner_pe.end());
+        partner_pe.resize(std::distance(partner_pe.begin(), unique_end));
         for (int it = 0; it < niterations; ++it) {
             Kokkos::View < int * , MemorySpace > export_ranks("export_ranks", num_tuple);
             int num_indices_offpe = 0;
@@ -241,9 +243,7 @@ void migrationExample() {
                 }
             }
 
-            std::sort(partner_pe.begin(), partner_pe.end());
-            auto unique_end = std::unique(partner_pe.begin(), partner_pe.end());
-            partner_pe.resize(std::distance(partner_pe.begin(), unique_end));
+
             Cabana::Distributor < MemorySpace > distributor(MPI_COMM_WORLD, export_ranks,
                 partner_pe);
 
