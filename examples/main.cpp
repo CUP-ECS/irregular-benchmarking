@@ -252,6 +252,7 @@ void migrationExample()
     int num_indices_offpe = 0;
 
 
+
     for (int i=0; i<nneighbors; i++) {
       int  inum = 0;
 
