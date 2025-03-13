@@ -221,7 +221,9 @@ void migrationExample() {
         //for (int it = 0; it < niterations; ++it) {
             Kokkos::View < int * , MemorySpace > export_ranks("export_ranks", num_tuple);
             int num_indices_offpe = 0;
-
+        for (int i = 0; i < num_tuple; ++i) {
+            export_ranks(i) = -1;
+        }
 
             for (int i = 0; i < nneighbors; i++) {
                 int inum = 0;
