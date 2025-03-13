@@ -150,23 +150,33 @@ void migrationExample() {
         std::vector < int > partner_pe(nneighbors + 1);
 
         // Adjust the number of partners based on comm_rank
-        if (comm_rank < (nneighbors / 2)) {
-            num_partners_lo = nneighbors / 2;
-            num_partners_hi = nneighbors / 2 + remainder;
-        } else {
-            num_partners_lo = nneighbors / 2 + remainder;
-            num_partners_hi = nneighbors / 2;
-        }
+
 
         // Partners below the current rank
         offset = 0;
 
-        for (int i = 1; i <= num_partners_lo; i++) {
-            int partner = (i > comm_rank) ? (comm_size + comm_rank - i) : comm_size - 1;
-            //printf("[pe %d] offset %d penum %d i %d \n",penum, offset, penum, i);
+        for (int i = 1; i <= nneighbors / 2; i++) {
+            int partner =  (comm_size +i +comm_rank )%comm_size;
+            partner_pe[offset] = partner;
+            offset++;
+            partner =  (comm_size -i +comm_rank )%comm_size;
             partner_pe[offset] = partner;
             offset++;
         }
+        if (remainder) {
+            if (comm_rank < (nneighbors / 2)) {
+
+                partner =  (comm_size -nneighbors / 2-1 +comm_rank )%comm_size;
+                partner_pe[offset] = partner;
+            } else {
+                partner =  (comm_size +nneighbors / 2+1 +comm_rank )%comm_size;
+                partner_pe[offset] = partner;
+            }
+
+        }
+
+
+
 
         /* Indices above this PE */
         for (int i = 1; i <= num_partners_hi; i++) {
