@@ -222,6 +222,8 @@ void migrationExample()
 
 
 
+
+
 ////    if ( comm_rank == 0 )
 //    {
 //        std::cout << "BEFORE migration" << std::endl
