@@ -291,6 +291,7 @@ void migrationExample()
 
     Cabana::migrate( distributor, aosoa, destination );
 
+
     auto slice_ranks_dst = Cabana::slice<0>( destination );
     auto slice_ids_dst = Cabana::slice<1>( destination );
     Cabana::migrate( distributor, slice_ranks, slice_ranks_dst );
