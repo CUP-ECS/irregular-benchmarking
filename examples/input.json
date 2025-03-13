@@ -76,8 +76,8 @@
       "bin_count": 10,
       "min": 88,
       "max": 3520,
-      "mean": 516,
-      "stdev": 634,
+      "mean": 88,
+      "stdev": 4,
       "bins": [
         {"bin_min": 88, "bin_max": 431, "bin_prop": 0.67310293012772348664, "bin_mean": 230, "bin_stdev": 91},
         {"bin_min": 431, "bin_max": 774, "bin_prop": 0.20728775356874529212, "bin_mean": 504, "bin_stdev": 79},
