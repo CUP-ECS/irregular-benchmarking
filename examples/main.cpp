@@ -139,151 +139,317 @@ void migrationExample() {
             printf("PARAM: nneighbors - %d\n", nneighbors);
         }
 
-        int comm_rank = -1;
-        MPI_Comm_rank(MPI_COMM_WORLD, & comm_rank);
-        int comm_size = -1;
-        MPI_Comm_size(MPI_COMM_WORLD, & comm_size);
+    /*
+      Declare the AoSoA parameters.
+    */
+    using DataTypes = Cabana::MemberTypes<int, int>;
+    const int VectorLength = 8;
+    using MemorySpace = Kokkos::HostSpace;
 
-        int remainder = nneighbors % 2;
-        int num_partners_lo, num_partners_hi;
-        int offset;
-        std::vector < int > partner_pe(nneighbors + 1);
+    /*
+       Create the AoSoA.
+    */
+    int num_tuple = 100;
+    Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa( "A", num_tuple );
 
-        // Adjust the number of partners based on comm_rank
+    /*
+      Create slices with the MPI rank and a local ID so we can follow where the
+      data goes. One might consider using a parallel for loop in this case -
+      especially when the code being written is for an arbitrary memory space.
+     */
+    auto slice_ranks = Cabana::slice<0>( aosoa );
+    auto slice_ids = Cabana::slice<1>( aosoa );
+    for ( int i = 0; i < num_tuple; ++i )
+    {
+        slice_ranks( i ) = comm_rank;
+        slice_ids( i ) = i;
+    }
 
+    /*
+      Before migrating the data, let's print out the data in the slices
+      on one rank.
+    */
+    if ( comm_rank == 0 )
+    {
+        std::cout << "BEFORE migration" << std::endl
+                  << "(Rank " << comm_rank << ") ";
+        for ( std::size_t i = 0; i < slice_ranks.size(); ++i )
+            std::cout << slice_ranks( i ) << " ";
+        std::cout << std::endl
+                  << "(" << slice_ranks.size() << " ranks before migrate)"
+                  << std::endl
+                  << "(Rank " << comm_rank << ") ";
+        for ( std::size_t i = 0; i < slice_ids.size(); ++i )
+            std::cout << slice_ids( i ) << " ";
+        std::cout << std::endl
+                  << "(" << slice_ids.size() << " IDs before migrate)"
+                  << std::endl
+                  << std::endl;
+    }
 
-        // Partners below the current rank
-        offset = 0;
+    /*
+      Build a communication plan where the first 10 elements of our data is
+      passed to the next highest rank in the communication, the next 10
+      elements are to be discarded, and the last 80 elements stay on this
+      rank.
+    */
+    Kokkos::View<int*, MemorySpace> export_ranks( "export_ranks", num_tuple );
 
-        for (int i = 1; i <= nneighbors / 2; i++) {
-            int partner =  (comm_size +i +comm_rank )%comm_size;
-            partner_pe[offset] = partner;
-            offset++;
-            partner =  (comm_size -i +comm_rank )%comm_size;
-            partner_pe[offset] = partner;
-            offset++;
-        }
-        if (remainder) {
-            if (comm_rank < (nneighbors / 2)) {
-              int  partner =  (comm_size -nneighbors / 2-1 +comm_rank )%comm_size;
-                partner_pe[offset] = partner;
-            } else {
-                int partner =  (comm_size +nneighbors / 2+1 +comm_rank )%comm_size;
-                partner_pe[offset] = partner;
-            }
-            offset++;
-        }
+    // First 10 go to the next rank. Note that this view will most often be
+    // filled within a parallel_for but we do so in serial here for
+    // demonstration purposes.
+    int previous_rank = ( comm_rank == 0 ) ? comm_size - 1 : comm_rank - 1;
+    int next_rank = ( comm_rank == comm_size - 1 ) ? 0 : comm_rank + 1;
+    for ( int i = 0; i < 10; ++i )
+        export_ranks( i ) = next_rank;
 
+    // Next 10 elements will be discarded. Use an export rank of -1 to
+    // indicate this.
+    for ( int i = 10; i < 20; ++i )
+        export_ranks( i ) = -1;
 
+    // The last 80 elements stay on this process.
+    for ( int i = 20; i < num_tuple; ++i )
+        export_ranks( i ) = comm_rank;
 
+    /*
+      We have two ways to make a distributor. In the first case we know which
+      ranks we are sending the data to but not the ranks we are receiving data
+      from. In the second we know the topology of the communication plan
+      (i.e. the ranks we send and receive from).
 
-        /* Indices above this PE */
+      We know that we will only send/receive from this rank and the
+      next/previous rank so use that information in this case because this
+      substantially reduces the amount of communication needed to compose the
+      communication plan. If this neighbor data were not supplied, extra
+      global communication would be needed to generate a list of neighbors.
+     */
+    std::vector<int> neighbors = { previous_rank, comm_rank, next_rank };
+    std::sort( neighbors.begin(), neighbors.end() );
+    auto unique_end = std::unique( neighbors.begin(), neighbors.end() );
+    neighbors.resize( std::distance( neighbors.begin(), unique_end ) );
+    Cabana::Distributor<MemorySpace> distributor( MPI_COMM_WORLD, export_ranks,
+                                                  neighbors );
 
-        partner_pe[offset] = comm_rank;
+    /*
+      There are three choices for applying the distributor: 1) Migrating the
+      entire AoSoA to a new AoSoA, 2) Migrating the AoSoA in-place, 3)
+      Migrating using slices. We will go through each next.
+     */
 
-        // Output the partners
-        for (int i = 0; i < partner_pe.size(); i++) {
-            std::cout << "Partner " << i << ": " << partner_pe[i] << std::endl;
-        }
+    /*
+      1) MIGRATING TO A NEW AOSOA
 
-        std::vector < int > needed_indices(nremote);
-        int num_indices_per_partner;
-        if (nneighbors != 0) {
-            num_indices_per_partner = nremote / nneighbors;
-        } else {
-            nremote = 0;
-            num_indices_per_partner = 0;
-        }
-        printf("nowned: %d\n", nowned);
+      The following creates a new AoSoA and migrates the entire AoSoA.
+     */
 
-        std::cout << "Contents of needed_indices: ";
-        for (int i = 0; i < nremote; ++i) {
-            std::cout << needed_indices[i] << " ";
-        }
+    // Make a new AoSoA. Note that this has the same data types, vector
+    // length, and memory space as the original aosoa.
+    //
+    // Also note how this AoSoA is sized. The distributor computes how many
+    // imported elements each rank will receive. We discard 10 elements, get
+    // 10 from our neighbor, and keep 80 of our own so this number should be 90.
+    Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
+        "destination", distributor.totalNumImport() );
 
-        std::cout << std::endl;
+    // Do the migration.
+    Cabana::migrate( distributor, aosoa, destination );
 
-        /*
-          Declare the AoSoA parameters.
-        */
-        using DataTypes = Cabana::MemberTypes < int, int > ;
-        const int VectorLength = 8;
-        using MemorySpace = Kokkos::HostSpace;
+    /*
+      2) MIGRATING SLICES
 
-        int num_tuple = nowned;
-        Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("A", num_tuple);
+      We can migrate each slice individually as well. This is useful when not
+      all data in an AoSoA needs to be moved to a new decomposition.
+     */
+    auto slice_ranks_dst = Cabana::slice<0>( destination );
+    auto slice_ids_dst = Cabana::slice<1>( destination );
+    Cabana::migrate( distributor, slice_ranks, slice_ranks_dst );
+    Cabana::migrate( distributor, slice_ids, slice_ids_dst );
 
-        auto slice_ranks = Cabana::slice < 0 > (aosoa);
-        auto slice_ids = Cabana::slice < 1 > (aosoa);
-        for (int i = 0; i < num_tuple; ++i) {
-            slice_ranks(i) = -1;
-            slice_ids(i) = i + (num_tuple * comm_rank);
-        }
-        std::sort(partner_pe.begin(), partner_pe.end());
-        auto unique_end = std::unique(partner_pe.begin(), partner_pe.end());
-        partner_pe.resize(std::distance(partner_pe.begin(), unique_end));
-        //for (int it = 0; it < niterations; ++it) {
-            Kokkos::View < int * , MemorySpace > export_ranks("export_ranks", num_tuple);
-            int num_indices_offpe = 0;
-        for (int i = 0; i < num_tuple; ++i) {
-            export_ranks(i) = comm_rank;
-        }
+    /*
+      3) IN-PLACE MIGRATION.
 
-//            for (int i = 0; i < nneighbors; i++) {
-//                int inum = 0;
+      In many cases a user may want to use the same AoSoA and not manage a
+      second temporary copy for the data migration. In-place migration does
+      this automatically by moving the data to the new decomposition and
+      resizing the AoSoA automatically.
+
+      The AoSoA should be size 100 on input and size 90 on output, having
+      removed 10, moved 10, and added 10.
+
+      Note: Any existing slices created from this AoSoA may be invalidated as
+      the data structure will be resized as necessary during migration.
+     */
+    Cabana::migrate( distributor, aosoa );
+
+    /*
+      Having migrated the data, let's print out the in-place case on one rank.
+      We re-slice because the previous slices are no longer valid.
+    */
+    slice_ranks = Cabana::slice<0>( aosoa );
+    slice_ids = Cabana::slice<1>( aosoa );
+
+    if ( comm_rank == 0 )
+    {
+        std::cout << "AFTER migration" << std::endl
+                  << "(Rank " << comm_rank << ") ";
+        for ( std::size_t i = 0; i < slice_ranks.size(); ++i )
+            std::cout << slice_ranks( i ) << " ";
+        std::cout << std::endl
+                  << "(" << slice_ranks.size() << " ranks after migrate)"
+                  << std::endl
+                  << "(Rank " << comm_rank << ") ";
+        for ( std::size_t i = 0; i < slice_ids.size(); ++i )
+            std::cout << slice_ids( i ) << " ";
+        std::cout << std::endl
+                  << "(" << slice_ids.size() << " IDs after migrate)"
+                  << std::endl;
+    }
+//        int comm_rank = -1;
+//        MPI_Comm_rank(MPI_COMM_WORLD, & comm_rank);
+//        int comm_size = -1;
+//        MPI_Comm_size(MPI_COMM_WORLD, & comm_size);
 //
-//                for (int j = 0, k = 0; j < num_indices_per_partner; j++, k++) {
-//                    if (k >= blocksz) {
-//                        for (k = 0; k <(1  + stride); k++) {
-//                            export_ranks(++inum) = -1;
-//                        }
+//        int remainder = nneighbors % 2;
+//        int num_partners_lo, num_partners_hi;
+//        int offset;
+//        std::vector < int > partner_pe(nneighbors + 1);
 //
-//                        k = 0;
-//                    } else {
-//                        inum++;
-//                    }
+//        // Adjust the number of partners based on comm_rank
 //
-//                    if (inum >= nowned)
-//                        break;
 //
-//                    export_ranks(inum) = partner_pe[i];
-//                }
+//        // Partners below the current rank
+//        offset = 0;
+//
+//        for (int i = 1; i <= nneighbors / 2; i++) {
+//            int partner =  (comm_size +i +comm_rank )%comm_size;
+//            partner_pe[offset] = partner;
+//            offset++;
+//            partner =  (comm_size -i +comm_rank )%comm_size;
+//            partner_pe[offset] = partner;
+//            offset++;
+//        }
+//        if (remainder) {
+//            if (comm_rank < (nneighbors / 2)) {
+//              int  partner =  (comm_size -nneighbors / 2-1 +comm_rank )%comm_size;
+//                partner_pe[offset] = partner;
+//            } else {
+//                int partner =  (comm_size +nneighbors / 2+1 +comm_rank )%comm_size;
+//                partner_pe[offset] = partner;
 //            }
-        std::cout<<"zone 1 "<<std::endl;
-
-            Cabana::Distributor < MemorySpace > distributor(MPI_COMM_WORLD, export_ranks,
-                partner_pe);
-        std::cout<<"zone 2 "<<std::endl;
-
-            Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > destination(
-                "destination", distributor.totalNumImport());
-        std::cout<<"zone 3 "<<std::endl;
-
-            Cabana::migrate(distributor, aosoa, destination);
-        std::cout<<"zone 4 "<<std::endl;
-
-            auto slice_ranks_dst = Cabana::slice < 0 > (destination);
-            std::cout<<"zone 5 "<<std::endl;
-
-
-            auto slice_ids_dst = Cabana::slice < 1 > (destination);
-            std::cout<<"zone 6 "<<std::endl;
-
-
-            Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
-        std::cout<<"zone 7 "<<std::endl;
-
-            Cabana::migrate(distributor, slice_ids, slice_ids_dst);
-        std::cout<<"zone 8 "<<std::endl;
-
-
-            Cabana::migrate(distributor, aosoa);
-        std::cout<<"zone 9 "<<std::endl;
-
-            slice_ranks = Cabana::slice < 0 > (aosoa);
-            slice_ids = Cabana::slice < 1 > (aosoa);
-       // }
-
+//            offset++;
+//        }
+//
+//
+//
+//
+//        /* Indices above this PE */
+//
+//        partner_pe[offset] = comm_rank;
+//
+//        // Output the partners
+//        for (int i = 0; i < partner_pe.size(); i++) {
+//            std::cout << "Partner " << i << ": " << partner_pe[i] << std::endl;
+//        }
+//
+//        std::vector < int > needed_indices(nremote);
+//        int num_indices_per_partner;
+//        if (nneighbors != 0) {
+//            num_indices_per_partner = nremote / nneighbors;
+//        } else {
+//            nremote = 0;
+//            num_indices_per_partner = 0;
+//        }
+//        printf("nowned: %d\n", nowned);
+//
+//        std::cout << "Contents of needed_indices: ";
+//        for (int i = 0; i < nremote; ++i) {
+//            std::cout << needed_indices[i] << " ";
+//        }
+//
+//        std::cout << std::endl;
+//
+//        /*
+//          Declare the AoSoA parameters.
+//        */
+//        using DataTypes = Cabana::MemberTypes < int, int > ;
+//        const int VectorLength = 8;
+//        using MemorySpace = Kokkos::HostSpace;
+//
+//        int num_tuple = nowned;
+//        Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("A", num_tuple);
+//
+//        auto slice_ranks = Cabana::slice < 0 > (aosoa);
+//        auto slice_ids = Cabana::slice < 1 > (aosoa);
+//        for (int i = 0; i < num_tuple; ++i) {
+//            slice_ranks(i) = -1;
+//            slice_ids(i) = i + (num_tuple * comm_rank);
+//        }
+//        std::sort(partner_pe.begin(), partner_pe.end());
+//        auto unique_end = std::unique(partner_pe.begin(), partner_pe.end());
+//        partner_pe.resize(std::distance(partner_pe.begin(), unique_end));
+//        //for (int it = 0; it < niterations; ++it) {
+//            Kokkos::View < int * , MemorySpace > export_ranks("export_ranks", num_tuple);
+//            int num_indices_offpe = 0;
+//        for (int i = 0; i < num_tuple; ++i) {
+//            export_ranks(i) = comm_rank;
+//        }
+//
+////            for (int i = 0; i < nneighbors; i++) {
+////                int inum = 0;
+////
+////                for (int j = 0, k = 0; j < num_indices_per_partner; j++, k++) {
+////                    if (k >= blocksz) {
+////                        for (k = 0; k <(1  + stride); k++) {
+////                            export_ranks(++inum) = -1;
+////                        }
+////
+////                        k = 0;
+////                    } else {
+////                        inum++;
+////                    }
+////
+////                    if (inum >= nowned)
+////                        break;
+////
+////                    export_ranks(inum) = partner_pe[i];
+////                }
+////            }
+//        std::cout<<"zone 1 "<<std::endl;
+//
+//            Cabana::Distributor < MemorySpace > distributor(MPI_COMM_WORLD, export_ranks,
+//                partner_pe);
+//        std::cout<<"zone 2 "<<std::endl;
+//
+//            Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > destination(
+//                "destination", distributor.totalNumImport());
+//        std::cout<<"zone 3 "<<std::endl;
+//
+//            Cabana::migrate(distributor, aosoa, destination);
+//        std::cout<<"zone 4 "<<std::endl;
+//
+//            auto slice_ranks_dst = Cabana::slice < 0 > (destination);
+//            std::cout<<"zone 5 "<<std::endl;
+//
+//
+//            auto slice_ids_dst = Cabana::slice < 1 > (destination);
+//            std::cout<<"zone 6 "<<std::endl;
+//
+//
+//            Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
+//        std::cout<<"zone 7 "<<std::endl;
+//
+//            Cabana::migrate(distributor, slice_ids, slice_ids_dst);
+//        std::cout<<"zone 8 "<<std::endl;
+//
+//
+//            Cabana::migrate(distributor, aosoa);
+//        std::cout<<"zone 9 "<<std::endl;
+//
+//            slice_ranks = Cabana::slice < 0 > (aosoa);
+//            slice_ids = Cabana::slice < 1 > (aosoa);
+//       // }
+//
     }
 }
 
