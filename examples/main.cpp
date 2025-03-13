@@ -171,19 +171,14 @@ void migrationExample() {
                 int partner =  (comm_size +nneighbors / 2+1 +comm_rank )%comm_size;
                 partner_pe[offset] = partner;
             }
-
+            offset++;
         }
 
 
 
 
         /* Indices above this PE */
-        for (int i = 1; i <= num_partners_hi; i++) {
-            int partner = (i + comm_rank >= comm_size) ? i + comm_rank - comm_size : i + comm_rank;
-            //printf("[pe %d] offset %d penum %d i %d \n",penum, offset, penum, i);
-            partner_pe[offset] = partner;
-            offset++;
-        }
+
         partner_pe[offset] = comm_rank;
 
         // Output the partners
