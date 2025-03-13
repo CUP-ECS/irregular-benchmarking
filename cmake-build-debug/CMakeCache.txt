@@ -61,6 +61,7 @@ BLT_SOURCE_DIR:PATH=C:/Users/nicho/CLionProjects/irregular-benchmarking/blt
 
 BLT_VERSION:STRING=0.6.2
 
+//Builds the googlemock subproject
 BUILD_GMOCK:BOOL=OFF
 
 BUILD_GTEST:BOOL=ON
@@ -251,7 +252,7 @@ CMAKE_INSTALL_SYSCONFDIR:PATH=etc
 CMAKE_LINKER:FILEPATH=C:/Program Files/JetBrains/CLion 2024.3.2/bin/mingw/bin/ld.exe
 
 //make program
-CMAKE_MAKE_PROGRAM:FILEPATH=C:/Program Files/JetBrains/CLion 2024.3.2/bin/ninja/win/x64/ninja.exe
+CMAKE_MAKE_PROGRAM:FILEPATH=C:/PROGRA~1/JETBRA~1/CLION2~1.2/bin/ninja/win/x64/ninja.exe
 
 //Flags used by the linker during the creation of modules during
 // all build types.
@@ -529,8 +530,14 @@ EXAMPLE_OUTPUT_DIRECTORY:PATH=C:/Users/nicho/CLionProjects/irregular-benchmarkin
 //Git command line client
 GIT_EXECUTABLE:FILEPATH=C:/Program Files/Git/cmd/git.exe
 
+//Use Abseil and RE2. Requires Abseil and RE2 to be separately
+// added to the build.
+GTEST_HAS_ABSL:BOOL=OFF
+
 INSTALL_GMOCK:BOOL=OFF
 
+//Enable installation of googletest. (Projects embedding googletest
+// may want to turn this OFF.)
 INSTALL_GTEST:BOOL=OFF
 
 //Enable KOKKOS support
@@ -692,7 +699,7 @@ _BLT_GTEST_COMPILE_FLAGS:STRING='   '
 
 _BLT_GTEST_DEFINES:STRING=-DGTEST_HAS_DEATH_TEST=0;-DGTEST_HAS_PTHREAD=0
 
-_BLT_GTEST_INCLUDES:STRING=/include
+_BLT_GTEST_INCLUDES:STRING=C:/Users/nicho/CLionProjects/irregular-benchmarking/blt/thirdparty_builtin/googletest/googletest/include
 
 _BLT_GTEST_IS_OBJECT_LIBRARY:BOOL=FALSE
 
@@ -705,7 +712,39 @@ _BLT_GTEST_TREAT_INCLUDES_AS_SYSTEM:BOOL=TRUE
 //Limits BLT issuing more than one warning for style version
 _BLT_STYLE_VERSION_WARNING_ISSUED:BOOL=FALSE
 
+//Value Computed by CMake
+googletest-distribution_BINARY_DIR:STATIC=C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake-build-debug/blt/thirdparty_builtin/googletest
+
+//Value Computed by CMake
+googletest-distribution_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+googletest-distribution_SOURCE_DIR:STATIC=C:/Users/nicho/CLionProjects/irregular-benchmarking/blt/thirdparty_builtin/googletest
+
+//Value Computed by CMake
+gtest_BINARY_DIR:STATIC=C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake-build-debug/blt/thirdparty_builtin/googletest/googletest
+
+//Value Computed by CMake
+gtest_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+gtest_SOURCE_DIR:STATIC=C:/Users/nicho/CLionProjects/irregular-benchmarking/blt/thirdparty_builtin/googletest/googletest
+
+//Build gtest's sample programs.
+gtest_build_samples:BOOL=OFF
+
+//Build all of gtest's own tests.
+gtest_build_tests:BOOL=OFF
+
+//Disable uses of pthreads in gtest.
 gtest_disable_pthreads:BOOL=ON
+
+//Use shared (DLL) run-time lib even when Google Test is built
+// as static lib.
+gtest_force_shared_crt:BOOL=OFF
+
+//Build gtest with internal symbols hidden in shared libraries.
+gtest_hide_internal_symbols:BOOL=OFF
 
 
 ########################
@@ -862,7 +901,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=2
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=5
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -1072,4 +1111,15 @@ _BLT_GTEST_TREAT_INCLUDES_AS_SYSTEM-ADVANCED:INTERNAL=1
 _CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED:INTERNAL=TRUE
 //CMAKE_INSTALL_PREFIX during last run
 _GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=C:/Program Files (x86)/CLAMR
+cmake_package_name:INTERNAL=GTest
+//ADVANCED property for variable: gtest_build_samples
+gtest_build_samples-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: gtest_build_tests
+gtest_build_tests-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: gtest_disable_pthreads
+gtest_disable_pthreads-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: gtest_force_shared_crt
+gtest_force_shared_crt-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: gtest_hide_internal_symbols
+gtest_hide_internal_symbols-ADVANCED:INTERNAL=1
 

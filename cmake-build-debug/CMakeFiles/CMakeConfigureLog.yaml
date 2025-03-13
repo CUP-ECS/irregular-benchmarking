@@ -1376,3 +1376,77 @@ events:
         
       exitCode: 1
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/JetBrains/CLion 2024.3.2/bin/cmake/win/x64/share/cmake-3.30/Modules/FindMPI.cmake:1282 (try_compile)"
+      - "C:/Program Files/JetBrains/CLion 2024.3.2/bin/cmake/win/x64/share/cmake-3.30/Modules/FindMPI.cmake:1326 (_MPI_try_staged_settings)"
+      - "C:/Program Files/JetBrains/CLion 2024.3.2/bin/cmake/win/x64/share/cmake-3.30/Modules/FindMPI.cmake:1649 (_MPI_check_lang_works)"
+      - "CMakeLists.txt:53 (find_package)"
+    description: "The MPI test test_mpi for C in mode normal"
+    directories:
+      source: "C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-dc7qz1"
+      binary: "C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-dc7qz1"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -Wall -Wextra  "
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_HIP_ARCHITECTURES: "gfx900"
+      CMAKE_MODULE_PATH: "C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "TRUE"
+    buildResult:
+      variable: "MPI_RESULT_C_test_mpi_normal"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-dc7qz1'
+        
+        Run Build Command(s): C:/PROGRA~1/JETBRA~1/CLION2~1.2/bin/ninja/win/x64/ninja.exe -v cmTC_f2531
+        [1/2] C:\\PROGRA~1\\JETBRA~1\\CLION2~1.2\\bin\\mingw\\bin\\gcc.exe   -Wall -Wextra -o CMakeFiles/cmTC_f2531.dir/test_mpi.c.obj -c C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-dc7qz1/test_mpi.c
+        \x1b[31mFAILED: \x1b[0mCMakeFiles/cmTC_f2531.dir/test_mpi.c.obj 
+        C:\\PROGRA~1\\JETBRA~1\\CLION2~1.2\\bin\\mingw\\bin\\gcc.exe   -Wall -Wextra -o CMakeFiles/cmTC_f2531.dir/test_mpi.c.obj -c C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-dc7qz1/test_mpi.c
+        C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-dc7qz1/test_mpi.c:1:10: fatal error: mpi.h: No such file or directory
+            1 | #include <mpi.h>
+              |          ^~~~~~~
+        compilation terminated.\x0d
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/JetBrains/CLion 2024.3.2/bin/cmake/win/x64/share/cmake-3.30/Modules/FindMPI.cmake:1282 (try_compile)"
+      - "C:/Program Files/JetBrains/CLion 2024.3.2/bin/cmake/win/x64/share/cmake-3.30/Modules/FindMPI.cmake:1326 (_MPI_try_staged_settings)"
+      - "C:/Program Files/JetBrains/CLion 2024.3.2/bin/cmake/win/x64/share/cmake-3.30/Modules/FindMPI.cmake:1649 (_MPI_check_lang_works)"
+      - "CMakeLists.txt:53 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode normal"
+    directories:
+      source: "C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bm2ijj"
+      binary: "C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bm2ijj"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: " -Wall -Wextra     "
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_HIP_ARCHITECTURES: "gfx900"
+      CMAKE_MODULE_PATH: "C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "TRUE"
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_normal"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bm2ijj'
+        
+        Run Build Command(s): C:/PROGRA~1/JETBRA~1/CLION2~1.2/bin/ninja/win/x64/ninja.exe -v cmTC_4d03b
+        [1/2] C:\\PROGRA~1\\JETBRA~1\\CLION2~1.2\\bin\\mingw\\bin\\G__~1.EXE   -Wall -Wextra       -std=c++17 -o CMakeFiles/cmTC_4d03b.dir/test_mpi.cpp.obj -c C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bm2ijj/test_mpi.cpp
+        \x1b[31mFAILED: \x1b[0mCMakeFiles/cmTC_4d03b.dir/test_mpi.cpp.obj 
+        C:\\PROGRA~1\\JETBRA~1\\CLION2~1.2\\bin\\mingw\\bin\\G__~1.EXE   -Wall -Wextra       -std=c++17 -o CMakeFiles/cmTC_4d03b.dir/test_mpi.cpp.obj -c C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bm2ijj/test_mpi.cpp
+        C:/Users/nicho/CLionProjects/irregular-benchmarking/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-bm2ijj/test_mpi.cpp:1:10: fatal error: mpi.h: No such file or directory
+            1 | #include <mpi.h>
+              |          ^~~~~~~
+        compilation terminated.\x0d
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+...

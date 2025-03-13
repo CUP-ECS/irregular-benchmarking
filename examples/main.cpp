@@ -139,7 +139,7 @@ void migrationExample()
     int remainder = nneighbors % 2;
     int num_partners_lo, num_partners_hi;
     int offset;
-    std::vector<int> partner_pe(nneighbors+1);
+    std::vector<int> partner_pe(nneighbors);
 
 
     // Adjust the number of partners based on comm_rank
@@ -168,7 +168,7 @@ void migrationExample()
       partner_pe[offset] = partner;
       offset++;
     }
-    partner_pe[offset]=comm_rank;
+
 
 
 
@@ -245,11 +245,14 @@ void migrationExample()
 
     Kokkos::View<int*, MemorySpace> export_ranks( "export_ranks", num_tuple );
 
+
+
     for ( int i = 0; i < num_tuple; ++i )
         export_ranks( i ) = comm_rank;
 
 
     int num_indices_offpe = 0;
+
 
 
     for (int i=0; i<nneighbors; i++) {
@@ -268,7 +271,7 @@ void migrationExample()
         if (inum >= nowned)
           break;
 
-        export_ranks( inum ) = partner_pe[i];
+        export_ranks(inum ) = partner_pe[i];
       }
     }
 
@@ -277,12 +280,12 @@ void migrationExample()
 
 
 
-//    std::vector<int> partner_pe = { previous_rank, comm_rank, next_rank };
-    std::sort( partner_pe.begin(), partner_pe.end() );
-    auto unique_end = std::unique( partner_pe.begin(), partner_pe.end() );
-    partner_pe.resize( std::distance( partner_pe.begin(), unique_end ) );
+    std::vector<int> neighbors = { previous_rank, comm_rank, next_rank };
+    std::sort( neighbors.begin(), neighbors.end() );
+    auto unique_end = std::unique( neighbors.begin(), neighbors.end() );
+    neighbors.resize( std::distance( neighbors.begin(), unique_end ) );
     Cabana::Distributor<MemorySpace> distributor( MPI_COMM_WORLD, export_ranks,
-                                                  partner_pe );
+                                                  neighbors );
 
 
 
@@ -290,6 +293,7 @@ void migrationExample()
         "destination", distributor.totalNumImport() );
 
     Cabana::migrate( distributor, aosoa, destination );
+
 
     auto slice_ranks_dst = Cabana::slice<0>( destination );
     auto slice_ids_dst = Cabana::slice<1>( destination );
