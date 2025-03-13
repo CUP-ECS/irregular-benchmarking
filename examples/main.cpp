@@ -218,7 +218,7 @@ void migrationExample() {
         std::sort(partner_pe.begin(), partner_pe.end());
         auto unique_end = std::unique(partner_pe.begin(), partner_pe.end());
         partner_pe.resize(std::distance(partner_pe.begin(), unique_end));
-        for (int it = 0; it < niterations; ++it) {
+        //for (int it = 0; it < niterations; ++it) {
             Kokkos::View < int * , MemorySpace > export_ranks("export_ranks", num_tuple);
             int num_indices_offpe = 0;
 
@@ -261,7 +261,7 @@ void migrationExample() {
 
             slice_ranks = Cabana::slice < 0 > (aosoa);
             slice_ids = Cabana::slice < 1 > (aosoa);
-        }
+       // }
 
     }
 }
