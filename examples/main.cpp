@@ -244,25 +244,32 @@ void migrationExample() {
                     export_ranks(inum) = partner_pe[i];
                 }
             }
-
+            std::cout << "step 2 " << it << std::endl;
 
             Cabana::Distributor < MemorySpace > distributor(MPI_COMM_WORLD, export_ranks,
                 partner_pe);
+            std::cout << "step 3 " << it << std::endl;
 
             Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > destination(
                 "destination", distributor.totalNumImport());
+            std::cout << "step 4 " << it << std::endl;
 
             Cabana::migrate(distributor, aosoa, destination);
+            std::cout << "step 5 " << it << std::endl;
 
             auto slice_ranks_dst = Cabana::slice < 0 > (destination);
             auto slice_ids_dst = Cabana::slice < 1 > (destination);
             Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
             Cabana::migrate(distributor, slice_ids, slice_ids_dst);
+            std::cout << "step 6 " << it << std::endl;
 
             Cabana::migrate(distributor, aosoa);
+            std::cout << "step 7 " << it << std::endl;
 
             slice_ranks = Cabana::slice < 0 > (aosoa);
             slice_ids = Cabana::slice < 1 > (aosoa);
+            std::cout << "step 8 " << it << std::endl;
+
         }
 
     }
