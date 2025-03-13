@@ -272,6 +272,7 @@ void migrationExample() {
             Cabana::migrate(distributor, slice_ids, slice_ids_dst);
         std::cout<<"zone 8 "<<std::endl;
 
+
             Cabana::migrate(distributor, aosoa);
         std::cout<<"zone 9 "<<std::endl;
 
