@@ -219,6 +219,8 @@ void migrationExample() {
         auto unique_end = std::unique(partner_pe.begin(), partner_pe.end());
         partner_pe.resize(std::distance(partner_pe.begin(), unique_end));
         for (int it = 0; it < niterations; ++it) {
+
+          std::cout << "Iteration " << it << std::endl;
             Kokkos::View < int * , MemorySpace > export_ranks("export_ranks", num_tuple);
             int num_indices_offpe = 0;
 
