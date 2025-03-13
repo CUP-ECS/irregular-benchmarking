@@ -229,26 +229,26 @@ void migrationExample() {
             export_ranks(i) = -1;
         }
 
-            for (int i = 0; i < nneighbors; i++) {
-                int inum = 0;
-
-                for (int j = 0, k = 0; j < num_indices_per_partner; j++, k++) {
-                    if (k >= blocksz) {
-                        for (k = 0; k <(1  + stride); k++) {
-                            export_ranks(++inum) = -1;
-                        }
-
-                        k = 0;
-                    } else {
-                        inum++;
-                    }
-
-                    if (inum >= nowned)
-                        break;
-
-                    export_ranks(inum) = partner_pe[i];
-                }
-            }
+//            for (int i = 0; i < nneighbors; i++) {
+//                int inum = 0;
+//
+//                for (int j = 0, k = 0; j < num_indices_per_partner; j++, k++) {
+//                    if (k >= blocksz) {
+//                        for (k = 0; k <(1  + stride); k++) {
+//                            export_ranks(++inum) = -1;
+//                        }
+//
+//                        k = 0;
+//                    } else {
+//                        inum++;
+//                    }
+//
+//                    if (inum >= nowned)
+//                        break;
+//
+//                    export_ranks(inum) = partner_pe[i];
+//                }
+//            }
         std::cout<<"zone 1 "<<std::endl;
 
             Cabana::Distributor < MemorySpace > distributor(MPI_COMM_WORLD, export_ranks,
