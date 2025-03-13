@@ -138,7 +138,10 @@ void migrationExample() {
             printf("PARAM: stride - %d\n", stride);
             printf("PARAM: nneighbors - %d\n", nneighbors);
         }
-
+        int comm_rank = -1;
+        MPI_Comm_rank( MPI_COMM_WORLD, &comm_rank );
+        int comm_size = -1;
+        MPI_Comm_size( MPI_COMM_WORLD, &comm_size );
     /*
       Declare the AoSoA parameters.
     */
