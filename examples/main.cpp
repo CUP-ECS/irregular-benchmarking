@@ -165,7 +165,6 @@ void migrationExample() {
         }
         if (remainder) {
             if (comm_rank < (nneighbors / 2)) {
-
                 partner =  (comm_size -nneighbors / 2-1 +comm_rank )%comm_size;
                 partner_pe[offset] = partner;
             } else {
