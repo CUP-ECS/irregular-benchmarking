@@ -252,46 +252,27 @@ void migrationExample()
     int num_indices_offpe = 0;
 
 
-//    for (int i=0; i<nneighbors; i++) {
-//      int  inum = 0;
-//
-//      for (int j=0, k = 0; j<num_indices_per_partner; j++, k++) {
-//        /* Detect end of block */
-//        if (k >= blocksz) {
-//          inum += (1 + stride);
-//          k = 0;
-//        } else {
-//          inum++;
-//        }
-//
-//        /* Detect if we would walk off the end of the remote */
-//        if (inum >= nowned)
-//          break;
-//
-//        export_ranks(inum ) = partner_pe[i];
-//      }
-//    }
+    for (int i=0; i<nneighbors; i++) {
+      int  inum = 0;
 
-      for (int i = 0; i < nneighbors; i++) {
-          int inum = 0;
+      for (int j=0, k = 0; j<num_indices_per_partner; j++, k++) {
+        /* Detect end of block */
+        if (k >= blocksz) {
+          inum += (1 + stride);
+          k = 0;
+        } else {
+          inum++;
+        }
 
-          for (int j = 0, k = 0; j < num_indices_per_partner; j++, k++) {
-              if (k >= blocksz) {
-                  for (k = 0; k <(1  + stride); k++) {
-                      export_ranks(++inum) = -1;
-                  }
+        /* Detect if we would walk off the end of the remote */
+        if (inum >= nowned)
+          break;
 
-                  k = 0;
-              } else {
-                  inum++;
-              }
-
-              if (inum >= nowned)
-                  break;
-
-              export_ranks(inum) = partner_pe[i];
-          }
+        export_ranks(inum ) = partner_pe[i];
       }
+    }
+
+
 
 
 
@@ -320,7 +301,7 @@ void migrationExample()
 
     slice_ranks = Cabana::slice<0>( aosoa );
     slice_ids = Cabana::slice<1>( aosoa );
-      std::cout << "AFTER migration" << std::endl
+
 ////    if ( comm_rank == 0 )
 //    {
 //        std::cout << "AFTER migration" << std::endl
