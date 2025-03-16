@@ -39,18 +39,18 @@
 using json = nlohmann::json;
 
 enum distribution {
-    GAUSSIAN,
-    EMPIRICAL
+	GAUSSIAN,
+	EMPIRICAL
 };
 
 typedef enum distribution distribution_t;
 
 enum prefix {
-    A,
-    B,
-    K,
-    M,
-    G
+	A,
+	B,
+	K,
+	M,
+	G
 };
 
 typedef enum prefix prefix_t;
@@ -83,692 +83,506 @@ static bool report_params = 0;
 static int seed = -1;
 
 int gauss_dist(double mean, double stdev) {
-    // generates two random numbers that form the seeds
-    // of the transform
-    double u1, u2, r, theta;
-    int generated = -1;
+	// generates two random numbers that form the seeds
+	// of the transform
+	double u1, u2, r, theta;
+	int generated = -1;
 
-    while (generated <= 0) {
-        u1 = (double) rand() / RAND_MAX;
-        u2 = (double) rand() / RAND_MAX;
+	while (generated <= 0) {
+		u1 = (double)rand() / RAND_MAX;
+		u2 = (double)rand() / RAND_MAX;
 
-        // generates the R and Theta values from the above
-        // documentation
-        r = sqrt(-2. * log(u1));
-        theta = (2 * M_PI * u2);
+		// generates the R and Theta values from the above
+		// documentation
+		r = sqrt(-2. * log(u1));
+		theta = (2 * M_PI * u2);
 
-        // an additional number can be generated in the
-        // same distribution using the alternate form
-        // ((r*sin(theta)) * stdev) + mean
+		// an additional number can be generated in the
+		// same distribution using the alternate form
+		// ((r*sin(theta)) * stdev) + mean
 
-        generated = round(((r * cos(theta)) * stdev) + mean);
-    }
+		generated = round(((r * cos(theta)) * stdev) + mean);
+	}
 
-    return generated;
+	return generated;
 }
 
-int empirical_dist(const char * param) {
-    //    // set the parameter string to look for.
-    char param_key[25] = "PARAM: ";
-    strcat(param_key, param);
+int empirical_dist(const char* param) {
+	//    // set the parameter string to look for.
+	char param_key[25] = "PARAM: ";
+	strcat(param_key, param);
 
-    return -1;
+	return -1;
 }
 
 void migrationExample() {
 
-    int nowned_orig = nowned;
-    int nneighbors_orig = nneighbors;
-    int nremote_orig = nremote;
-    int blocksz_orig = blocksz;
-    int stride_orig = stride;
+	int nowned_orig = nowned;
+	int nneighbors_orig = nneighbors;
+	int nremote_orig = nremote;
+	int blocksz_orig = blocksz;
+	int stride_orig = stride;
 
-    for (int sample_iter = 0; sample_iter < nsamples + 1; sample_iter++) {
+	for (int sample_iter = 0; sample_iter < nsamples + 1; sample_iter++) {
 
-        nowned = gauss_dist(nowned_orig, nowned_stdv);
-        nremote = gauss_dist(nremote_orig, nremote_orig);
-        blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
-        nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv);
-        stride = gauss_dist(stride_orig, stride_stdv);
+		nowned = gauss_dist(nowned_orig, nowned_stdv);
+		nremote = gauss_dist(nremote_orig, nremote_orig);
+		blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
+		nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv);
+		stride = gauss_dist(stride_orig, stride_stdv);
 
-        if (1) {
-            printf("PARAM: nowned - %d\n", nowned);
-            printf("PARAM: nremote - %d\n", nremote);
-            printf("PARAM: blocksize - %d\n", blocksz);
-            printf("PARAM: stride - %d\n", stride);
-            printf("PARAM: nneighbors - %d\n", nneighbors);
-        }
-        int comm_rank = -1;
-        MPI_Comm_rank( MPI_COMM_WORLD, &comm_rank );
-        int comm_size = -1;
-        MPI_Comm_size( MPI_COMM_WORLD, &comm_size );
-    /*
-      Declare the AoSoA parameters.
-    */
-    using DataTypes = Cabana::MemberTypes<int, int>;
-    const int VectorLength = 8;
-    using MemorySpace = Kokkos::HostSpace;
+		if (1) {
+			printf("PARAM: nowned - %d\n", nowned);
+			printf("PARAM: nremote - %d\n", nremote);
+			printf("PARAM: blocksize - %d\n", blocksz);
+			printf("PARAM: stride - %d\n", stride);
+			printf("PARAM: nneighbors - %d\n", nneighbors);
+		}
 
-    /*
-       Create the AoSoA.
-    */
-    int num_tuple = 100;
-    Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa( "A", num_tuple );
 
-    /*
-      Create slices with the MPI rank and a local ID so we can follow where the
-      data goes. One might consider using a parallel for loop in this case -
-      especially when the code being written is for an arbitrary memory space.
-     */
-    auto slice_ranks = Cabana::slice<0>( aosoa );
-    auto slice_ids = Cabana::slice<1>( aosoa );
-    for ( int i = 0; i < num_tuple; ++i )
-    {
-        slice_ranks( i ) = comm_rank;
-        slice_ids( i ) = i;
-    }
 
-    /*
-      Before migrating the data, let's print out the data in the slices
-      on one rank.
-    */
-    if ( comm_rank == 0 )
-    {
-        std::cout << "BEFORE migration" << std::endl
-                  << "(Rank " << comm_rank << ") ";
-        for ( std::size_t i = 0; i < slice_ranks.size(); ++i )
-            std::cout << slice_ranks( i ) << " ";
-        std::cout << std::endl
-                  << "(" << slice_ranks.size() << " ranks before migrate)"
-                  << std::endl
-                  << "(Rank " << comm_rank << ") ";
-        for ( std::size_t i = 0; i < slice_ids.size(); ++i )
-            std::cout << slice_ids( i ) << " ";
-        std::cout << std::endl
-                  << "(" << slice_ids.size() << " IDs before migrate)"
-                  << std::endl
-                  << std::endl;
-    }
+		int comm_rank = -1;
+		MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
+		int comm_size = -1;
+		MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+		using DataTypes = Cabana::MemberTypes<int, int>;
+		const int VectorLength = 8;
+		using MemorySpace = Kokkos::HostSpace;
 
-    /*
-      Build a communication plan where the first 10 elements of our data is
-      passed to the next highest rank in the communication, the next 10
-      elements are to be discarded, and the last 80 elements stay on this
-      rank.
-    */
-    Kokkos::View<int*, MemorySpace> export_ranks( "export_ranks", num_tuple );
+		int num_tuple = nowned;
+		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
 
-    // First 10 go to the next rank. Note that this view will most often be
-    // filled within a parallel_for but we do so in serial here for
-    // demonstration purposes.
-    int previous_rank = ( comm_rank == 0 ) ? comm_size - 1 : comm_rank - 1;
-    int next_rank = ( comm_rank == comm_size - 1 ) ? 0 : comm_rank + 1;
-    for ( int i = 0; i < 10; ++i )
-        export_ranks( i ) = next_rank;
+		auto slice_ranks = Cabana::slice<0>(aosoa);
+		auto slice_ids = Cabana::slice<1>(aosoa);
+		for (int i = 0; i < num_tuple; ++i)
+		{
+			slice_ranks(i) = comm_rank;
+			slice_ids(i) =  i + (num_tuple * comm_rank);
+		}
 
-    // Next 10 elements will be discarded. Use an export rank of -1 to
-    // indicate this.
-    for ( int i = 10; i < 20; ++i )
-        export_ranks( i ) = -1;
 
-    // The last 80 elements stay on this process.
-    for ( int i = 20; i < num_tuple; ++i )
-        export_ranks( i ) = comm_rank;
+	
+		Kokkos::View<int*, MemorySpace> export_ranks("export_ranks", num_tuple);
 
-    /*
-      We have two ways to make a distributor. In the first case we know which
-      ranks we are sending the data to but not the ranks we are receiving data
-      from. In the second we know the topology of the communication plan
-      (i.e. the ranks we send and receive from).
+	
 
-      We know that we will only send/receive from this rank and the
-      next/previous rank so use that information in this case because this
-      substantially reduces the amount of communication needed to compose the
-      communication plan. If this neighbor data were not supplied, extra
-      global communication would be needed to generate a list of neighbors.
-     */
-    std::vector<int> neighbors = { previous_rank, comm_rank, next_rank };
-    std::sort( neighbors.begin(), neighbors.end() );
-    auto unique_end = std::unique( neighbors.begin(), neighbors.end() );
-    neighbors.resize( std::distance( neighbors.begin(), unique_end ) );
-    Cabana::Distributor<MemorySpace> distributor( MPI_COMM_WORLD, export_ranks,
-                                                  neighbors );
+		for (int i = 0; i < nneighbors; i++) {
+			int inum = 0;
 
-    /*
-      There are three choices for applying the distributor: 1) Migrating the
-      entire AoSoA to a new AoSoA, 2) Migrating the AoSoA in-place, 3)
-      Migrating using slices. We will go through each next.
-     */
+			for (int j = 0, k = 0; j < num_indices_per_partner; j++, k++) {
+				if (k >= blocksz) {
+					for (k = 0; k < (1 + stride); k++) {
+						export_ranks(++inum) = -1;
+					}
 
-    /*
-      1) MIGRATING TO A NEW AOSOA
+					k = 0;
+				}
+				else {
+					inum++;
+				}
 
-      The following creates a new AoSoA and migrates the entire AoSoA.
-     */
+				if (inum >= nowned)
+					break;
 
-    // Make a new AoSoA. Note that this has the same data types, vector
-    // length, and memory space as the original aosoa.
-    //
-    // Also note how this AoSoA is sized. The distributor computes how many
-    // imported elements each rank will receive. We discard 10 elements, get
-    // 10 from our neighbor, and keep 80 of our own so this number should be 90.
-    Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
-        "destination", distributor.totalNumImport() );
+				export_ranks(inum) = partner_pe[i];
+			}
+		}
 
-    // Do the migration.
-    Cabana::migrate( distributor, aosoa, destination );
+		int remainder = nneighbors % 2;
+		int offset = 0;
+		std::vector < int > neighbors(nneighbors + 1);
 
-    /*
-      2) MIGRATING SLICES
+		for (int i = -nneighbors / 2; i <= nneighbors / 2; i++) {
+			int partner = (comm_size + i + comm_rank) % comm_size;
+			neighbors[offset] = partner;
+			offset++;
+		}
+		if (remainder) {
+			if (comm_rank < (nneighbors / 2)) {
+				int  partner = (comm_size - nneighbors / 2 - 1 + comm_rank) % comm_size;
+				neighbors[offset] = partner;
+			}
+			else {
+				int partner = (comm_size + nneighbors / 2 + 1 + comm_rank) % comm_size;
+				neighbors[offset] = partner;
+			}
+			offset++;
+		}
 
-      We can migrate each slice individually as well. This is useful when not
-      all data in an AoSoA needs to be moved to a new decomposition.
-     */
-    auto slice_ranks_dst = Cabana::slice<0>( destination );
-    auto slice_ids_dst = Cabana::slice<1>( destination );
-    Cabana::migrate( distributor, slice_ranks, slice_ranks_dst );
-    Cabana::migrate( distributor, slice_ids, slice_ids_dst );
 
-    /*
-      3) IN-PLACE MIGRATION.
+		for (int i = 0; i < partner_pe.size(); i++) {
+			std::cout << "Partner " << i << ": " << partner_pe[i] << std::endl;
+		}
 
-      In many cases a user may want to use the same AoSoA and not manage a
-      second temporary copy for the data migration. In-place migration does
-      this automatically by moving the data to the new decomposition and
-      resizing the AoSoA automatically.
 
-      The AoSoA should be size 100 on input and size 90 on output, having
-      removed 10, moved 10, and added 10.
 
-      Note: Any existing slices created from this AoSoA may be invalidated as
-      the data structure will be resized as necessary during migration.
-     */
-    Cabana::migrate( distributor, aosoa );
 
-    /*
-      Having migrated the data, let's print out the in-place case on one rank.
-      We re-slice because the previous slices are no longer valid.
-    */
-    slice_ranks = Cabana::slice<0>( aosoa );
-    slice_ids = Cabana::slice<1>( aosoa );
+		std::sort(neighbors.begin(), neighbors.end());
+		auto unique_end = std::unique(neighbors.begin(), neighbors.end());
+		neighbors.resize(std::distance(neighbors.begin(), unique_end));
+		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
 
-    if ( comm_rank == 0 )
-    {
-        std::cout << "AFTER migration" << std::endl
-                  << "(Rank " << comm_rank << ") ";
-        for ( std::size_t i = 0; i < slice_ranks.size(); ++i )
-            std::cout << slice_ranks( i ) << " ";
-        std::cout << std::endl
-                  << "(" << slice_ranks.size() << " ranks after migrate)"
-                  << std::endl
-                  << "(Rank " << comm_rank << ") ";
-        for ( std::size_t i = 0; i < slice_ids.size(); ++i )
-            std::cout << slice_ids( i ) << " ";
-        std::cout << std::endl
-                  << "(" << slice_ids.size() << " IDs after migrate)"
-                  << std::endl;
-    }
-//        int comm_rank = -1;
-//        MPI_Comm_rank(MPI_COMM_WORLD, & comm_rank);
-//        int comm_size = -1;
-//        MPI_Comm_size(MPI_COMM_WORLD, & comm_size);
-//
-//        int remainder = nneighbors % 2;
-//        int num_partners_lo, num_partners_hi;
-//        int offset;
-//        std::vector < int > partner_pe(nneighbors + 1);
-//
-//        // Adjust the number of partners based on comm_rank
-//
-//
-//        // Partners below the current rank
-//        offset = 0;
-//
-//        for (int i = 1; i <= nneighbors / 2; i++) {
-//            int partner =  (comm_size +i +comm_rank )%comm_size;
-//            partner_pe[offset] = partner;
-//            offset++;
-//            partner =  (comm_size -i +comm_rank )%comm_size;
-//            partner_pe[offset] = partner;
-//            offset++;
-//        }
-//        if (remainder) {
-//            if (comm_rank < (nneighbors / 2)) {
-//              int  partner =  (comm_size -nneighbors / 2-1 +comm_rank )%comm_size;
-//                partner_pe[offset] = partner;
-//            } else {
-//                int partner =  (comm_size +nneighbors / 2+1 +comm_rank )%comm_size;
-//                partner_pe[offset] = partner;
-//            }
-//            offset++;
-//        }
-//
-//
-//
-//
-//        /* Indices above this PE */
-//
-//        partner_pe[offset] = comm_rank;
-//
-//        // Output the partners
-//        for (int i = 0; i < partner_pe.size(); i++) {
-//            std::cout << "Partner " << i << ": " << partner_pe[i] << std::endl;
-//        }
-//
-//        std::vector < int > needed_indices(nremote);
-//        int num_indices_per_partner;
-//        if (nneighbors != 0) {
-//            num_indices_per_partner = nremote / nneighbors;
-//        } else {
-//            nremote = 0;
-//            num_indices_per_partner = 0;
-//        }
-//        printf("nowned: %d\n", nowned);
-//
-//        std::cout << "Contents of needed_indices: ";
-//        for (int i = 0; i < nremote; ++i) {
-//            std::cout << needed_indices[i] << " ";
-//        }
-//
-//        std::cout << std::endl;
-//
-//        /*
-//          Declare the AoSoA parameters.
-//        */
-//        using DataTypes = Cabana::MemberTypes < int, int > ;
-//        const int VectorLength = 8;
-//        using MemorySpace = Kokkos::HostSpace;
-//
-//        int num_tuple = nowned;
-//        Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("A", num_tuple);
-//
-//        auto slice_ranks = Cabana::slice < 0 > (aosoa);
-//        auto slice_ids = Cabana::slice < 1 > (aosoa);
-//        for (int i = 0; i < num_tuple; ++i) {
-//            slice_ranks(i) = -1;
-//            slice_ids(i) = i + (num_tuple * comm_rank);
-//        }
-//        std::sort(partner_pe.begin(), partner_pe.end());
-//        auto unique_end = std::unique(partner_pe.begin(), partner_pe.end());
-//        partner_pe.resize(std::distance(partner_pe.begin(), unique_end));
-//        //for (int it = 0; it < niterations; ++it) {
-//            Kokkos::View < int * , MemorySpace > export_ranks("export_ranks", num_tuple);
-//            int num_indices_offpe = 0;
-//        for (int i = 0; i < num_tuple; ++i) {
-//            export_ranks(i) = comm_rank;
-//        }
-//
-////            for (int i = 0; i < nneighbors; i++) {
-////                int inum = 0;
-////
-////                for (int j = 0, k = 0; j < num_indices_per_partner; j++, k++) {
-////                    if (k >= blocksz) {
-////                        for (k = 0; k <(1  + stride); k++) {
-////                            export_ranks(++inum) = -1;
-////                        }
-////
-////                        k = 0;
-////                    } else {
-////                        inum++;
-////                    }
-////
-////                    if (inum >= nowned)
-////                        break;
-////
-////                    export_ranks(inum) = partner_pe[i];
-////                }
-////            }
-//        std::cout<<"zone 1 "<<std::endl;
-//
-//            Cabana::Distributor < MemorySpace > distributor(MPI_COMM_WORLD, export_ranks,
-//                partner_pe);
-//        std::cout<<"zone 2 "<<std::endl;
-//
-//            Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > destination(
-//                "destination", distributor.totalNumImport());
-//        std::cout<<"zone 3 "<<std::endl;
-//
-//            Cabana::migrate(distributor, aosoa, destination);
-//        std::cout<<"zone 4 "<<std::endl;
-//
-//            auto slice_ranks_dst = Cabana::slice < 0 > (destination);
-//            std::cout<<"zone 5 "<<std::endl;
-//
-//
-//            auto slice_ids_dst = Cabana::slice < 1 > (destination);
-//            std::cout<<"zone 6 "<<std::endl;
-//
-//
-//            Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
-//        std::cout<<"zone 7 "<<std::endl;
-//
-//            Cabana::migrate(distributor, slice_ids, slice_ids_dst);
-//        std::cout<<"zone 8 "<<std::endl;
-//
-//
-//            Cabana::migrate(distributor, aosoa);
-//        std::cout<<"zone 9 "<<std::endl;
-//
-//            slice_ranks = Cabana::slice < 0 > (aosoa);
-//            slice_ids = Cabana::slice < 1 > (aosoa);
-//       // }
-//
-    }
+	
+		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
+			"destination", distributor.totalNumImport());
+
+		Cabana::migrate(distributor, aosoa, destination);
+
+		auto slice_ranks_dst = Cabana::slice<0>(destination);
+		auto slice_ids_dst = Cabana::slice<1>(destination);
+		Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
+		Cabana::migrate(distributor, slice_ids, slice_ids_dst);
+		Cabana::migrate(distributor, aosoa);
+		slice_ranks = Cabana::slice<0>(aosoa);
+		slice_ids = Cabana::slice<1>(aosoa);
+
+		if (comm_rank == 0)
+		{
+			std::cout << "AFTER migration" << std::endl
+				<< "(Rank " << comm_rank << ") ";
+			for (std::size_t i = 0; i < slice_ranks.size(); ++i)
+				std::cout << slice_ranks(i) << " ";
+			std::cout << std::endl
+				<< "(" << slice_ranks.size() << " ranks after migrate)"
+				<< std::endl
+				<< "(Rank " << comm_rank << ") ";
+			for (std::size_t i = 0; i < slice_ids.size(); ++i)
+				std::cout << slice_ids(i) << " ";
+			std::cout << std::endl
+				<< "(" << slice_ids.size() << " IDs after migrate)"
+				<< std::endl;
+		}
+	
+
+
+	}
 }
 
 void parse_config_file(std::string config_file) {
-    std::ifstream file(config_file);
+	std::ifstream file(config_file);
 
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open file!" << std::endl;
-    } else {
-        std::stringstream buffer;
-        buffer << file.rdbuf();
-        std::string input = buffer.str();
-        nlohmann::json j = nlohmann::json::parse(input);
-        //     Accessing the data
-        for (const auto & param: j["parameters"]) {
+	if (!file.is_open()) {
+		std::cerr << "Error: Could not open file!" << std::endl;
+	}
+	else {
+		std::stringstream buffer;
+		buffer << file.rdbuf();
+		std::string input = buffer.str();
+		nlohmann::json j = nlohmann::json::parse(input);
+		//     Accessing the data
+		for (const auto& param : j["parameters"]) {
 
-            std::string name = param["name"].get < std::string > ();
+			std::string name = param["name"].get < std::string >();
 
-            int mean = param["mean"].get < int > ();
+			int mean = param["mean"].get < int >();
 
-            int stddev = param["stdev"].get < int > ();
+			int stddev = param["stdev"].get < int >();
 
-            if (name == "nowned") {
-                nowned = mean;
-                nowned_stdv = stddev;
-            } else if (name == "nremote") {
-                nremote = mean;
-                nremote_stdv = stddev;
-            } else if (name == "blocksize") {
-                blocksz = mean;
-                blocksz_stdv = stddev;
-            } else if (name == "comm_partners") {
-                nneighbors = mean;
-                nneighbors_stdv = stddev;
-            } else if (name == "stride") {
-                stride = mean;
-                stride_stdv = stddev;
-            } else {
-                //todo
-            }
+			if (name == "nowned") {
+				nowned = mean;
+				nowned_stdv = stddev;
+			}
+			else if (name == "nremote") {
+				nremote = mean;
+				nremote_stdv = stddev;
+			}
+			else if (name == "blocksize") {
+				blocksz = mean;
+				blocksz_stdv = stddev;
+			}
+			else if (name == "comm_partners") {
+				nneighbors = mean;
+				nneighbors_stdv = stddev;
+			}
+			else if (name == "stride") {
+				stride = mean;
+				stride_stdv = stddev;
+			}
+			else {
+				//todo
+			}
 
-        }
-    }
+		}
+	}
 
 }
 
 bool setValue() {
-    return true;
+	return true;
 }
 
-void exitError(const std::string & error_message) {
-    std::cerr << error_message << std::flush; // Use std::cerr for error messages
+void exitError(const std::string& error_message) {
+	std::cerr << error_message << std::flush; // Use std::cerr for error messages
 
-    std::exit(-1); // Exit the program with error code
+	std::exit(-1); // Exit the program with error code
 }
 
-void setAndCheckValue(int & value, TCLAP::ValueArg < int > & arg,
-    const char * errorMessage, int minValue = 0, int maxValue = INT_MAX) {
-    int tempValue = arg.getValue();
+void setAndCheckValue(int& value, TCLAP::ValueArg < int >& arg,
+	const char* errorMessage, int minValue = 0, int maxValue = INT_MAX) {
+	int tempValue = arg.getValue();
 
-    if (tempValue != -1) {
-        value = tempValue;
-    }
+	if (tempValue != -1) {
+		value = tempValue;
+	}
 
-    // General value check
-    if (value < minValue || value > maxValue) {
-        exitError(errorMessage);
-    }
+	// General value check
+	if (value < minValue || value > maxValue) {
+		exitError(errorMessage);
+	}
 }
 
-void parseArgs(int argc, char ** argv) {
+void parseArgs(int argc, char** argv) {
 
-    try {
-        TCLAP::CmdLine cmd("\nNOTE: Setting parameters for the benchmark such as (neighbors, owned, remote, blocksize, and stride)"
-            "sets parameters to those values for the reference benchmark."
-            "Those parameters are then randomized for the irregular samples"
-            "where the user-set parameters become averages for the random generation."
-            "Use the `--disable-irregularity` flag to only run the reference benchmark.", ' ', "1.0");
+	try {
+		TCLAP::CmdLine cmd("\nNOTE: Setting parameters for the benchmark such as (neighbors, owned, remote, blocksize, and stride)"
+			"sets parameters to those values for the reference benchmark."
+			"Those parameters are then randomized for the irregular samples"
+			"where the user-set parameters become averages for the random generation."
+			"Use the `--disable-irregularity` flag to only run the reference benchmark.", ' ', "1.0");
 
-        TCLAP::ValueArg < std::string > filepathArg("f", "filepath", "Path to the BENCHMARK_CONFIG file", false, "NOFILE", "string");
-        TCLAP::ValueArg < int > typeSizeArg("t", "typesize", "Size of the variable being sent (in bytes)", false, 8, "int");
-        TCLAP::ValueArg < int > samplesArg("I", "samples", "Number of random samples to generate", false, 25, "int");
-        TCLAP::ValueArg < int > iterationsArg("i", "iterations", "Number of updates each sample performs", false, 100, "int");
-        TCLAP::ValueArg < int > neighborsArg("n", "neighbors", "Average number of neighbors each process communicates with", false, -1, "int");
-        TCLAP::ValueArg < int > neighborsStdvArg("N", "neighbors_stdv", "Standard deviation of the number of neighbors each process communicates with", false, -1, "int");
-        TCLAP::ValueArg < int > ownedAvgArg("o", "owned_avg", "Average byte count for data owned per node", false, -1, "int");
-        TCLAP::ValueArg < int > ownedStdvArg("O", "owned_stdv", "Standard deviation byte count for data owned per node", false, -1, "int");
-        TCLAP::ValueArg < int > remoteAvgArg("r", "remote_avg", "Average amount of data each process receives", false, -1, "int");
-        TCLAP::ValueArg < int > remoteStdvArg("R", "remote_stdv", "Standard deviation of the amount of data each process receives", false, -1, "int");
-        TCLAP::ValueArg < int > blockSizeAvgArg("b", "blocksize_avg", "Average size of transmitted blocks", false, -1, "int");
-        TCLAP::ValueArg < int > blockSizeStdvArg("B", "blocksize_stdv", "Standard deviation of transmitted block sizes", false, -1, "int");
-        TCLAP::ValueArg < int > strideArg("s", "stride", "Average size of stride", false, -1, "int");
-        TCLAP::ValueArg < int > strideStdvArg("T", "stride_stdv", "Standard deviation of stride", false, -1, "int");
-        TCLAP::ValueArg < int > seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
-        TCLAP::ValueArg < std::string > distributionArg("d", "distribution", "Choose from: gaussian (default), empirical", false, "gaussian", "string");
-        TCLAP::ValueArg < std::string > unitsArg("u", "units", "Choose from: a,b,k,m,g (auto, bytes, kilobytes, etc.)", false, "auto", "string");
+		TCLAP::ValueArg < std::string > filepathArg("f", "filepath", "Path to the BENCHMARK_CONFIG file", false, "NOFILE", "string");
+		TCLAP::ValueArg < int > typeSizeArg("t", "typesize", "Size of the variable being sent (in bytes)", false, 8, "int");
+		TCLAP::ValueArg < int > samplesArg("I", "samples", "Number of random samples to generate", false, 25, "int");
+		TCLAP::ValueArg < int > iterationsArg("i", "iterations", "Number of updates each sample performs", false, 100, "int");
+		TCLAP::ValueArg < int > neighborsArg("n", "neighbors", "Average number of neighbors each process communicates with", false, -1, "int");
+		TCLAP::ValueArg < int > neighborsStdvArg("N", "neighbors_stdv", "Standard deviation of the number of neighbors each process communicates with", false, -1, "int");
+		TCLAP::ValueArg < int > ownedAvgArg("o", "owned_avg", "Average byte count for data owned per node", false, -1, "int");
+		TCLAP::ValueArg < int > ownedStdvArg("O", "owned_stdv", "Standard deviation byte count for data owned per node", false, -1, "int");
+		TCLAP::ValueArg < int > remoteAvgArg("r", "remote_avg", "Average amount of data each process receives", false, -1, "int");
+		TCLAP::ValueArg < int > remoteStdvArg("R", "remote_stdv", "Standard deviation of the amount of data each process receives", false, -1, "int");
+		TCLAP::ValueArg < int > blockSizeAvgArg("b", "blocksize_avg", "Average size of transmitted blocks", false, -1, "int");
+		TCLAP::ValueArg < int > blockSizeStdvArg("B", "blocksize_stdv", "Standard deviation of transmitted block sizes", false, -1, "int");
+		TCLAP::ValueArg < int > strideArg("s", "stride", "Average size of stride", false, -1, "int");
+		TCLAP::ValueArg < int > strideStdvArg("T", "stride_stdv", "Standard deviation of stride", false, -1, "int");
+		TCLAP::ValueArg < int > seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
+		TCLAP::ValueArg < std::string > distributionArg("d", "distribution", "Choose from: gaussian (default), empirical", false, "gaussian", "string");
+		TCLAP::ValueArg < std::string > unitsArg("u", "units", "Choose from: a,b,k,m,g (auto, bytes, kilobytes, etc.)", false, "auto", "string");
 
-        TCLAP::SwitchArg reportParamsArg("", "report-params", "Enables parameter reporting for use with analysis scripts", false);
-        TCLAP::SwitchArg disableirregularityArg("", "disable-irregularity", "Use the `--disable-irregularity` flag to only run the reference benchmark.", false);
-        cmd.add(filepathArg);
-        cmd.add(typeSizeArg);
-        cmd.add(samplesArg);
-        cmd.add(iterationsArg);
-        cmd.add(neighborsArg);
-        cmd.add(neighborsStdvArg);
-        cmd.add(ownedAvgArg);
-        cmd.add(ownedStdvArg);
-        cmd.add(remoteAvgArg);
-        cmd.add(remoteStdvArg);
-        cmd.add(blockSizeAvgArg);
-        cmd.add(blockSizeStdvArg);
-        cmd.add(strideArg);
-        cmd.add(strideStdvArg);
-        cmd.add(seedArg);
-        cmd.add(distributionArg);
-        cmd.add(unitsArg);
-        cmd.add(reportParamsArg);
-        cmd.add(disableirregularityArg);
-        cmd.parse(argc, argv);
+		TCLAP::SwitchArg reportParamsArg("", "report-params", "Enables parameter reporting for use with analysis scripts", false);
+		TCLAP::SwitchArg disableirregularityArg("", "disable-irregularity", "Use the `--disable-irregularity` flag to only run the reference benchmark.", false);
+		cmd.add(filepathArg);
+		cmd.add(typeSizeArg);
+		cmd.add(samplesArg);
+		cmd.add(iterationsArg);
+		cmd.add(neighborsArg);
+		cmd.add(neighborsStdvArg);
+		cmd.add(ownedAvgArg);
+		cmd.add(ownedStdvArg);
+		cmd.add(remoteAvgArg);
+		cmd.add(remoteStdvArg);
+		cmd.add(blockSizeAvgArg);
+		cmd.add(blockSizeStdvArg);
+		cmd.add(strideArg);
+		cmd.add(strideStdvArg);
+		cmd.add(seedArg);
+		cmd.add(distributionArg);
+		cmd.add(unitsArg);
+		cmd.add(reportParamsArg);
+		cmd.add(disableirregularityArg);
+		cmd.parse(argc, argv);
 
-        filepath = filepathArg.getValue();
-        bool config_file_used = false; //todo
+		filepath = filepathArg.getValue();
+		bool config_file_used = false; //todo
 
-        if (filepath != "NOFILE") {
+		if (filepath != "NOFILE") {
 
-            try {
-                if (filepath.empty()) {
-                    std::cerr << "Filepath is empty!" << std::endl;
-                    return;
-                }
+			try {
+				if (filepath.empty()) {
+					std::cerr << "Filepath is empty!" << std::endl;
+					return;
+				}
 
-                std::filesystem::path p(filepath);
+				std::filesystem::path p(filepath);
 
-                // Check if path exists and is a file
-                if (std::filesystem::exists(p)) {
-                    parse_config_file(filepath);
-                } else {
-                    exitError("The file does not exist.");
-                }
-            } catch (const std::exception & e) {
-                std::cerr << "Error: " << e.what() << std::endl;
-            }
+				// Check if path exists and is a file
+				if (std::filesystem::exists(p)) {
+					parse_config_file(filepath);
+				}
+				else {
+					exitError("The file does not exist.");
+				}
+			}
+			catch (const std::exception& e) {
+				std::cerr << "Error: " << e.what() << std::endl;
+			}
 
-        }
+		}
 
-        setAndCheckValue(typesize, typeSizeArg, "ERROR: Invalid typesize\n", 1, 8);
+		setAndCheckValue(typesize, typeSizeArg, "ERROR: Invalid typesize\n", 1, 8);
 
-        // For nsamples, no specific range, only non-negative check
-        setAndCheckValue(nsamples, samplesArg, "ERROR: Invalid number of samples\n", 0);
+		// For nsamples, no specific range, only non-negative check
+		setAndCheckValue(nsamples, samplesArg, "ERROR: Invalid number of samples\n", 0);
 
-        // For niterations, same non-negative check
-        setAndCheckValue(niterations, iterationsArg, "ERROR: Invalid number of iterations\n", 0);
+		// For niterations, same non-negative check
+		setAndCheckValue(niterations, iterationsArg, "ERROR: Invalid number of iterations\n", 0);
 
-        // For nneighbors, same non-negative check
-        setAndCheckValue(nneighbors, neighborsArg, "ERROR: Invalid number of neighbors\n", 0);
+		// For nneighbors, same non-negative check
+		setAndCheckValue(nneighbors, neighborsArg, "ERROR: Invalid number of neighbors\n", 0);
 
-        // For nneighbors_stdv, no specific range, only non-negative check
-        setAndCheckValue(nneighbors_stdv, neighborsStdvArg, "ERROR: Invalid neighbors std\n", 0);
+		// For nneighbors_stdv, no specific range, only non-negative check
+		setAndCheckValue(nneighbors_stdv, neighborsStdvArg, "ERROR: Invalid neighbors std\n", 0);
 
-        // For nowned, no specific range, only non-negative check
-        setAndCheckValue(nowned, ownedAvgArg, "ERROR: Invalid number of owned\n", 0);
+		// For nowned, no specific range, only non-negative check
+		setAndCheckValue(nowned, ownedAvgArg, "ERROR: Invalid number of owned\n", 0);
 
-        // For nowned_stdv, no specific range, only non-negative check
-        setAndCheckValue(nowned_stdv, ownedStdvArg, "ERROR: Invalid owned std\n", 0);
+		// For nowned_stdv, no specific range, only non-negative check
+		setAndCheckValue(nowned_stdv, ownedStdvArg, "ERROR: Invalid owned std\n", 0);
 
-        // For nremote, no specific range, only non-negative check
-        setAndCheckValue(nremote, remoteAvgArg, "ERROR: Invalid number of remote\n", 0);
+		// For nremote, no specific range, only non-negative check
+		setAndCheckValue(nremote, remoteAvgArg, "ERROR: Invalid number of remote\n", 0);
 
-        // For nremote_stdv, no specific range, only non-negative check
-        setAndCheckValue(nremote_stdv, remoteStdvArg, "ERROR: Invalid remote std\n", 0);
+		// For nremote_stdv, no specific range, only non-negative check
+		setAndCheckValue(nremote_stdv, remoteStdvArg, "ERROR: Invalid remote std\n", 0);
 
-        // For blocksz, no specific range, only non-negative check
-        setAndCheckValue(blocksz, blockSizeAvgArg, "ERROR: Invalid block size\n", 0);
+		// For blocksz, no specific range, only non-negative check
+		setAndCheckValue(blocksz, blockSizeAvgArg, "ERROR: Invalid block size\n", 0);
 
-        // For blocksz_stdv, no specific range, only non-negative check
-        setAndCheckValue(blocksz_stdv, blockSizeStdvArg, "ERROR: Invalid block size std\n", 0);
+		// For blocksz_stdv, no specific range, only non-negative check
+		setAndCheckValue(blocksz_stdv, blockSizeStdvArg, "ERROR: Invalid block size std\n", 0);
 
-        // For stride, no specific range, only non-negative check
-        setAndCheckValue(stride, strideArg, "ERROR: Invalid stride\n", 0);
+		// For stride, no specific range, only non-negative check
+		setAndCheckValue(stride, strideArg, "ERROR: Invalid stride\n", 0);
 
-        // For stride_stdv, no specific range, only non-negative check
-        setAndCheckValue(stride_stdv, strideStdvArg, "ERROR: Invalid stride std\n", 0);
+		// For stride_stdv, no specific range, only non-negative check
+		setAndCheckValue(stride_stdv, strideStdvArg, "ERROR: Invalid stride std\n", 0);
 
-        std::string unit = unitsArg.getValue();
+		std::string unit = unitsArg.getValue();
 
-        std::unordered_map < std::string, std::pair < char, int >> unit_map = {
-            {
-                "auto",
-                {
-                    A,
-                    1
-                }
-            },
-            {
-                "a",
-                {
-                    A,
-                    1
-                }
-            },
-            {
-                "bytes",
-                {
-                    A,
-                    1
-                }
-            },
-            {
-                "b",
-                {
-                    A,
-                    1
-                }
-            },
-            {
-                "kilobytes",
-                {
-                    K,
-                    1024
-                }
-            },
-            {
-                "k",
-                {
-                    K,
-                    1024
-                }
-            },
-            {
-                "megabytes",
-                {
-                    M,
-                    1024 * 1024
-                }
-            },
-            {
-                "m",
-                {
-                    M,
-                    1024 * 1024
-                }
-            },
-            {
-                "gigabytes",
-                {
-                    G,
-                    1024 * 1024 * 1024
-                }
-            },
-            {
-                "g",
-                {
-                    G,
-                    1024 * 1024 * 1024
-                }
-            }
-        };
+		std::unordered_map < std::string, std::pair < char, int >> unit_map = {
+			{
+				"auto",
+				{
+					A,
+					1
+				}
+			},
+			{
+				"a",
+				{
+					A,
+					1
+				}
+			},
+			{
+				"bytes",
+				{
+					A,
+					1
+				}
+			},
+			{
+				"b",
+				{
+					A,
+					1
+				}
+			},
+			{
+				"kilobytes",
+				{
+					K,
+					1024
+				}
+			},
+			{
+				"k",
+				{
+					K,
+					1024
+				}
+			},
+			{
+				"megabytes",
+				{
+					M,
+					1024 * 1024
+				}
+			},
+			{
+				"m",
+				{
+					M,
+					1024 * 1024
+				}
+			},
+			{
+				"gigabytes",
+				{
+					G,
+					1024 * 1024 * 1024
+				}
+			},
+			{
+				"g",
+				{
+					G,
+					1024 * 1024 * 1024
+				}
+			}
+		};
 
-        auto it = unit_map.find(unit);
-        if (it != unit_map.end()) {
-            char unit_symbol = it -> second.first;
-            int unit_div = it -> second.second;
+		auto it = unit_map.find(unit);
+		if (it != unit_map.end()) {
+			char unit_symbol = it->second.first;
+			int unit_div = it->second.second;
 
-            std::cout << "Unit Symbol: " << unit_symbol << std::endl;
-            std::cout << "Unit Division: " << unit_div << std::endl;
-        } else {
-            exitError("ERROR: Invalid formatting choice [b, k, m, g]");
-        }
+			std::cout << "Unit Symbol: " << unit_symbol << std::endl;
+			std::cout << "Unit Division: " << unit_div << std::endl;
+		}
+		else {
+			exitError("ERROR: Invalid formatting choice [b, k, m, g]");
+		}
 
-        std::string distribution = distributionArg.getValue();
+		std::string distribution = distributionArg.getValue();
 
-        if (distribution == "gaussian" ||
-            distribution == "g") {
-            distribution_type = GAUSSIAN;
+		if (distribution == "gaussian" ||
+			distribution == "g") {
+			distribution_type = GAUSSIAN;
 
-        } else if (distribution == "empirical" ||
-            distribution == "e") {
-            distribution_type = EMPIRICAL;
-        } else {
-            exitError("ERROR: Invalid distribution choice [empirical,gaussian]\n");
-        }
+		}
+		else if (distribution == "empirical" ||
+			distribution == "e") {
+			distribution_type = EMPIRICAL;
+		}
+		else {
+			exitError("ERROR: Invalid distribution choice [empirical,gaussian]\n");
+		}
 
-        int seedholder = seedArg.getValue();
-        if (seed != -1 && seedholder == -1) {
-            seed = time(NULL);
-        }
+		int seedholder = seedArg.getValue();
+		if (seed != -1 && seedholder == -1) {
+			seed = time(NULL);
+		}
 
-        srand(seed);
+		srand(seed);
 
-        irregularity = disableirregularityArg.getValue();
+		irregularity = disableirregularityArg.getValue();
 
-        //        irregularity_owned
-        //        irregularity_neighbors
-        //        irregularity_stride
-        //        irregularity_blocksz
-        //        irregularity_remote
-        //        report_params
+		//        irregularity_owned
+		//        irregularity_neighbors
+		//        irregularity_stride
+		//        irregularity_blocksz
+		//        irregularity_remote
+		//        report_params
 
-    } catch (TCLAP::ArgException & e) {
-        std::cerr << "Error: " << e.error() << " for argument " << e.argId() << std::endl;
-        exit(-1);
-    }
+	}
+	catch (TCLAP::ArgException& e) {
+		std::cerr << "Error: " << e.error() << " for argument " << e.argId() << std::endl;
+		exit(-1);
+	}
 }
 
-int main(int argc, char ** argv) {
+int main(int argc, char** argv) {
 
-    MPI_Init( & argc, & argv);
-    {
+	MPI_Init(&argc, &argv);
+	{
 
-        parseArgs(argc, argv);
-        Kokkos::ScopeGuard scope_guard(argc, argv);
+		parseArgs(argc, argv);
+		Kokkos::ScopeGuard scope_guard(argc, argv);
 
-        migrationExample();
-    }
-    MPI_Finalize();
+		migrationExample();
+	}
+	MPI_Finalize();
 
-    printf("Hi\n");
-    return 0;
+	printf("Hi\n");
+	return 0;
 }
