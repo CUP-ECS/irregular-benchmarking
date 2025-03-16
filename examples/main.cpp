@@ -212,7 +212,7 @@ void migrationExample() {
 				if (inum >= nowned)
 					break;
 
-				export_ranks(inum) = partner_pe[i];
+				export_ranks(inum) = neighbors[i];
 			}
 		}
 
