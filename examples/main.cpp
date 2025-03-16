@@ -217,26 +217,46 @@ void migrationExample() {
 		}
 
 
+		printf("%d in file %s\n", __LINE__, __FILE__);
 
-		std::sort(neighbors.begin(), neighbors.end());
+		fflush(stdout);
+		std::sort(neighbors.begin(), neighbors.end());	
+		printf("%d in file %s\n", __LINE__, __FILE__);
+		fflush(stdout);
 		auto unique_end = std::unique(neighbors.begin(), neighbors.end());
+		printf("%d in file %s\n", __LINE__, __FILE__);
+		fflush(stdout);
 		neighbors.resize(std::distance(neighbors.begin(), unique_end));
+		printf("%d in file %s\n", __LINE__, __FILE__);	
+			fflush(stdout);
 		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
-
+		printf("%d in file %s\n", __LINE__, __FILE__);
+		fflush(stdout);
 	
 		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
 			"destination", distributor.totalNumImport());
-
+			printf("%d in file %s\n", __LINE__, __FILE__);
+			fflush(stdout);
 		Cabana::migrate(distributor, aosoa, destination);
-
+		printf("%d in file %s\n", __LINE__, __FILE__);
+		fflush(stdout);
 		auto slice_ranks_dst = Cabana::slice<0>(destination);
+		printf("%d in file %s\n", __LINE__, __FILE__);
+		fflush(stdout);
 		auto slice_ids_dst = Cabana::slice<1>(destination);
+		printf("%d in file %s\n", __LINE__, __FILE__);
+		fflush(stdout);
 		Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
+		printf("%d in file %s\n", __LINE__, __FILE__);
+		fflush(stdout);
 		Cabana::migrate(distributor, slice_ids, slice_ids_dst);
+		printf("%d in file %s\n", __LINE__, __FILE__);
+		fflush(stdout);
 		Cabana::migrate(distributor, aosoa);
 		slice_ranks = Cabana::slice<0>(aosoa);
 		slice_ids = Cabana::slice<1>(aosoa);
-
+		printf("%d in file %s\n", __LINE__, __FILE__);
+		fflush(stdout);
 		if (comm_rank == 0)
 		{
 			std::cout << "AFTER migration" << std::endl
