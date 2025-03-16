@@ -166,28 +166,6 @@ void migrationExample() {
 
 	
 
-		for (int i = 0; i < nneighbors; i++) {
-			int inum = 0;
-
-			for (int j = 0, k = 0; j < num_indices_per_partner; j++, k++) {
-				if (k >= blocksz) {
-					for (k = 0; k < (1 + stride); k++) {
-						export_ranks(++inum) = -1;
-					}
-
-					k = 0;
-				}
-				else {
-					inum++;
-				}
-
-				if (inum >= nowned)
-					break;
-
-				export_ranks(inum) = partner_pe[i];
-			}
-		}
-
 		int remainder = nneighbors % 2;
 		int offset = 0;
 		std::vector < int > neighbors(nneighbors + 1);
@@ -215,7 +193,29 @@ void migrationExample() {
 		}
 
 
+		int inum = 0;
+		for (int i = 0; i < nneighbors; i++) {
 		
+
+			for (int j = 0, k = 0; j < nowned/nneighbors; j++, k++) {
+				if (k >= blocksz) {
+					for (k = 0; k < (1 + stride); k++) {
+						export_ranks(++inum) = -1;
+					}
+
+					k = 0;
+				}
+				else {
+					inum++;
+				}
+
+				if (inum >= nowned)
+					break;
+
+				export_ranks(inum) = partner_pe[i];
+			}
+		}
+
 
 
 		std::sort(neighbors.begin(), neighbors.end());
