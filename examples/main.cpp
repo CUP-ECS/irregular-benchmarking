@@ -188,7 +188,7 @@ void migrationExample() {
 		}
 
 
-		for (int i = 0; i < partner_pe.size(); i++) {
+		for (int i = 0; i < neighbors.size(); i++) {
 			std::cout << "Partner " << i << ": " << neighbors[i] << std::endl;
 		}
 
