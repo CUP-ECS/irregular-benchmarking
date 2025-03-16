@@ -198,6 +198,7 @@ void migrationExample() {
 			for (int j = 0, k = 0; j < nowned/nneighbors; j++, k++) {
 				if (k >= blocksz) {
 					for (k = 0; k < (1 + stride); k++) {
+						
 						export_ranks(++inum) = -1;
 					}
 
@@ -212,7 +213,7 @@ void migrationExample() {
 
 				export_ranks(inum) = neighbors[i];
 			}
-			printf("%d  %d   %d  \n",nneighbors, i,nowned  );
+			printf("%d  %d   %d  \n",inum, i,nowned  );
 		}
 
 
