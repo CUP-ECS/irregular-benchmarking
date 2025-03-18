@@ -180,7 +180,7 @@ void migrationExample() {
 
 
         // if(comm_rank%2 == 0){
-        for (int i = -nneighbors / 2; i <= nneighbors / 2+remainder; i++) {
+        for (int i = -nneighbors / 2; i <= (nneighbors / 2)+remainder; i++) {
         	int partner = (comm_size + i + comm_rank) % comm_size;
         	preneighbors[offset] = partner;
         	offset++;
@@ -194,7 +194,7 @@ void migrationExample() {
         for (int j = 0; j < comm_size; ++j) {
 		for (int i = 0; i < nneighbors + 1; ++i) {
 
-				std::cout << recvbuf[j * comm_size + i] << " ";
+				std::cout << recvbuf[j *  (nneighbors + 1)+ i] << " ";
 			}
 
 		}
