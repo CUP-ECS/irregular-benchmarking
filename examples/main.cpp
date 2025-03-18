@@ -231,20 +231,20 @@ void migrationExample() {
 
 
 
-
-
-         printf("%d in file %s\n", __LINE__, __FILE__);
-
-		 fflush(stdout);
-		 std::sort(neighbors.begin(), neighbors.end());
-		 printf("%d in file %s\n", __LINE__, __FILE__);
-		 fflush(stdout);
-		 auto unique_end = std::unique(neighbors.begin(), neighbors.end());
-		 printf("%d in file %s\n", __LINE__, __FILE__);
-		 fflush(stdout);
-		 neighbors.resize(std::distance(neighbors.begin(), unique_end));
-		 printf("%d in file %s\n", __LINE__, __FILE__);
-		 	fflush(stdout);
+//
+//
+//         printf("%d in file %s\n", __LINE__, __FILE__);
+//
+//		 fflush(stdout);
+//		 std::sort(neighbors.begin(), neighbors.end());
+//		 printf("%d in file %s\n", __LINE__, __FILE__);
+//		 fflush(stdout);
+//		 auto unique_end = std::unique(neighbors.begin(), neighbors.end());
+//		 printf("%d in file %s\n", __LINE__, __FILE__);
+//		 fflush(stdout);
+//		 neighbors.resize(std::distance(neighbors.begin(), unique_end));
+//		 printf("%d in file %s\n", __LINE__, __FILE__);
+//		 	fflush(stdout);
 		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
 		printf("%d in file %s\n", __LINE__, __FILE__);
 		fflush(stdout);
