@@ -133,7 +133,7 @@ void migrationExample() {
 		nowned = gauss_dist(nowned_orig, nowned_stdv);
 		nremote = gauss_dist(nremote_orig,nremote_stdv);
 		blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
-		nneighbors = 4;
+		nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv);
 		stride = gauss_dist(stride_orig, stride_stdv);
 
 		if (1) {
@@ -204,7 +204,6 @@ void migrationExample() {
 		int inum=0;
 
       printf("%d in file %s\n", __LINE__, __FILE__);
-		 fflush(stdout);
 		for ( int i = 0; i < num_tuple; ++i ){
 			export_ranks( i ) = -1;
 		}
