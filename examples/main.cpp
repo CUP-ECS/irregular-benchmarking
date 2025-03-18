@@ -173,24 +173,36 @@ void migrationExample() {
 
 		int remainder = nneighbors % 2;
 		int offset = 0;
-		std::vector < int > neighbors(nneighbors + 1);
-
+		std::vector < int > preneighbors((nneighbors + 1));
+		std::vector<int> recvbuf((nneighbors + 1) * comm_size)
 
         // if(comm_rank%2 == 0){
-        	for (int i = -nneighbors / 2; i <= nneighbors / 2+remainder; i++) {
-        		int partner = (comm_size + i + comm_rank) % comm_size;
-        		neighbors[offset] = partner;
-        		offset++;
-//        		printf("%d in file %d\n",partner , i);
-        	}
-//         }else{
-//         	for (int i = -nneighbors / 2-remainder; i <= nneighbors / 2; i++) {
-//         		int partner = (comm_size + i + comm_rank) % comm_size;
-//         		neighbors[offset] = partner;
-//         		offset++;
-// //        		printf("%d in file %d\n",partner , i);
-//         	}
-//         }
+        for (int i = -nneighbors / 2; i <= nneighbors / 2+remainder; i++) {
+        	int partner = (comm_size + i + comm_rank) % comm_size;
+        	preneighbors[offset] = partner;
+        	offset++;
+        }
+
+
+		MPI_Allgather(preneighbors.data(), (nneighbors + 1), MPI_INT, recvbuf.data(), (nneighbors + 1), MPI_INT, MPI_COMM_WORLD);
+
+		std::vector < int > neighbors;
+		for (int i = 0; i < comm_size; i++)
+		{
+			for (int j = 0; j < (nneighbors + 1); j++)
+			{
+
+				if (i == comm_rank)
+				{
+					neighbors.pushback(recvbuf[comm_size* (nneighbors + 1)+j])
+				}else if (recvbuf[comm_size* (nneighbors + 1)+j] == comm_rank)
+				{
+					neighbors.pushback(i)
+				}
+				
+			}
+		}
+		
 
 
 
@@ -209,26 +221,26 @@ void migrationExample() {
 
 //		      printf("%d in file %s\n", __LINE__, __FILE__);
 		 fflush(stdout);
-//		for (int j = 0; j < num_tuple/(stride+blocksz); j++){
-//
-//				for (int i = 0; i < (stride+blocksz); i++)
-//				{
-//					if (i<stride)
-//					{
-//						export_ranks(inum++) = neighbors[curneighbor];
-//					}else{
-//						inum++;
-//					}
-//
-//					if(inum %(num_tuple/(neighbors.size())) ==0){
-//						curneighbor++;
-//					}
-//
-//				}
-//
-//				printf("a   %d tt   %ld\n", (neighbors.size()) ,curneighbor);
-//		 fflush(stdout);
-//		 }
+		for (int j = 0; j < num_tuple/(stride+blocksz); j++){
+
+				for (int i = 0; i < (stride+blocksz); i++)
+				{
+					if (i<stride)
+					{
+						export_ranks(inum++) = preneighbors[curneighbor];
+					}else{
+						inum++;
+					}
+
+					if(inum %(num_tuple/(preneighbors.size())) ==0){
+						curneighbor++;
+					}
+
+				}
+
+				printf("a   %d tt   %ld\n", (preneighbors.size()) ,curneighbor);
+		 fflush(stdout);
+		 }
 
 
 
