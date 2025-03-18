@@ -193,43 +193,43 @@ void migrationExample() {
 		}
 
 
-//		int inum = 0;
-//		for (int i = 0; i < nneighbors; i++) {
-//			for (int j = 0, k = 0; j < nowned/(nneighbors+1); j++, k++) {
-//				if (k >= blocksz) {
-//					for (k = 0; k < (1 + stride); k++) {
-//
-//						export_ranks(++inum) = -1;
-//					}
-//
-//					k = 0;
-//				}
-//				else {
-//					inum++;
-//				}
-//
-//				if (inum >= nowned)
-//					break;
-//
-//				export_ranks(inum) = neighbors[i];
-//			}
-//			printf("%d  %d   %d  \n",inum, i,nowned  );
-//		}
-//
-		int previous_rank = ( comm_rank == 0 ) ? comm_size - 1 : comm_rank - 1;
-		int next_rank = ( comm_rank == comm_size - 1 ) ? 0 : comm_rank + 1;
-		for ( int i = 0; i < 10; ++i )
-			export_ranks( i ) = next_rank;
+		int inum = 0;
+		for (int i = 0; i < nneighbors; i++) {
+			for (int j = 0, k = 0; j < nowned/(nneighbors+1); j++, k++) {
+				if (k >= blocksz) {
+					for (k = 0; k < (1 + stride); k++) {
 
-		// Next 10 elements will be discarded. Use an export rank of -1 to
-		// indicate this.
-		for ( int i = 10; i < 20; ++i )
-			export_ranks( i ) = -1;
+						export_ranks(++inum) = -1;
+					}
 
-		// The last 80 elements stay on this process.
-		for ( int i = 20; i < num_tuple; ++i )
-			export_ranks( i ) = comm_rank;
+					k = 0;
+				}
+				else {
+					inum++;
+				}
 
+				if (inum >= nowned)
+					break;
+
+				export_ranks(inum) = neighbors[i];
+			}
+			printf("%d  %d   %d  \n",inum, i,nowned  );
+		}
+
+//		int previous_rank = ( comm_rank == 0 ) ? comm_size - 1 : comm_rank - 1;
+//		int next_rank = ( comm_rank == comm_size - 1 ) ? 0 : comm_rank + 1;
+//		for ( int i = 0; i < 10; ++i )
+//			export_ranks( i ) = next_rank;
+//
+//		// Next 10 elements will be discarded. Use an export rank of -1 to
+//		// indicate this.
+//		for ( int i = 10; i < 20; ++i )
+//			export_ranks( i ) = -1;
+//
+//		// The last 80 elements stay on this process.
+//		for ( int i = 20; i < num_tuple; ++i )
+//			export_ranks( i ) = comm_rank;
+//
 
         printf("%d in file %s\n", __LINE__, __FILE__);
 
