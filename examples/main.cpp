@@ -133,7 +133,7 @@ void migrationExample() {
 		nowned = gauss_dist(nowned_orig, nowned_stdv);
 		nremote = gauss_dist(nremote_orig,nremote_stdv);
 		blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
-		nneighbors =2 ;
+		nneighbors =3 ;
 		stride = gauss_dist(stride_orig, stride_stdv);
 
 		if (1) {
