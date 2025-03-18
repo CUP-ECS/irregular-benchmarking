@@ -175,7 +175,7 @@ void migrationExample() {
 		int offset = 0;
 		std::vector < int > neighbors(nneighbors + 1);
 
-		for (int i = -nneighbors / 2; i <= nneighbors / 2; i++) {
+		for (int i = -nneighbors / 2; i <= nneighbors / 2+1; i++) {
 			int partner = (comm_size + i + comm_rank) % comm_size;
 			neighbors[offset] = partner;
 			offset++;
@@ -266,22 +266,24 @@ void migrationExample() {
 		slice_ids = Cabana::slice<1>(aosoa);
 		printf("%d in file %s\n", __LINE__, __FILE__);
 		fflush(stdout);
-		if (comm_rank == 0)
-		{
-			std::cout << "AFTER migration" << std::endl
-				<< "(Rank " << comm_rank << ") ";
-			for (std::size_t i = 0; i < slice_ranks.size(); ++i)
-				std::cout << slice_ranks(i) << " ";
-			std::cout << std::endl
-				<< "(" << slice_ranks.size() << " ranks after migrate)"
-				<< std::endl
-				<< "(Rank " << comm_rank << ") ";
-			for (std::size_t i = 0; i < slice_ids.size(); ++i)
-				std::cout << slice_ids(i) << " ";
-			std::cout << std::endl
-				<< "(" << slice_ids.size() << " IDs after migrate)"
-				<< std::endl;
-		}
+
+                printf("done \n");
+//		if (comm_rank == 0)
+//		{
+//			std::cout << "AFTER migration" << std::endl
+//				<< "(Rank " << comm_rank << ") ";
+//			for (std::size_t i = 0; i < slice_ranks.size(); ++i)
+//				std::cout << slice_ranks(i) << " ";
+//			std::cout << std::endl
+//				<< "(" << slice_ranks.size() << " ranks after migrate)"
+//				<< std::endl
+//				<< "(Rank " << comm_rank << ") ";
+//			for (std::size_t i = 0; i < slice_ids.size(); ++i)
+//				std::cout << slice_ids(i) << " ";
+//			std::cout << std::endl
+//				<< "(" << slice_ids.size() << " IDs after migrate)"
+//				<< std::endl;
+//		}
 	
 
 
