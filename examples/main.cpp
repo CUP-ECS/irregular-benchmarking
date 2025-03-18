@@ -175,12 +175,22 @@ void migrationExample() {
 		int offset = 0;
 		std::vector < int > neighbors(nneighbors + 1);
 
-		for (int i = -nneighbors / 2; i <= nneighbors / 2; i++) {
-			int partner = (comm_size + i + comm_rank) % comm_size;
-			neighbors[offset] = partner;
-			offset++;
-            printf("%d in file %d\n",partner , i);
-		}
+
+        if(comm_rank%2 == 0){
+        	for (int i = -nneighbors / 2; i <= nneighbors / 2+remainder; i++) {
+        		int partner = (comm_size + i + comm_rank) % comm_size;
+        		neighbors[offset] = partner;
+        		offset++;
+        		printf("%d in file %d\n",partner , i);
+        	}
+        }else{
+        	for (int i = -nneighbors / 2-remainder; i <= nneighbors / 2; i++) {
+        		int partner = (comm_size + i + comm_rank) % comm_size;
+        		neighbors[offset] = partner;
+        		offset++;
+        		printf("%d in file %d\n",partner , i);
+        	}
+        }
 
 
 
