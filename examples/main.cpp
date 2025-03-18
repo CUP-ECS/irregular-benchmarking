@@ -201,6 +201,11 @@ void migrationExample() {
 						for (k = 0; k < (1 + stride); k++) {
 
 							export_ranks(++inum) = -1;
+							if (inum >= nowned){
+								break;
+								k = 0;
+							}
+								
 						}
 
 						k = 0;
