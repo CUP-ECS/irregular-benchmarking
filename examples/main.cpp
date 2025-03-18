@@ -215,6 +215,8 @@ void migrationExample() {
 					if (i<stride)
 					{
 						export_ranks(inum++) = neighbors[curneighbor];
+					}else{
+						inum++;
 					}
 					
 					if(inum %(num_tuple/(neighbors.size())) ==0){
@@ -223,7 +225,7 @@ void migrationExample() {
 
 				}
 		
-				printf("a   %d tt   %d\n", (neighbors.size()) ,curneighbor);
+				printf("a   %d tt   %ld\n", (neighbors.size()) ,curneighbor);
 		 }
 
 //		 int previous_rank = ( comm_rank == 0 ) ? comm_size - 1 : comm_rank - 1;
