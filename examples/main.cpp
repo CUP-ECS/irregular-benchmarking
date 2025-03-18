@@ -179,12 +179,13 @@ void migrationExample() {
 			int partner = (comm_size + i + comm_rank) % comm_size;
 			neighbors[offset] = partner;
 			offset++;
+            printf("%d in file %d\n",partner , i);
 		}
 
 
 
 
-      printf("%d in file %s\n", __LINE__, __FILE__);
+
 
 		// int num = num_tuple/(neighbors.size());
 		bool skip = false;
