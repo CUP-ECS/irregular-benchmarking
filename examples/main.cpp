@@ -233,7 +233,7 @@ void migrationExample() {
 
 //
 //
-//         printf("%d in file %s\n", __LINE__, __FILE__);
+        printf("%d in file %s\n", __LINE__, __FILE__);
 //
 //		 fflush(stdout);
 //		 std::sort(neighbors.begin(), neighbors.end());
