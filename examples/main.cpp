@@ -133,7 +133,7 @@ void migrationExample() {
 		nowned = gauss_dist(nowned_orig, nowned_stdv);
 		nremote = gauss_dist(nremote_orig,nremote_stdv);
 		blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
-		nneighbors = 3;
+		nneighbors = ;
 		stride = gauss_dist(stride_orig, stride_stdv);
 
 		if (1) {
@@ -175,7 +175,7 @@ void migrationExample() {
 		int offset = 0;
 		std::vector < int > neighbors(nneighbors + 1);
 
-		for (int i = -nneighbors / 2; i < nneighbors / 2; i++) {
+		for (int i = -nneighbors / 2; i <= nneighbors / 2; i++) {
 			int partner = (comm_size + i + comm_rank) % comm_size;
 			neighbors[offset] = partner;
 			offset++;
