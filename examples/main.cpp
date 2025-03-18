@@ -210,7 +210,7 @@ void migrationExample() {
 
 		for (int j = 0; j < num_tuple/(stride+blocksz); j++){
 
-				for (int i = 0; i < (stride); i++)
+				for (int i = 0; i < (stride+blocksz); i++)
 				{
 					if (i<stride)
 					{
