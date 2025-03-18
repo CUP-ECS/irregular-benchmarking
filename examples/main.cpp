@@ -196,19 +196,21 @@ void migrationExample() {
 		for (int i = 0; i < neighbors.size(); i++) {
 			std::cout << "Partner " << i << ": " << neighbors[i] << std::endl;
 		}
-
+      printf("%d in file %s\n", __LINE__, __FILE__);
 
 		// int num = num_tuple/(neighbors.size());
 		bool skip = false;
 		int curneighbor=0;
 		int inum=0;
 
-
-		for ( int i = 0; i < num_tuple; ++i ){ 	
+      printf("%d in file %s\n", __LINE__, __FILE__);
+		 fflush(stdout);
+		for ( int i = 0; i < num_tuple; ++i ){
 			export_ranks( i ) = -1;
 		}
 
-		
+		      printf("%d in file %s\n", __LINE__, __FILE__);
+		 fflush(stdout);
 		for (int j = 0; j < num_tuple/(stride+blocksz); j++){
 
 				for (int i = 0; i < (stride+blocksz); i++)
@@ -227,6 +229,7 @@ void migrationExample() {
 				}
 		
 				printf("a   %d tt   %ld\n", (neighbors.size()) ,curneighbor);
+		 fflush(stdout);
 		 }
 
 
@@ -234,8 +237,9 @@ void migrationExample() {
 //
 //
         printf("%d in file %s\n", __LINE__, __FILE__);
+
+		 fflush(stdout);
 //
-//		 fflush(stdout);
 //		 std::sort(neighbors.begin(), neighbors.end());
 //		 printf("%d in file %s\n", __LINE__, __FILE__);
 //		 fflush(stdout);
