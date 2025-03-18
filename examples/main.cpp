@@ -188,13 +188,14 @@ void migrationExample() {
 
 
 		MPI_Allgather(preneighbors, (nneighbors + 1), MPI_INT, recvbuf, (nneighbors + 1), MPI_INT, MPI_COMM_WORLD);
+        for (int j = 0; j < comm_size; ++j) {
 		for (int i = 0; i < nneighbors + 1; ++i) {
-			for (int j = 0; j < comm_size; ++j) {
+
 				std::cout << recvbuf[i * comm_size + j] << " ";
 			}
-			std::cout << std::endl;
-		}
 
+		}
+std::cout << std::endl;
 		std::vector < int > neighbors;
 		for (int i = 0; i < comm_size; i++)
 		{
