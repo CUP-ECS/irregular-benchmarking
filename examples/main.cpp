@@ -235,7 +235,7 @@ void migrationExample() {
 						inum++;
 					}
 
-					if(inum %(num_tuple/(preneighbors.size())) ==0){
+					if(inum %(num_tuple/(nneighbors + 1)) ==0){
 						curneighbor++;
 					}
 
