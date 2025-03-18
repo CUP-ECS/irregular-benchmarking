@@ -202,15 +202,19 @@ void migrationExample() {
 		bool skip = false;
 		int curneighbor=0;
 		int inum=0;
+
+
+		for ( int i = 0; i < num_tuple; ++i ){ 	
+			export_ranks( i ) = -1;
+		}
+
 		for (int j = 0; j < num_tuple/(stride+blocksz); j++){
 
-				for (int i = 0; i < (stride+blocksz); i++)
+				for (int i = 0; i < (stride); i++)
 				{
 					if (i<stride)
 					{
 						export_ranks(inum++) = neighbors[curneighbor];
-					}else{
-						export_ranks(inum++) = -1;
 					}
 					
 					if(inum %(num_tuple/(neighbors.size())) ==0){
@@ -219,36 +223,36 @@ void migrationExample() {
 
 				}
 		
-			
+				printf("a   %d tt   %s\n", (neighbors.size()) ,curneighbor);
 		 }
 
-		// int previous_rank = ( comm_rank == 0 ) ? comm_size - 1 : comm_rank - 1;
-		// int next_rank = ( comm_rank == comm_size - 1 ) ? 0 : comm_rank + 1;
-		// for ( int i = 0; i < 10; ++i )
-		// 	export_ranks( i ) = next_rank;
-
-		// // Next 10 elements will be discarded. Use an export rank of -1 to
-		// // indicate this.
-		// for ( int i = 10; i < 20; ++i )
-		// 	export_ranks( i ) = -1;
-
-		// // The last 80 elements stay on this process.
-		// for ( int i = 20; i < num_tuple; ++i )
-		// 	export_ranks( i ) = comm_rank;
+//		 int previous_rank = ( comm_rank == 0 ) ? comm_size - 1 : comm_rank - 1;
+//		 int next_rank = ( comm_rank == comm_size - 1 ) ? 0 : comm_rank + 1;
+//		 for ( int i = 0; i < 10; ++i )
+//		 	export_ranks( i ) = next_rank;
 //
+//		 // Next 10 elements will be discarded. Use an export rank of -1 to
+//		 // indicate this.
+//		 for ( int i = 10; i < 20; ++i )
+//		 	export_ranks( i ) = -1;
+//
+//		 // The last 80 elements stay on this process.
+//		 for ( int i = 20; i < num_tuple; ++i )
+//		 	export_ranks( i ) = comm_rank;
 
-        // printf("%d in file %s\n", __LINE__, __FILE__);
 
-		// fflush(stdout);
-		// std::sort(neighbors.begin(), neighbors.end());	
-		// printf("%d in file %s\n", __LINE__, __FILE__);
-		// fflush(stdout);
-		// auto unique_end = std::unique(neighbors.begin(), neighbors.end());
-		// printf("%d in file %s\n", __LINE__, __FILE__);
-		// fflush(stdout);
-		// neighbors.resize(std::distance(neighbors.begin(), unique_end));
-		// printf("%d in file %s\n", __LINE__, __FILE__);	
-		// 	fflush(stdout);
+         printf("%d in file %s\n", __LINE__, __FILE__);
+
+		 fflush(stdout);
+		 std::sort(neighbors.begin(), neighbors.end());
+		 printf("%d in file %s\n", __LINE__, __FILE__);
+		 fflush(stdout);
+		 auto unique_end = std::unique(neighbors.begin(), neighbors.end());
+		 printf("%d in file %s\n", __LINE__, __FILE__);
+		 fflush(stdout);
+		 neighbors.resize(std::distance(neighbors.begin(), unique_end));
+		 printf("%d in file %s\n", __LINE__, __FILE__);
+		 	fflush(stdout);
 		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
 		printf("%d in file %s\n", __LINE__, __FILE__);
 		fflush(stdout);
