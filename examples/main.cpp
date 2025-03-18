@@ -200,7 +200,7 @@ std::cout << std::endl;
 		for (int j = 0; j < comm_size; ++j) {
 			for (int i = 0; i < nneighbors + 1; ++i) {
 
-				if (i == comm_rank)
+				if (j == comm_rank)
 				{
 					neighbors.push_back(recvbuf[comm_size*i +j]);
 				}else if (recvbuf[comm_size*i+j] == comm_rank)
