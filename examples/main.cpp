@@ -181,14 +181,14 @@ void migrationExample() {
         		int partner = (comm_size + i + comm_rank) % comm_size;
         		neighbors[offset] = partner;
         		offset++;
-        		printf("%d in file %d\n",partner , i);
+//        		printf("%d in file %d\n",partner , i);
         	}
         }else{
         	for (int i = -nneighbors / 2-remainder; i <= nneighbors / 2; i++) {
         		int partner = (comm_size + i + comm_rank) % comm_size;
         		neighbors[offset] = partner;
         		offset++;
-        		printf("%d in file %d\n",partner , i);
+//        		printf("%d in file %d\n",partner , i);
         	}
         }
 
@@ -202,12 +202,12 @@ void migrationExample() {
 		int curneighbor=0;
 		int inum=0;
 
-      printf("%d in file %s\n", __LINE__, __FILE__);
+//      printf("%d in file %s\n", __LINE__, __FILE__);
 		for ( int i = 0; i < num_tuple; ++i ){
 			export_ranks( i ) = -1;
 		}
 
-		      printf("%d in file %s\n", __LINE__, __FILE__);
+//		      printf("%d in file %s\n", __LINE__, __FILE__);
 		 fflush(stdout);
 //		for (int j = 0; j < num_tuple/(stride+blocksz); j++){
 //
@@ -234,18 +234,18 @@ void migrationExample() {
 
 //
 //
-        printf("%d in file %s\n", __LINE__, __FILE__);
+//        printf("%d in file %s\n", __LINE__, __FILE__);
 
 		 fflush(stdout);
 //
 		 std::sort(neighbors.begin(), neighbors.end());
-		 printf("%d in file %s\n", __LINE__, __FILE__);
+//		 printf("%d in file %s\n", __LINE__, __FILE__);
 		 fflush(stdout);
 		 auto unique_end = std::unique(neighbors.begin(), neighbors.end());
-		 printf("%d in file %s\n", __LINE__, __FILE__);
+//		 printf("%d in file %s\n", __LINE__, __FILE__);
 		 fflush(stdout);
 		 neighbors.resize(std::distance(neighbors.begin(), unique_end));
-		 printf("%d in file %s\n", __LINE__, __FILE__);
+//		 printf("%d in file %s\n", __LINE__, __FILE__);
 
 
 		for (int i = 0; i < neighbors.size(); i++) {
@@ -253,7 +253,7 @@ void migrationExample() {
 		}
 		fflush(stdout);
 		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
-		printf("%d in file %s\n", __LINE__, __FILE__);
+//		printf("%d in file %s\n", __LINE__, __FILE__);
 		fflush(stdout);
 	
 		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
