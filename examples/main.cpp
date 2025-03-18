@@ -183,9 +183,7 @@ void migrationExample() {
 
 
 
-		for (int i = 0; i < neighbors.size(); i++) {
-			std::cout << "Partner " << i << ": " << neighbors[i] << std::endl;
-		}
+
       printf("%d in file %s\n", __LINE__, __FILE__);
 
 		// int num = num_tuple/(neighbors.size());
@@ -237,7 +235,12 @@ void migrationExample() {
 		 fflush(stdout);
 		 neighbors.resize(std::distance(neighbors.begin(), unique_end));
 		 printf("%d in file %s\n", __LINE__, __FILE__);
-		 	fflush(stdout);
+
+
+		for (int i = 0; i < neighbors.size(); i++) {
+			std::cout << "Partner " << i << ": " << neighbors[i] << std::endl;
+		}
+		fflush(stdout);
 		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
 		printf("%d in file %s\n", __LINE__, __FILE__);
 		fflush(stdout);
