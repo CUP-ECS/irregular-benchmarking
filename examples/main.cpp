@@ -131,9 +131,9 @@ void migrationExample() {
 	for (int sample_iter = 0; sample_iter < nsamples + 1; sample_iter++) {
 
 		nowned = gauss_dist(nowned_orig, nowned_stdv);
-		nremote = gauss_dist(nremote_orig, nremote_orig);
+		nremote = gauss_dist(nremote_orig,nremote_stdv);
 		blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
-		nneighbors = 2;
+		nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv);
 		stride = gauss_dist(stride_orig, stride_stdv);
 
 		if (1) {
@@ -227,20 +227,6 @@ void migrationExample() {
 		
 				printf("a   %d tt   %ld\n", (neighbors.size()) ,curneighbor);
 		 }
-
-//		 int previous_rank = ( comm_rank == 0 ) ? comm_size - 1 : comm_rank - 1;
-//		 int next_rank = ( comm_rank == comm_size - 1 ) ? 0 : comm_rank + 1;
-//		 for ( int i = 0; i < 10; ++i )
-//		 	export_ranks( i ) = next_rank;
-//
-//		 // Next 10 elements will be discarded. Use an export rank of -1 to
-//		 // indicate this.
-//		 for ( int i = 10; i < 20; ++i )
-//		 	export_ranks( i ) = -1;
-//
-//		 // The last 80 elements stay on this process.
-//		 for ( int i = 20; i < num_tuple; ++i )
-//		 	export_ranks( i ) = comm_rank;
 
 
          printf("%d in file %s\n", __LINE__, __FILE__);
