@@ -185,6 +185,8 @@ void migrationExample() {
         	preneighbors[offset] = partner;
         	offset++;
         }
+
+				std::cout << comm_rank << ": ";
 			for (int i = 0; i < nneighbors + 1; ++i) {
 
 				std::cout << preneighbors[i] << " ";
@@ -205,8 +207,8 @@ std::cout << std::endl;
 
 				if (j == comm_rank)
 				{
-					neighbors.push_back(recvbuf[comm_size*i +j]);
-				}else if (recvbuf[comm_size*i+j] == comm_rank)
+					neighbors.push_back(recvbuf[j *  (nneighbors + 1)+ i]);
+				}else if (recvbuf[j *  (nneighbors + 1)+ i] == comm_rank)
 				{
 					neighbors.push_back(j);
 				}
