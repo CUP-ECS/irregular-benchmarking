@@ -174,7 +174,7 @@ void migrationExample() {
 		int remainder = nneighbors % 2;
 		int offset = 0;
 		std::vector < int > preneighbors((nneighbors + 1));
-		std::vector<int> recvbuf((nneighbors + 1) * comm_size)
+		std::vector<int> recvbuf((nneighbors + 1) * comm_size);
 
         // if(comm_rank%2 == 0){
         for (int i = -nneighbors / 2; i <= nneighbors / 2+remainder; i++) {
