@@ -180,18 +180,21 @@ void migrationExample() {
 
 
         // if(comm_rank%2 == 0){
-        for (int i = -nneighbors / 2; i <= (nneighbors / 2)+remainder; i++) {
+        for (int i = -nneighbors / 2; i <= nneighbors / 2+remainder; i++) {
         	int partner = (comm_size + i + comm_rank) % comm_size;
         	preneighbors[offset] = partner;
         	offset++;
         }
+			for (int i = 0; i < nneighbors + 1; ++i) {
 
-
+				std::cout << preneighbors[i] << " ";
+			}
+		std::cout << std::endl;
 		MPI_Allgather(preneighbors, (nneighbors + 1), MPI_INT, recvbuf, (nneighbors + 1), MPI_INT, MPI_COMM_WORLD);
         for (int j = 0; j < comm_size; ++j) {
 		for (int i = 0; i < nneighbors + 1; ++i) {
 
-				std::cout << recvbuf[i * comm_size + j] << " ";
+				std::cout << recvbuf[j * comm_size + i] << " ";
 			}
 
 		}
