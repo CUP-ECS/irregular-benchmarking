@@ -136,7 +136,7 @@ void migrationExample() {
 		nneighbors =3 ;
 		stride = gauss_dist(stride_orig, stride_stdv);
 
-		if (1) {
+		if (0) {
 			printf("PARAM: nowned - %d\n", nowned);
 			printf("PARAM: nremote - %d\n", nremote);
 			printf("PARAM: blocksize - %d\n", blocksz);
@@ -173,8 +173,11 @@ void migrationExample() {
 
 		int remainder = nneighbors % 2;
 		int offset = 0;
-		std::vector < int > preneighbors((nneighbors + 1));
-		std::vector<int> recvbuf((nneighbors + 1) * comm_size);
+//		std::vector < int > preneighbors((nneighbors + 1));
+//		std::vector<int> recvbuf((nneighbors + 1) * comm_size);
+		int* preneighbors = new int[nneighbors + 1];
+		int* recvbuf = new int[(nneighbors + 1) * comm_size];
+
 
         // if(comm_rank%2 == 0){
         for (int i = -nneighbors / 2; i <= nneighbors / 2+remainder; i++) {
@@ -184,7 +187,7 @@ void migrationExample() {
         }
 
 
-		MPI_Allgather(preneighbors.data(), (nneighbors + 1), MPI_INT, recvbuf.data(), (nneighbors + 1), MPI_INT, MPI_COMM_WORLD);
+		MPI_Allgather(preneighbors, (nneighbors + 1), MPI_INT, recvbuf, (nneighbors + 1), MPI_INT, MPI_COMM_WORLD);
 
 		std::vector < int > neighbors;
 		for (int i = 0; i < comm_size; i++)
@@ -238,8 +241,6 @@ void migrationExample() {
 
 				}
 
-				printf("a   %d tt   %ld\n", (preneighbors.size()) ,curneighbor);
-		 fflush(stdout);
 		 }
 
 
