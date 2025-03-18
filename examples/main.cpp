@@ -201,7 +201,7 @@ void migrationExample() {
 //
 //		}
 //std::cout << std::endl;
-//		std::vector < int > neighbors;
+		std::vector < int > neighbors;
 		for (int j = 0; j < comm_size; ++j) {
 			for (int i = 0; i < nneighbors + 1; ++i) {
 
