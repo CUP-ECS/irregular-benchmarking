@@ -238,7 +238,7 @@ void migrationExample() {
 
 
 		for (int i = 0; i < neighbors.size(); i++) {
-			std::cout << "Partner " << i << ": " << neighbors[i] << std::endl;
+			std::cout << "Partner " << comm_rank << ": " << neighbors[i] << std::endl;
 		}
 		fflush(stdout);
 		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
