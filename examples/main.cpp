@@ -208,6 +208,7 @@ void migrationExample() {
 			export_ranks( i ) = -1;
 		}
 
+		
 		for (int j = 0; j < num_tuple/(stride+blocksz); j++){
 
 				for (int i = 0; i < (stride+blocksz); i++)
