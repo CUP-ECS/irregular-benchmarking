@@ -133,7 +133,7 @@ void migrationExample() {
 		nowned = gauss_dist(nowned_orig, nowned_stdv);
 		nremote = gauss_dist(nremote_orig,nremote_stdv);
 		blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
-		nneighbors =3 ;
+		nneighbors =2 ;
 		stride = gauss_dist(stride_orig, stride_stdv);
 
 		if (0) {
@@ -186,22 +186,22 @@ void migrationExample() {
         	offset++;
         }
 
-				std::cout << comm_rank << ": ";
-			for (int i = 0; i < nneighbors + 1; ++i) {
-
-				std::cout << preneighbors[i] << " ";
-			}
-		std::cout << std::endl;
+//				std::cout << comm_rank << ": ";
+//			for (int i = 0; i < nneighbors + 1; ++i) {
+//
+//				std::cout << preneighbors[i] << " ";
+//			}
+//		std::cout << std::endl;
 		MPI_Allgather(preneighbors, (nneighbors + 1), MPI_INT, recvbuf, (nneighbors + 1), MPI_INT, MPI_COMM_WORLD);
-        for (int j = 0; j < comm_size; ++j) {
-		for (int i = 0; i < nneighbors + 1; ++i) {
-
-				std::cout << recvbuf[j *  (nneighbors + 1)+ i] << " ";
-			}
-
-		}
-std::cout << std::endl;
-		std::vector < int > neighbors;
+//        for (int j = 0; j < comm_size; ++j) {
+//		for (int i = 0; i < nneighbors + 1; ++i) {
+//
+//				std::cout << recvbuf[j *  (nneighbors + 1)+ i] << " ";
+//			}
+//
+//		}
+//std::cout << std::endl;
+//		std::vector < int > neighbors;
 		for (int j = 0; j < comm_size; ++j) {
 			for (int i = 0; i < nneighbors + 1; ++i) {
 
@@ -233,7 +233,7 @@ std::cout << std::endl;
 		}
 
 //		      printf("%d in file %s\n", __LINE__, __FILE__);
-		 fflush(stdout);
+//		 fflush(stdout);
 		for (int j = 0; j < num_tuple/(stride+blocksz); j++){
 
 				for (int i = 0; i < (stride+blocksz); i++)
@@ -259,50 +259,50 @@ std::cout << std::endl;
 //
 //        printf("%d in file %s\n", __LINE__, __FILE__);
 
-		 fflush(stdout);
+//		 fflush(stdout);
 //
 		 std::sort(neighbors.begin(), neighbors.end());
 //		 printf("%d in file %s\n", __LINE__, __FILE__);
-		 fflush(stdout);
+//		 fflush(stdout);
 		 auto unique_end = std::unique(neighbors.begin(), neighbors.end());
 //		 printf("%d in file %s\n", __LINE__, __FILE__);
-		 fflush(stdout);
+//		 fflush(stdout);
 		 neighbors.resize(std::distance(neighbors.begin(), unique_end));
 //		 printf("%d in file %s\n", __LINE__, __FILE__);
 
 
-		for (int i = 0; i < neighbors.size(); i++) {
-			std::cout << "Partner " << comm_rank << ": " << neighbors[i] << std::endl;
-		}
-		fflush(stdout);
+//		for (int i = 0; i < neighbors.size(); i++) {
+//			std::cout << "Partner " << comm_rank << ": " << neighbors[i] << std::endl;
+//		}
+//		fflush(stdout);
 		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
 //		printf("%d in file %s\n", __LINE__, __FILE__);
-		fflush(stdout);
+//		fflush(stdout);
 	
 		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
 			"destination", distributor.totalNumImport());
 			printf("%d in file %s\n", __LINE__, __FILE__);
 			fflush(stdout);
 		Cabana::migrate(distributor, aosoa, destination);
-		printf("%d in file %s\n", __LINE__, __FILE__);
-		fflush(stdout);
+//		printf("%d in file %s\n", __LINE__, __FILE__);
+//		fflush(stdout);
 		auto slice_ranks_dst = Cabana::slice<0>(destination);
-		printf("%d in file %s\n", __LINE__, __FILE__);
-		fflush(stdout);
+//		printf("%d in file %s\n", __LINE__, __FILE__);
+//		fflush(stdout);
 		auto slice_ids_dst = Cabana::slice<1>(destination);
-		printf("%d in file %s\n", __LINE__, __FILE__);
-		fflush(stdout);
+//		printf("%d in file %s\n", __LINE__, __FILE__);
+//		fflush(stdout);
 		Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
-		printf("%d in file %s\n", __LINE__, __FILE__);
-		fflush(stdout);
+//		printf("%d in file %s\n", __LINE__, __FILE__);
+//		fflush(stdout);
 		Cabana::migrate(distributor, slice_ids, slice_ids_dst);
-		printf("%d in file %s\n", __LINE__, __FILE__);
-		fflush(stdout);
+//		printf("%d in file %s\n", __LINE__, __FILE__);
+//		fflush(stdout);
 		Cabana::migrate(distributor, aosoa);
 		slice_ranks = Cabana::slice<0>(aosoa);
 		slice_ids = Cabana::slice<1>(aosoa);
-		printf("%d in file %s\n", __LINE__, __FILE__);
-		fflush(stdout);
+//		printf("%d in file %s\n", __LINE__, __FILE__);
+//		fflush(stdout);
 
                 printf("done \n");
 //		if (comm_rank == 0)
