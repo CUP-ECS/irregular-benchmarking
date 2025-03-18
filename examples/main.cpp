@@ -194,26 +194,26 @@ void migrationExample() {
 
 
 		int inum = 0;
-		for (int i = 0; i < nneighbors; i++) {
+		for (int i = 0; i < neighbors.size(); i++) {
 			if (neighbors[i] !=comm_rank ){
-	for (int j = 0, k = 0; j < nowned/(nneighbors+1); j++, k++) {
-				if (k >= blocksz) {
-					for (k = 0; k < (1 + stride); k++) {
+				for (int j = 0, k = 0; j < nowned/(neighbors.size()); j++, k++) {
+					if (k >= blocksz) {
+						for (k = 0; k < (1 + stride); k++) {
 
-						export_ranks(++inum) = -1;
+							export_ranks(++inum) = -1;
+						}
+
+						k = 0;
+					}
+					else {
+						inum++;
 					}
 
-					k = 0;
-				}
-				else {
-					inum++;
-				}
+					if (inum >= nowned)
+						break;
 
-				if (inum >= nowned)
-					break;
-
-				export_ranks(inum) = neighbors[i];
-			}
+					export_ranks(inum) = neighbors[i];
+				}
 			printf("%d  %d   %d  \n",inum, i,nowned  );
 
 			}
@@ -235,18 +235,18 @@ void migrationExample() {
 //			export_ranks( i ) = comm_rank;
 //
 
-        printf("%d in file %s\n", __LINE__, __FILE__);
+        // printf("%d in file %s\n", __LINE__, __FILE__);
 
-		fflush(stdout);
-		std::sort(neighbors.begin(), neighbors.end());	
-		printf("%d in file %s\n", __LINE__, __FILE__);
-		fflush(stdout);
-		auto unique_end = std::unique(neighbors.begin(), neighbors.end());
-		printf("%d in file %s\n", __LINE__, __FILE__);
-		fflush(stdout);
-		neighbors.resize(std::distance(neighbors.begin(), unique_end));
-		printf("%d in file %s\n", __LINE__, __FILE__);	
-			fflush(stdout);
+		// fflush(stdout);
+		// std::sort(neighbors.begin(), neighbors.end());	
+		// printf("%d in file %s\n", __LINE__, __FILE__);
+		// fflush(stdout);
+		// auto unique_end = std::unique(neighbors.begin(), neighbors.end());
+		// printf("%d in file %s\n", __LINE__, __FILE__);
+		// fflush(stdout);
+		// neighbors.resize(std::distance(neighbors.begin(), unique_end));
+		// printf("%d in file %s\n", __LINE__, __FILE__);	
+		// 	fflush(stdout);
 		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
 		printf("%d in file %s\n", __LINE__, __FILE__);
 		fflush(stdout);
