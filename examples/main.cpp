@@ -180,17 +180,7 @@ void migrationExample() {
 			neighbors[offset] = partner;
 			offset++;
 		}
-		if (remainder) {
-			if (comm_rank < (nneighbors / 2)) {
-				int  partner = (comm_size - nneighbors / 2 - 1 + comm_rank) % comm_size;
-				neighbors[offset] = partner;
-			}
-			else {
-				int partner = (comm_size + nneighbors / 2 + 1 + comm_rank) % comm_size;
-				neighbors[offset] = partner;
-			}
-			offset++;
-		}
+
 
 
 		for (int i = 0; i < neighbors.size(); i++) {
