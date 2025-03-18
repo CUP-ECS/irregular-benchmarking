@@ -200,26 +200,26 @@ void migrationExample() {
 
 		      printf("%d in file %s\n", __LINE__, __FILE__);
 		 fflush(stdout);
-		for (int j = 0; j < num_tuple/(stride+blocksz); j++){
-
-				for (int i = 0; i < (stride+blocksz); i++)
-				{
-					if (i<stride)
-					{
-						export_ranks(inum++) = neighbors[curneighbor];
-					}else{
-						inum++;
-					}
-					
-					if(inum %(num_tuple/(neighbors.size())) ==0){
-						curneighbor++;
-					}
-
-				}
-		
-				printf("a   %d tt   %ld\n", (neighbors.size()) ,curneighbor);
-		 fflush(stdout);
-		 }
+//		for (int j = 0; j < num_tuple/(stride+blocksz); j++){
+//
+//				for (int i = 0; i < (stride+blocksz); i++)
+//				{
+//					if (i<stride)
+//					{
+//						export_ranks(inum++) = neighbors[curneighbor];
+//					}else{
+//						inum++;
+//					}
+//
+//					if(inum %(num_tuple/(neighbors.size())) ==0){
+//						curneighbor++;
+//					}
+//
+//				}
+//
+//				printf("a   %d tt   %ld\n", (neighbors.size()) ,curneighbor);
+//		 fflush(stdout);
+//		 }
 
 
 
