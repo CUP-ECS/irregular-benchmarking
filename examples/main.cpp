@@ -194,10 +194,10 @@ void migrationExample() {
 
 				if (i == comm_rank)
 				{
-					neighbors.pushback(recvbuf[comm_size* (nneighbors + 1)+j]);
+					neighbors.push_back(recvbuf[comm_size* (nneighbors + 1)+j]);
 				}else if (recvbuf[comm_size* (nneighbors + 1)+j] == comm_rank)
 				{
-					neighbors.pushback(i);
+					neighbors.push_back(i);
 				}
 				
 			}
