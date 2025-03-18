@@ -197,17 +197,15 @@ void migrationExample() {
 		}
 std::cout << std::endl;
 		std::vector < int > neighbors;
-		for (int i = 0; i < comm_size; i++)
-		{
-			for (int j = 0; j < (nneighbors + 1); j++)
-			{
+		for (int j = 0; j < comm_size; ++j) {
+			for (int i = 0; i < nneighbors + 1; ++i) {
 
 				if (i == comm_rank)
 				{
-					neighbors.push_back(recvbuf[comm_size* (nneighbors + 1)+j]);
-				}else if (recvbuf[comm_size* (nneighbors + 1)+j] == comm_rank)
+					neighbors.push_back(recvbuf[comm_size*i +j]);
+				}else if (recvbuf[comm_size*i+j] == comm_rank)
 				{
-					neighbors.push_back(i);
+					neighbors.push_back(j);
 				}
 				
 			}
