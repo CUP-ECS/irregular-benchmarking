@@ -223,7 +223,7 @@ void migrationExample() {
 
 				}
 		
-				printf("a   %d tt   %s\n", (neighbors.size()) ,curneighbor);
+				printf("a   %d tt   %d\n", (neighbors.size()) ,curneighbor);
 		 }
 
 //		 int previous_rank = ( comm_rank == 0 ) ? comm_size - 1 : comm_rank - 1;
