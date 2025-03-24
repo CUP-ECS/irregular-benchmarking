@@ -38,14 +38,16 @@
 
 using json = nlohmann::json;
 
-enum distribution {
+enum distribution
+{
 	GAUSSIAN,
 	EMPIRICAL
 };
 
 typedef enum distribution distribution_t;
 
-enum prefix {
+enum prefix
+{
 	A,
 	B,
 	K,
@@ -81,14 +83,19 @@ static bool irregularity_blocksz = 1;
 static bool irregularity_remote = 1;
 static bool report_params = 0;
 static int seed = -1;
+static bool unique_seed = 0;
+static int neighbor_discovery_algo  = 0;
 
-int gauss_dist(double mean, double stdev) {
+
+int gauss_dist(double mean, double stdev)
+{
 	// generates two random numbers that form the seeds
 	// of the transform
 	double u1, u2, r, theta;
 	int generated = -1;
 
-	while (generated <= 0) {
+	while (generated <= 0)
+	{
 		u1 = (double)rand() / RAND_MAX;
 		u2 = (double)rand() / RAND_MAX;
 
@@ -107,7 +114,8 @@ int gauss_dist(double mean, double stdev) {
 	return generated;
 }
 
-int empirical_dist(const char* param) {
+int empirical_dist(const char *param)
+{
 	//    // set the parameter string to look for.
 	char param_key[25] = "PARAM: ";
 	strcat(param_key, param);
@@ -115,12 +123,12 @@ int empirical_dist(const char* param) {
 	return -1;
 }
 
-void createExportList(){
-
-
+void createExportList()
+{
 }
 
-void migrationExample() {
+void migrationExample()
+{
 
 	int nowned_orig = nowned;
 	int nneighbors_orig = nneighbors;
@@ -128,23 +136,24 @@ void migrationExample() {
 	int blocksz_orig = blocksz;
 	int stride_orig = stride;
 
-	for (int sample_iter = 0; sample_iter < nsamples + 1; sample_iter++) {
+	for (int sample_iter = 0; sample_iter < nsamples + 1; sample_iter++)
+	{
 
 		nowned = gauss_dist(nowned_orig, nowned_stdv);
-		nremote = gauss_dist(nremote_orig,nremote_stdv);
+		nremote = gauss_dist(nremote_orig, nremote_stdv);
 		blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
-		nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv); ;
+		nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv);
+		;
 		stride = gauss_dist(stride_orig, stride_stdv);
 
-		if (0) {
+		if (0)
+		{
 			printf("PARAM: nowned - %d\n", nowned);
 			printf("PARAM: nremote - %d\n", nremote);
 			printf("PARAM: blocksize - %d\n", blocksz);
 			printf("PARAM: stride - %d\n", stride);
 			printf("PARAM: nneighbors - %d\n", nneighbors);
 		}
-
-
 
 		int comm_rank = -1;
 		MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
@@ -162,271 +171,209 @@ void migrationExample() {
 		for (int i = 0; i < num_tuple; ++i)
 		{
 			slice_ranks(i) = comm_rank;
-			slice_ids(i) =  i + (num_tuple * comm_rank);
+			slice_ids(i) = i + (num_tuple * comm_rank);
 		}
 
-
-	
-		Kokkos::View<int*, MemorySpace> export_ranks("export_ranks", num_tuple);
-
-	
-
+		Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
 		int remainder = nneighbors % 2;
 		int offset = 0;
-//		std::vector < int > preneighbors((nneighbors + 1));
-//		std::vector<int> recvbuf((nneighbors + 1) * comm_size);
-		int* preneighbors = new int[nneighbors + 1];
-		int* recvbuf = new int[(nneighbors + 1) * comm_size];
-
-
-        // if(comm_rank%2 == 0){
-        for (int i = -nneighbors / 2; i <= (nneighbors / 2)+remainder; i++) {
-        	int partner = (comm_size + i + comm_rank) % comm_size;
-        	preneighbors[offset] = partner;
-        	offset++;
-        }
-
-//				std::cout << comm_rank << ": ";
-//			for (int i = 0; i < nneighbors + 1; ++i) {
-//
-//				std::cout << preneighbors[i] << " ";
-//			}
-//		std::cout << std::endl;
+		int *preneighbors = new int[nneighbors + 1];
+		int *recvbuf = new int[(nneighbors + 1) * comm_size];
+		for (int i = -nneighbors / 2; i <= (nneighbors / 2) + remainder; i++)
+		{
+			int partner = (comm_size + i + comm_rank) % comm_size;
+			preneighbors[offset] = partner;
+			offset++;
+		}
 		MPI_Allgather(preneighbors, (nneighbors + 1), MPI_INT, recvbuf, (nneighbors + 1), MPI_INT, MPI_COMM_WORLD);
-//        for (int j = 0; j < comm_size; ++j) {
-//		for (int i = 0; i < nneighbors + 1; ++i) {
-//
-//				std::cout << recvbuf[j *  (nneighbors + 1)+ i] << " ";
-//			}
-//
-//		}
-//std::cout << std::endl;
-		std::vector < int > neighbors;
-		for (int j = 0; j < comm_size; ++j) {
-			for (int i = 0; i < nneighbors + 1; ++i) {
+		std::vector<int> neighbors;
+		for (int j = 0; j < comm_size; ++j)
+		{
+			for (int i = 0; i < nneighbors + 1; ++i)
+			{
 
 				if (j == comm_rank)
 				{
-					neighbors.push_back(recvbuf[j *  (nneighbors + 1)+ i]);
-				}else if (recvbuf[j *  (nneighbors + 1)+ i] == comm_rank)
+					neighbors.push_back(recvbuf[j * (nneighbors + 1) + i]);
+				}
+				else if (recvbuf[j * (nneighbors + 1) + i] == comm_rank)
 				{
 					neighbors.push_back(j);
 				}
-				
 			}
 		}
-		
 
-
-
-
-
-
-		// int num = num_tuple/(neighbors.size());
-		bool skip = false;
-		int curneighbor=0;
-		int inum=0;
-
-//      printf("%d in file %s\n", __LINE__, __FILE__);
-		for ( int i = 0; i < num_tuple; ++i ){
-			export_ranks( i ) = -1;
+		int curneighbor = 0;
+		int inum = 0;
+		for (int i = 0; i < num_tuple; ++i)
+		{
+			export_ranks(i) = -1;
 		}
 
-//		      printf("%d in file %s\n", __LINE__, __FILE__);
-//		 fflush(stdout);
-		for (int j = 0; j < num_tuple/(stride+blocksz); j++){
+		for (int j = 0; j < num_tuple / (stride + blocksz); j++)
+		{
 
-				for (int i = 0; i < (stride+blocksz); i++)
+			for (int i = 0; i < (stride + blocksz); i++)
+			{
+				if (i < stride)
 				{
-					if (i<stride)
-					{
-						export_ranks(inum++) = preneighbors[curneighbor];
-					}else{
-						inum++;
-					}
-
-					if(inum %(num_tuple/(nneighbors + 1)) ==0){
-						curneighbor++;
-					}
-
+					export_ranks(inum++) = preneighbors[curneighbor];
+				}
+				else
+				{
+					inum++;
 				}
 
-		 }
+				if (inum % (num_tuple / (nneighbors + 1)) == 0)
+				{
+					curneighbor++;
+				}
+			}
+		}
 
+		std::sort(neighbors.begin(), neighbors.end());
 
+		auto unique_end = std::unique(neighbors.begin(), neighbors.end());
 
-//
-//
-//        printf("%d in file %s\n", __LINE__, __FILE__);
+		neighbors.resize(std::distance(neighbors.begin(), unique_end));
 
-//		 fflush(stdout);
-//
-		 std::sort(neighbors.begin(), neighbors.end());
-//		 printf("%d in file %s\n", __LINE__, __FILE__);
-//		 fflush(stdout);
-		 auto unique_end = std::unique(neighbors.begin(), neighbors.end());
-//		 printf("%d in file %s\n", __LINE__, __FILE__);
-//		 fflush(stdout);
-		 neighbors.resize(std::distance(neighbors.begin(), unique_end));
-//		 printf("%d in file %s\n", __LINE__, __FILE__);
-
-
-//		for (int i = 0; i < neighbors.size(); i++) {
-//			std::cout << "Partner " << comm_rank << ": " << neighbors[i] << std::endl;
-//		}
-//		fflush(stdout);
-		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
-//		printf("%d in file %s\n", __LINE__, __FILE__);
-//		fflush(stdout);
-	
+		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks, neighbors);
 		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
-			"destination", distributor.totalNumImport());
-//			printf("%d in file %s\n", __LINE__, __FILE__);
-//			fflush(stdout);
+
 		Cabana::migrate(distributor, aosoa, destination);
-//		printf("%d in file %s\n", __LINE__, __FILE__);
-//		fflush(stdout);
+
 		auto slice_ranks_dst = Cabana::slice<0>(destination);
-//		printf("%d in file %s\n", __LINE__, __FILE__);
-//		fflush(stdout);
+
 		auto slice_ids_dst = Cabana::slice<1>(destination);
-//		printf("%d in file %s\n", __LINE__, __FILE__);
-//		fflush(stdout);
+
 		Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
-//		printf("%d in file %s\n", __LINE__, __FILE__);
-//		fflush(stdout);
 		Cabana::migrate(distributor, slice_ids, slice_ids_dst);
-//		printf("%d in file %s\n", __LINE__, __FILE__);
-//		fflush(stdout);
 		Cabana::migrate(distributor, aosoa);
 		slice_ranks = Cabana::slice<0>(aosoa);
 		slice_ids = Cabana::slice<1>(aosoa);
-//		printf("%d in file %s\n", __LINE__, __FILE__);
-//		fflush(stdout);
-
-                printf("done \n");
-//		if (comm_rank == 0)
-//		{
-//			std::cout << "AFTER migration" << std::endl
-//				<< "(Rank " << comm_rank << ") ";
-//			for (std::size_t i = 0; i < slice_ranks.size(); ++i)
-//				std::cout << slice_ranks(i) << " ";
-//			std::cout << std::endl
-//				<< "(" << slice_ranks.size() << " ranks after migrate)"
-//				<< std::endl
-//				<< "(Rank " << comm_rank << ") ";
-//			for (std::size_t i = 0; i < slice_ids.size(); ++i)
-//				std::cout << slice_ids(i) << " ";
-//			std::cout << std::endl
-//				<< "(" << slice_ids.size() << " IDs after migrate)"
-//				<< std::endl;
-//		}
-	
 
 
+        printf("done \n");
 	}
 }
 
-void parse_config_file(std::string config_file) {
+void parse_config_file(std::string config_file)
+{
 	std::ifstream file(config_file);
 
-	if (!file.is_open()) {
+	if (!file.is_open())
+	{
 		std::cerr << "Error: Could not open file!" << std::endl;
 	}
-	else {
+	else
+	{
 		std::stringstream buffer;
 		buffer << file.rdbuf();
 		std::string input = buffer.str();
 		nlohmann::json j = nlohmann::json::parse(input);
 		//     Accessing the data
-		for (const auto& param : j["parameters"]) {
+		for (const auto &param : j["parameters"])
+		{
 
-			std::string name = param["name"].get < std::string >();
+			std::string name = param["name"].get<std::string>();
 
-			int mean = param["mean"].get < int >();
+			int mean = param["mean"].get<int>();
 
-			int stddev = param["stdev"].get < int >();
+			int stddev = param["stdev"].get<int>();
 
-			if (name == "nowned") {
+			if (name == "nowned")
+			{
 				nowned = mean;
 				nowned_stdv = stddev;
 			}
-			else if (name == "nremote") {
+			else if (name == "nremote")
+			{
 				nremote = mean;
 				nremote_stdv = stddev;
 			}
-			else if (name == "blocksize") {
+			else if (name == "blocksize")
+			{
 				blocksz = mean;
 				blocksz_stdv = stddev;
 			}
-			else if (name == "comm_partners") {
+			else if (name == "comm_partners")
+			{
 				nneighbors = mean;
 				nneighbors_stdv = stddev;
 			}
-			else if (name == "stride") {
+			else if (name == "stride")
+			{
 				stride = mean;
 				stride_stdv = stddev;
 			}
-			else {
-				//todo
+			else
+			{
+				// todo
 			}
-
 		}
 	}
-
 }
 
-bool setValue() {
+bool setValue()
+{
 	return true;
 }
 
-void exitError(const std::string& error_message) {
+void exitError(const std::string &error_message)
+{
 	std::cerr << error_message << std::flush; // Use std::cerr for error messages
 
 	std::exit(-1); // Exit the program with error code
 }
 
-void setAndCheckValue(int& value, TCLAP::ValueArg < int >& arg,
-	const char* errorMessage, int minValue = 0, int maxValue = INT_MAX) {
+void setAndCheckValue(int &value, TCLAP::ValueArg<int> &arg,
+					  const char *errorMessage, int minValue = 0, int maxValue = INT_MAX)
+{
 	int tempValue = arg.getValue();
 
-	if (tempValue != -1) {
+	if (tempValue != -1)
+	{
 		value = tempValue;
 	}
 
 	// General value check
-	if (value < minValue || value > maxValue) {
+	if (value < minValue || value > maxValue)
+	{
 		exitError(errorMessage);
 	}
 }
 
-void parseArgs(int argc, char** argv) {
+void parseArgs(int argc, char **argv)
+{
 
-	try {
+	try
+	{
 		TCLAP::CmdLine cmd("\nNOTE: Setting parameters for the benchmark such as (neighbors, owned, remote, blocksize, and stride)"
-			"sets parameters to those values for the reference benchmark."
-			"Those parameters are then randomized for the irregular samples"
-			"where the user-set parameters become averages for the random generation."
-			"Use the `--disable-irregularity` flag to only run the reference benchmark.", ' ', "1.0");
+						   "sets parameters to those values for the reference benchmark."
+						   "Those parameters are then randomized for the irregular samples"
+						   "where the user-set parameters become averages for the random generation."
+						   "Use the `--disable-irregularity` flag to only run the reference benchmark.",
+						   ' ', "1.0");
 
-		TCLAP::ValueArg < std::string > filepathArg("f", "filepath", "Path to the BENCHMARK_CONFIG file", false, "NOFILE", "string");
-		TCLAP::ValueArg < int > typeSizeArg("t", "typesize", "Size of the variable being sent (in bytes)", false, 8, "int");
-		TCLAP::ValueArg < int > samplesArg("I", "samples", "Number of random samples to generate", false, 25, "int");
-		TCLAP::ValueArg < int > iterationsArg("i", "iterations", "Number of updates each sample performs", false, 100, "int");
-		TCLAP::ValueArg < int > neighborsArg("n", "neighbors", "Average number of neighbors each process communicates with", false, -1, "int");
-		TCLAP::ValueArg < int > neighborsStdvArg("N", "neighbors_stdv", "Standard deviation of the number of neighbors each process communicates with", false, -1, "int");
-		TCLAP::ValueArg < int > ownedAvgArg("o", "owned_avg", "Average byte count for data owned per node", false, -1, "int");
-		TCLAP::ValueArg < int > ownedStdvArg("O", "owned_stdv", "Standard deviation byte count for data owned per node", false, -1, "int");
-		TCLAP::ValueArg < int > remoteAvgArg("r", "remote_avg", "Average amount of data each process receives", false, -1, "int");
-		TCLAP::ValueArg < int > remoteStdvArg("R", "remote_stdv", "Standard deviation of the amount of data each process receives", false, -1, "int");
-		TCLAP::ValueArg < int > blockSizeAvgArg("b", "blocksize_avg", "Average size of transmitted blocks", false, -1, "int");
-		TCLAP::ValueArg < int > blockSizeStdvArg("B", "blocksize_stdv", "Standard deviation of transmitted block sizes", false, -1, "int");
-		TCLAP::ValueArg < int > strideArg("s", "stride", "Average size of stride", false, -1, "int");
-		TCLAP::ValueArg < int > strideStdvArg("T", "stride_stdv", "Standard deviation of stride", false, -1, "int");
-		TCLAP::ValueArg < int > seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
-		TCLAP::ValueArg < std::string > distributionArg("d", "distribution", "Choose from: gaussian (default), empirical", false, "gaussian", "string");
-		TCLAP::ValueArg < std::string > unitsArg("u", "units", "Choose from: a,b,k,m,g (auto, bytes, kilobytes, etc.)", false, "auto", "string");
-
+		TCLAP::ValueArg<std::string> filepathArg("f", "filepath", "Path to the BENCHMARK_CONFIG file", false, "NOFILE", "string");
+		TCLAP::ValueArg<int> typeSizeArg("t", "typesize", "Size of the variable being sent (in bytes)", false, 8, "int");
+		TCLAP::ValueArg<int> samplesArg("I", "samples", "Number of random samples to generate", false, 25, "int");
+		TCLAP::ValueArg<int> iterationsArg("i", "iterations", "Number of updates each sample performs", false, 100, "int");
+		TCLAP::ValueArg<int> neighborsArg("n", "neighbors", "Average number of neighbors each process communicates with", false, -1, "int");
+		TCLAP::ValueArg<int> neighborsStdvArg("N", "neighbors_stdv", "Standard deviation of the number of neighbors each process communicates with", false, -1, "int");
+		TCLAP::ValueArg<int> ownedAvgArg("o", "owned_avg", "Average byte count for data owned per node", false, -1, "int");
+		TCLAP::ValueArg<int> ownedStdvArg("O", "owned_stdv", "Standard deviation byte count for data owned per node", false, -1, "int");
+		TCLAP::ValueArg<int> remoteAvgArg("r", "remote_avg", "Average amount of data each process receives", false, -1, "int");
+		TCLAP::ValueArg<int> remoteStdvArg("R", "remote_stdv", "Standard deviation of the amount of data each process receives", false, -1, "int");
+		TCLAP::ValueArg<int> blockSizeAvgArg("b", "blocksize_avg", "Average size of transmitted blocks", false, -1, "int");
+		TCLAP::ValueArg<int> blockSizeStdvArg("B", "blocksize_stdv", "Standard deviation of transmitted block sizes", false, -1, "int");
+		TCLAP::ValueArg<int> strideArg("s", "stride", "Average size of stride", false, -1, "int");
+		TCLAP::ValueArg<int> strideStdvArg("T", "stride_stdv", "Standard deviation of stride", false, -1, "int");
+		TCLAP::ValueArg<int> seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
+        TCLAP::ValueArg<int> neighbordiscoverArg("d", "neighbor algo", "0 Default built-in discovery in cabana", false, 0, "int");
+		TCLAP::ValueArg<std::string> distributionArg("d", "distribution", "Choose from: gaussian (default), empirical", false, "gaussian", "string");
+		TCLAP::ValueArg<std::string> unitsArg("u", "units", "Choose from: a,b,k,m,g (auto, bytes, kilobytes, etc.)", false, "auto", "string");
+	    TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", false);
 		TCLAP::SwitchArg reportParamsArg("", "report-params", "Enables parameter reporting for use with analysis scripts", false);
 		TCLAP::SwitchArg disableirregularityArg("", "disable-irregularity", "Use the `--disable-irregularity` flag to only run the reference benchmark.", false);
 		cmd.add(filepathArg);
@@ -447,16 +394,22 @@ void parseArgs(int argc, char** argv) {
 		cmd.add(distributionArg);
 		cmd.add(unitsArg);
 		cmd.add(reportParamsArg);
+		cmd.add(neighbordiscoverArg);
 		cmd.add(disableirregularityArg);
-		cmd.parse(argc, argv);
+        cmd.add(useedArg);
+
+        cmd.parse(argc, argv);
 
 		filepath = filepathArg.getValue();
-		bool config_file_used = false; //todo
+		bool config_file_used = false; // todo
 
-		if (filepath != "NOFILE") {
+		if (filepath != "NOFILE")
+		{
 
-			try {
-				if (filepath.empty()) {
+			try
+			{
+				if (filepath.empty())
+				{
 					std::cerr << "Filepath is empty!" << std::endl;
 					return;
 				}
@@ -464,18 +417,22 @@ void parseArgs(int argc, char** argv) {
 				std::filesystem::path p(filepath);
 
 				// Check if path exists and is a file
-				if (std::filesystem::exists(p)) {
+				if (std::filesystem::exists(p))
+				{
 					parse_config_file(filepath);
 				}
-				else {
+				else
+				{
 					exitError("The file does not exist.");
 				}
 			}
-			catch (const std::exception& e) {
+			catch (const std::exception &e)
+			{
 				std::cerr << "Error: " << e.what() << std::endl;
 			}
-
 		}
+
+        unique_seed =  useedArg.getValue();
 
 		setAndCheckValue(typesize, typeSizeArg, "ERROR: Invalid typesize\n", 1, 8);
 
@@ -517,112 +474,83 @@ void parseArgs(int argc, char** argv) {
 
 		std::string unit = unitsArg.getValue();
 
-		std::unordered_map < std::string, std::pair < char, int >> unit_map = {
-			{
-				"auto",
-				{
-					A,
-					1
-				}
-			},
-			{
-				"a",
-				{
-					A,
-					1
-				}
-			},
-			{
-				"bytes",
-				{
-					A,
-					1
-				}
-			},
-			{
-				"b",
-				{
-					A,
-					1
-				}
-			},
-			{
-				"kilobytes",
-				{
-					K,
-					1024
-				}
-			},
-			{
-				"k",
-				{
-					K,
-					1024
-				}
-			},
-			{
-				"megabytes",
-				{
-					M,
-					1024 * 1024
-				}
-			},
-			{
-				"m",
-				{
-					M,
-					1024 * 1024
-				}
-			},
-			{
-				"gigabytes",
-				{
-					G,
-					1024 * 1024 * 1024
-				}
-			},
-			{
-				"g",
-				{
-					G,
-					1024 * 1024 * 1024
-				}
-			}
-		};
+		std::unordered_map<std::string, std::pair<char, int>> unit_map = {
+			{"auto",
+			 {A,
+			  1}},
+			{"a",
+			 {A,
+			  1}},
+			{"bytes",
+			 {A,
+			  1}},
+			{"b",
+			 {A,
+			  1}},
+			{"kilobytes",
+			 {K,
+			  1024}},
+			{"k",
+			 {K,
+			  1024}},
+			{"megabytes",
+			 {M,
+			  1024 * 1024}},
+			{"m",
+			 {M,
+			  1024 * 1024}},
+			{"gigabytes",
+			 {G,
+			  1024 * 1024 * 1024}},
+			{"g",
+			 {G,
+			  1024 * 1024 * 1024}}};
 
 		auto it = unit_map.find(unit);
-		if (it != unit_map.end()) {
+		if (it != unit_map.end())
+		{
 			char unit_symbol = it->second.first;
 			int unit_div = it->second.second;
 
 			std::cout << "Unit Symbol: " << unit_symbol << std::endl;
 			std::cout << "Unit Division: " << unit_div << std::endl;
 		}
-		else {
+		else
+		{
 			exitError("ERROR: Invalid formatting choice [b, k, m, g]");
 		}
 
 		std::string distribution = distributionArg.getValue();
 
 		if (distribution == "gaussian" ||
-			distribution == "g") {
+			distribution == "g")
+		{
 			distribution_type = GAUSSIAN;
-
 		}
 		else if (distribution == "empirical" ||
-			distribution == "e") {
+				 distribution == "e")
+		{
 			distribution_type = EMPIRICAL;
 		}
-		else {
+		else
+		{
 			exitError("ERROR: Invalid distribution choice [empirical,gaussian]\n");
 		}
 
 		int seedholder = seedArg.getValue();
-		if (seed != -1 && seedholder == -1) {
+		if (seed != -1 && seedholder == -1)
+		{
 			seed = time(NULL);
 		}
 
-		srand(seed);
+
+		if(unique_seed){
+			int comm_rank = -1;
+			MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
+            srand(seed+comm_rank);
+		}else{
+                  srand(seed);
+		}
 
 		irregularity = disableirregularityArg.getValue();
 
@@ -632,15 +560,16 @@ void parseArgs(int argc, char** argv) {
 		//        irregularity_blocksz
 		//        irregularity_remote
 		//        report_params
-
 	}
-	catch (TCLAP::ArgException& e) {
+	catch (TCLAP::ArgException &e)
+	{
 		std::cerr << "Error: " << e.error() << " for argument " << e.argId() << std::endl;
 		exit(-1);
 	}
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
 
 	MPI_Init(&argc, &argv);
 	{
