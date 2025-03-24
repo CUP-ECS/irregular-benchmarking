@@ -159,49 +159,40 @@ void migrationExample()
 		MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
 		int comm_size = -1;
 		MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-		using DataTypes = Cabana::MemberTypes<int, int>;
-		const int VectorLength = 8;
-		using MemorySpace = Kokkos::HostSpace;
 
-		int num_tuple = nowned;
-		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
 
-		auto slice_ranks = Cabana::slice<0>(aosoa);
-		auto slice_ids = Cabana::slice<1>(aosoa);
-		for (int i = 0; i < num_tuple; ++i)
-		{
-			slice_ranks(i) = comm_rank;
-			slice_ids(i) = i + (num_tuple * comm_rank);
-		}
 
-		Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
-		int remainder = nneighbors % 2;
-		int offset = 0;
-		int *preneighbors = new int[nneighbors + 1];
-		int *recvbuf = new int[(nneighbors + 1) * comm_size];
-		for (int i = -nneighbors / 2; i <= (nneighbors / 2) + remainder; i++)
-		{
-			int partner = (comm_size + i + comm_rank) % comm_size;
-			preneighbors[offset] = partner;
-			offset++;
-		}
-		MPI_Allgather(preneighbors, (nneighbors + 1), MPI_INT, recvbuf, (nneighbors + 1), MPI_INT, MPI_COMM_WORLD);
-		std::vector<int> neighbors;
-		for (int j = 0; j < comm_size; ++j)
-		{
-			for (int i = 0; i < nneighbors + 1; ++i)
-			{
+		if(neighbor_discovery_algo == 0){
+               	using DataTypes = Cabana::MemberTypes<int, int>;
+        	const int VectorLength = 8;
+        	using MemorySpace = Kokkos::HostSpace;
 
-				if (j == comm_rank)
-				{
-					neighbors.push_back(recvbuf[j * (nneighbors + 1) + i]);
-				}
-				else if (recvbuf[j * (nneighbors + 1) + i] == comm_rank)
-				{
-					neighbors.push_back(j);
-				}
-			}
-		}
+        	int num_tuple = nowned;
+        	Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
+
+        	auto slice_ranks = Cabana::slice<0>(aosoa);
+        	auto slice_ids = Cabana::slice<1>(aosoa);
+        	for (int i = 0; i < num_tuple; ++i)
+        	{
+        		slice_ranks(i) = comm_rank;
+        		slice_ids(i) = i + (num_tuple * comm_rank);
+        	}
+
+        	Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
+        	int remainder = nneighbors % 2;
+        	int offset = 0;
+        	int *preneighbors = new int[nneighbors + 1];
+        	int *recvbuf = new int[(nneighbors + 1) * comm_size];
+        	for (int i = -nneighbors / 2; i <= (nneighbors / 2) + remainder; i++)
+        	{
+        		int partner = (comm_size + i + comm_rank) % comm_size;
+        		preneighbors[offset] = partner;
+        		offset++;
+        	}
+        	std::vector<int> neighbors;
+
+
+
 
 		int curneighbor = 0;
 		int inum = 0;
@@ -231,15 +222,14 @@ void migrationExample()
 			}
 		}
 
-		std::sort(neighbors.begin(), neighbors.end());
 
-		auto unique_end = std::unique(neighbors.begin(), neighbors.end());
 
-		neighbors.resize(std::distance(neighbors.begin(), unique_end));
 
-		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks, neighbors);
-		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
 
+		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
+
+           Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
+		"destination", distributor.totalNumImport() );
 		Cabana::migrate(distributor, aosoa, destination);
 
 		auto slice_ranks_dst = Cabana::slice<0>(destination);
@@ -251,9 +241,108 @@ void migrationExample()
 		Cabana::migrate(distributor, aosoa);
 		slice_ranks = Cabana::slice<0>(aosoa);
 		slice_ids = Cabana::slice<1>(aosoa);
+        }else
+        if(neighbor_discovery_algo == 1){
+        	using DataTypes = Cabana::MemberTypes<int, int>;
+        	const int VectorLength = 8;
+        	using MemorySpace = Kokkos::HostSpace;
+
+        	int num_tuple = nowned;
+        	Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
+
+        	auto slice_ranks = Cabana::slice<0>(aosoa);
+        	auto slice_ids = Cabana::slice<1>(aosoa);
+        	for (int i = 0; i < num_tuple; ++i)
+        	{
+        		slice_ranks(i) = comm_rank;
+        		slice_ids(i) = i + (num_tuple * comm_rank);
+        	}
+
+        	Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
+        	int remainder = nneighbors % 2;
+        	int offset = 0;
+        	int *preneighbors = new int[nneighbors + 1];
+        	int *recvbuf = new int[(nneighbors + 1) * comm_size];
+        	for (int i = -nneighbors / 2; i <= (nneighbors / 2) + remainder; i++)
+        	{
+        		int partner = (comm_size + i + comm_rank) % comm_size;
+        		preneighbors[offset] = partner;
+        		offset++;
+        	}
+        	std::vector<int> neighbors;
+
+          MPI_Allgather(preneighbors, (nneighbors + 1), MPI_INT, recvbuf, (nneighbors + 1), MPI_INT, MPI_COMM_WORLD);
+        	for (int j = 0; j < comm_size; ++j)
+        	{
+        		for (int i = 0; i < nneighbors + 1; ++i)
+        		{
+
+        			if (j == comm_rank)
+        			{
+        				neighbors.push_back(recvbuf[j * (nneighbors + 1) + i]);
+        			}
+        			else if (recvbuf[j * (nneighbors + 1) + i] == comm_rank)
+        			{
+        				neighbors.push_back(j);
+        			}
+        		}
+        	}
 
 
-        printf("done \n");
+
+
+		int curneighbor = 0;
+		int inum = 0;
+		for (int i = 0; i < num_tuple; ++i)
+		{
+			export_ranks(i) = -1;
+		}
+
+		for (int j = 0; j < num_tuple / (stride + blocksz); j++)
+		{
+
+			for (int i = 0; i < (stride + blocksz); i++)
+			{
+				if (i < stride)
+				{
+					export_ranks(inum++) = preneighbors[curneighbor];
+				}
+				else
+				{
+					inum++;
+				}
+
+				if (inum % (num_tuple / (nneighbors + 1)) == 0)
+				{
+					curneighbor++;
+				}
+			}
+		}
+
+
+		std::sort(neighbors.begin(), neighbors.end());
+
+		auto unique_end = std::unique(neighbors.begin(), neighbors.end());
+
+		neighbors.resize(std::distance(neighbors.begin(), unique_end));
+
+		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks, neighbors);
+
+           Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
+		"destination", distributor.totalNumImport() );
+		Cabana::migrate(distributor, aosoa, destination);
+
+		auto slice_ranks_dst = Cabana::slice<0>(destination);
+
+		auto slice_ids_dst = Cabana::slice<1>(destination);
+
+		Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
+		Cabana::migrate(distributor, slice_ids, slice_ids_dst);
+		Cabana::migrate(distributor, aosoa);
+		slice_ranks = Cabana::slice<0>(aosoa);
+		slice_ids = Cabana::slice<1>(aosoa);
+        }
+
 	}
 }
 
@@ -370,7 +459,7 @@ void parseArgs(int argc, char **argv)
 		TCLAP::ValueArg<int> strideArg("s", "stride", "Average size of stride", false, -1, "int");
 		TCLAP::ValueArg<int> strideStdvArg("T", "stride_stdv", "Standard deviation of stride", false, -1, "int");
 		TCLAP::ValueArg<int> seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
-        TCLAP::ValueArg<int> neighbordiscoverArg("d", "neighbor algo", "0 Default built-in discovery in cabana", false, 0, "int");
+        TCLAP::ValueArg<int> neighbordiscoverArg("n", "neighbor algo", "0 Default built-in discovery in cabana", false, 0, "int");
 		TCLAP::ValueArg<std::string> distributionArg("d", "distribution", "Choose from: gaussian (default), empirical", false, "gaussian", "string");
 		TCLAP::ValueArg<std::string> unitsArg("u", "units", "Choose from: a,b,k,m,g (auto, bytes, kilobytes, etc.)", false, "auto", "string");
 	    TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", false);
@@ -397,7 +486,6 @@ void parseArgs(int argc, char **argv)
 		cmd.add(neighbordiscoverArg);
 		cmd.add(disableirregularityArg);
         cmd.add(useedArg);
-
         cmd.parse(argc, argv);
 
 		filepath = filepathArg.getValue();
@@ -431,8 +519,8 @@ void parseArgs(int argc, char **argv)
 				std::cerr << "Error: " << e.what() << std::endl;
 			}
 		}
-
-        unique_seed =  useedArg.getValue();
+		unique_seed =  useedArg.getValue();
+        neighbor_discovery_algo =  neighbordiscoverArg.getValue();
 
 		setAndCheckValue(typesize, typeSizeArg, "ERROR: Invalid typesize\n", 1, 8);
 
