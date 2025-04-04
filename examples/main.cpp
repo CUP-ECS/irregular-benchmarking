@@ -36,12 +36,27 @@
 
 #include <stdbool.h>
 
+#include <caliper/cali.h>
+
+
+
+
 using json = nlohmann::json;
+
+struct Bin {
+    double bin_min;
+    double bin_max;
+    double bin_prop;
+    double bin_mean;
+    double bin_stdev;
+};
+
 
 enum distribution
 {
 	GAUSSIAN,
-	EMPIRICAL
+	EMPIRICAL,
+	STATIC_VALUE
 };
 
 typedef enum distribution distribution_t;
@@ -61,34 +76,53 @@ static int typesize = 8;
 static int numpes = 0;
 static int nsamples = 25;
 static int niterations = 100;
+
+
 static int nneighbors = -1;
 static int nneighbors_stdv = -1;
+static std::vector<Bin> nneighbors_bins;
+
+
 static int nowned = -1;
 static int nowned_stdv = -1;
+static std::vector<Bin> nowned_bins;
+
 static int nremote = -1;
 static int nremote_stdv = -1;
+static std::vector<Bin> nremote_bins;
+
 static int blocksz = -1;
 static int blocksz_stdv = -1;
+static std::vector<Bin> blocksz_bins;
+
 static int stride = -1;
 static int stride_stdv = -1;
+static std::vector<Bin> stride_bins;
+
+
+
 static int unit_div = 1;
 static prefix unit_symbol = A;
 static std::string filepath = "";
 static distribution_t distribution_type = GAUSSIAN;
-static bool irregularity = 1;
-static bool irregularity_owned = 1;
-static bool irregularity_neighbors = 1;
-static bool irregularity_stride = 1;
-static bool irregularity_blocksz = 1;
-static bool irregularity_remote = 1;
+
+// static bool irregularity = 1;
+// static bool irregularity_owned = 1;
+// static bool irregularity_neighbors = 1;
+// static bool irregularity_stride = 1;
+// static bool irregularity_blocksz = 1;
+// static bool irregularity_remote = 1;
 static bool report_params = 0;
 static int seed = -1;
 static bool unique_seed = 0;
-static int neighbor_discovery_algo  = 0;
+static int neighbor_discovery_algo = 0;
+
+
 
 
 int gauss_dist(double mean, double stdev)
 {
+	// Generates a Gaussian (normal) distribution with only positive values.
 	// generates two random numbers that form the seeds
 	// of the transform
 	double u1, u2, r, theta;
@@ -114,20 +148,44 @@ int gauss_dist(double mean, double stdev)
 	return generated;
 }
 
-int empirical_dist(const char *param)
-{
-	//    // set the parameter string to look for.
-	char param_key[25] = "PARAM: ";
-	strcat(param_key, param);
 
-	return -1;
+// Function to calculate an empirical distribution value based on Bin objects.
+int empirical_dist(std::vector<Bin> bins)
+{
+	double rand = static_cast<double>(std::rand()) / RAND_MAX;
+	double prob = 0.0
+
+    // Iterate over all bins except the last one.
+	for (size_t i = 0; i < bins.size()-1; ++i) {
+		Bin& bin = bins[i];  
+		 // Accumulate the probability
+		prob+=bin.bin_prop;
+
+
+		// Generate  Gaussian distribution for the bin.
+        // Repeat until the value is within  minimum and maximum limits.
+		if (prob<= rand)
+		{
+			double value_at_bin=-1;
+			do {
+				value_at_bin= gauss_dist(bin.bin_mean ,bin.bin_stdev);
+			} while (value_at_bin< bin.bin_min || value_at_bin > bin.bin_max);
+			return value_at_bin;
+	
+		}
+	}
+	// If the loop has finished, it means the random number corresponds to the last bin.
+	Bin& lastBin = bins.back();
+	double value_at_bin=-1;
+	do {
+		value_at_bin= gauss_dist(lastBin.bin_mean ,lastBin.bin_stdev);
+	} while (value_at_bin< lastBin.bin_min || value_at_bin > lastBin.bin_max);
+	// Return the generated value from the last bin.	
+	return value_at_last_bin
 }
 
-void createExportList()
-{
-}
 
-void migrationExample()
+void run_benchmark()
 {
 
 	int nowned_orig = nowned;
@@ -136,18 +194,54 @@ void migrationExample()
 	int blocksz_orig = blocksz;
 	int stride_orig = stride;
 
+	
+	int comm_rank = -1;
+	MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
+	int comm_size = -1;
+	MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+
+
+    CALI_MARK_BEGIN("Bench mark loop");
+
 	for (int sample_iter = 0; sample_iter < nsamples + 1; sample_iter++)
 	{
 
-		nowned = gauss_dist(nowned_orig, nowned_stdv);
-		nremote = gauss_dist(nremote_orig, nremote_stdv);
-		blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
-		nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv);
-		;
-		stride = gauss_dist(stride_orig, stride_stdv);
+
+
+		CALI_MARK_BEGIN("set distribution");
+
+		if (distribution== GAUSSIAN)
+		{
+			nowned = gauss_dist(nowned_orig, nowned_stdv);
+			nremote = gauss_dist(nremote_orig, nremote_stdv);
+			blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
+			nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv);
+			stride = gauss_dist(stride_orig, stride_stdv);
+			
+		}else if (distribution== EMPIRICAL)
+
+
+			nowned     = empirical_dist(nowned_bins);
+			nremote    = empirical_dist(nremote_bins);
+			blocksz    = empirical_dist(blocksz_bins);
+			nneighbors = empirical_dist(nneighbors_bins);
+			stride     = empirical_dist(stride_bins);
+
+		}else if (distribution== STATIC_VALUE)
+			nowned     = nowned_orig;
+			nremote    = nneighbors_orig;
+			blocksz    = nremote_orig;
+			nneighbors = blocksz_orig;
+			stride     = stride_orig;
+
+		}
+		CALI_MARK_END("set distribution");
+
+	
 
 		if (0)
 		{
+			
 			printf("PARAM: nowned - %d\n", nowned);
 			printf("PARAM: nremote - %d\n", nremote);
 			printf("PARAM: blocksize - %d\n", blocksz);
@@ -155,197 +249,106 @@ void migrationExample()
 			printf("PARAM: nneighbors - %d\n", nneighbors);
 		}
 
-		int comm_rank = -1;
-		MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
-		int comm_size = -1;
-		MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-
-
-
-		if(neighbor_discovery_algo == 0){
-               	using DataTypes = Cabana::MemberTypes<int, int>;
-        	const int VectorLength = 8;
-        	using MemorySpace = Kokkos::HostSpace;
-
-        	int num_tuple = nowned;
-        	Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
-
-        	auto slice_ranks = Cabana::slice<0>(aosoa);
-        	auto slice_ids = Cabana::slice<1>(aosoa);
-        	for (int i = 0; i < num_tuple; ++i)
-        	{
-        		slice_ranks(i) = comm_rank;
-        		slice_ids(i) = i + (num_tuple * comm_rank);
-        	}
-
-        	Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
-        	int remainder = nneighbors % 2;
-        	int offset = 0;
-        	int *preneighbors = new int[nneighbors + 1];
-        	int *recvbuf = new int[(nneighbors + 1) * comm_size];
-        	for (int i = -nneighbors / 2; i <= (nneighbors / 2) + remainder; i++)
-        	{
-        		int partner = (comm_size + i + comm_rank) % comm_size;
-        		preneighbors[offset] = partner;
-        		offset++;
-        	}
-        	std::vector<int> neighbors;
-
-
-
-
-		int curneighbor = 0;
-		int inum = 0;
-		for (int i = 0; i < num_tuple; ++i)
-		{
-			export_ranks(i) = -1;
-		}
-
-		for (int j = 0; j < num_tuple / (stride + blocksz); j++)
+		if (neighbor_discovery_algo == 0)
 		{
 
-			for (int i = 0; i < (stride + blocksz); i++)
+			using DataTypes = Cabana::MemberTypes<int, int>;
+			const int VectorLength = 8;
+			using MemorySpace = Kokkos::HostSpace;
+
+			int num_tuple = nowned;
+			Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
+			CALI_MARK_BEGIN("fill arrays");
+			auto slice_ranks = Cabana::slice<0>(aosoa);
+			auto slice_ids = Cabana::slice<1>(aosoa);
+			for (int i = 0; i < num_tuple; ++i)
 			{
-				if (i < stride)
-				{
-					export_ranks(inum++) = preneighbors[curneighbor];
-				}
-				else
-				{
-					inum++;
-				}
+				slice_ranks(i) = comm_rank;
+				slice_ids(i) = i + (num_tuple * comm_rank);
+			}
+			CALI_MARK_END("fill arrays");
 
-				if (inum % (num_tuple / (nneighbors + 1)) == 0)
+
+			CALI_MARK_BEGIN("fill export ranks");
+			Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
+			int remainder = nneighbors % 2;
+			int offset = 0;
+			int *preneighbors = new int[nneighbors + 1];
+			int *recvbuf = new int[(nneighbors + 1) * comm_size];
+			for (int i = -nneighbors / 2; i <= (nneighbors / 2) + remainder; i++)
+			{
+				int partner = (comm_size + i + comm_rank) % comm_size;
+				preneighbors[offset] = partner;
+				offset++;
+			}
+			std::vector<int> neighbors;
+
+			int curneighbor = 0;
+			int inum = 0;
+			for (int i = 0; i < num_tuple; ++i)
+			{
+				export_ranks(i) = -1;
+			}
+
+			for (int j = 0; j < num_tuple / (stride + blocksz); j++)
+			{
+
+				for (int i = 0; i < (stride + blocksz); i++)
 				{
-					curneighbor++;
+					if (i < stride)
+					{
+						export_ranks(inum++) = preneighbors[curneighbor];
+					}
+					else
+					{
+						inum++;
+					}
+
+					if (inum % (num_tuple / (nneighbors + 1)) == 0)
+					{
+						curneighbor++;
+					}
 				}
 			}
-		}
+			CALI_MARK_END("fill export ranks");
 
+			Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
-
-
-
-		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
-
-           Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
-		"destination", distributor.totalNumImport() );
-		Cabana::migrate(distributor, aosoa, destination);
-
-		auto slice_ranks_dst = Cabana::slice<0>(destination);
-
-		auto slice_ids_dst = Cabana::slice<1>(destination);
-
-		Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
-		Cabana::migrate(distributor, slice_ids, slice_ids_dst);
-		Cabana::migrate(distributor, aosoa);
-		slice_ranks = Cabana::slice<0>(aosoa);
-		slice_ids = Cabana::slice<1>(aosoa);
-        }else
-        if(neighbor_discovery_algo == 1){
-        	using DataTypes = Cabana::MemberTypes<int, int>;
-        	const int VectorLength = 8;
-        	using MemorySpace = Kokkos::HostSpace;
-
-        	int num_tuple = nowned;
-        	Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
-
-        	auto slice_ranks = Cabana::slice<0>(aosoa);
-        	auto slice_ids = Cabana::slice<1>(aosoa);
-        	for (int i = 0; i < num_tuple; ++i)
-        	{
-        		slice_ranks(i) = comm_rank;
-        		slice_ids(i) = i + (num_tuple * comm_rank);
-        	}
-
-        	Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
-        	int remainder = nneighbors % 2;
-        	int offset = 0;
-        	int *preneighbors = new int[nneighbors + 1];
-        	int *recvbuf = new int[(nneighbors + 1) * comm_size];
-        	for (int i = -nneighbors / 2; i <= (nneighbors / 2) + remainder; i++)
-        	{
-        		int partner = (comm_size + i + comm_rank) % comm_size;
-        		preneighbors[offset] = partner;
-        		offset++;
-        	}
-        	std::vector<int> neighbors;
-
-          MPI_Allgather(preneighbors, (nneighbors + 1), MPI_INT, recvbuf, (nneighbors + 1), MPI_INT, MPI_COMM_WORLD);
-        	for (int j = 0; j < comm_size; ++j)
-        	{
-        		for (int i = 0; i < nneighbors + 1; ++i)
-        		{
-
-        			if (j == comm_rank)
-        			{
-        				neighbors.push_back(recvbuf[j * (nneighbors + 1) + i]);
-        			}
-        			else if (recvbuf[j * (nneighbors + 1) + i] == comm_rank)
-        			{
-        				neighbors.push_back(j);
-        			}
-        		}
-        	}
-
-
-
-
-		int curneighbor = 0;
-		int inum = 0;
-		for (int i = 0; i < num_tuple; ++i)
-		{
-			export_ranks(i) = -1;
-		}
-
-		for (int j = 0; j < num_tuple / (stride + blocksz); j++)
-		{
-
-			for (int i = 0; i < (stride + blocksz); i++)
+			CALI_MARK_BEGIN("iterations");
+			for (int i = 0; i < niterations ; i++)
 			{
-				if (i < stride)
-				{
-					export_ranks(inum++) = preneighbors[curneighbor];
-				}
-				else
-				{
-					inum++;
-				}
 
-				if (inum % (num_tuple / (nneighbors + 1)) == 0)
-				{
-					curneighbor++;
-				}
+					Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
+					"destination", distributor.totalNumImport());
+				Cabana::migrate(distributor, aosoa, destination);
+
+				auto slice_ranks_dst = Cabana::slice<0>(destination);
+
+				auto slice_ids_dst = Cabana::slice<1>(destination);
+
+				Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
+				Cabana::migrate(distributor, slice_ids, slice_ids_dst);
+				Cabana::migrate(distributor, aosoa);
+				slice_ranks = Cabana::slice<0>(aosoa);
+				slice_ids = Cabana::slice<1>(aosoa);
+
 			}
+			CALI_MARK_END("iterations");
+
+	
+
+
 		}
-
-
-		std::sort(neighbors.begin(), neighbors.end());
-
-		auto unique_end = std::unique(neighbors.begin(), neighbors.end());
-
-		neighbors.resize(std::distance(neighbors.begin(), unique_end));
-
-		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks, neighbors);
-
-           Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
-		"destination", distributor.totalNumImport() );
-		Cabana::migrate(distributor, aosoa, destination);
-
-		auto slice_ranks_dst = Cabana::slice<0>(destination);
-
-		auto slice_ids_dst = Cabana::slice<1>(destination);
-
-		Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
-		Cabana::migrate(distributor, slice_ids, slice_ids_dst);
-		Cabana::migrate(distributor, aosoa);
-		slice_ranks = Cabana::slice<0>(aosoa);
-		slice_ids = Cabana::slice<1>(aosoa);
-        }
-
 	}
+
+	CALI_MARK_END("Bench mark loop");
+
 }
 
+
+
+
+// Function to parse a JSON configuration file
 void parse_config_file(std::string config_file)
 {
 	std::ifstream file(config_file);
@@ -368,46 +371,65 @@ void parse_config_file(std::string config_file)
 
 			int mean = param["mean"].get<int>();
 
-			int stddev = param["stdev"].get<int>();
+			int stddev = param["stdev"].get<int>();  
+			std::vector<Bin> bins;
+			for (const auto& bin_json : param_json["bins"]) {
+					Bin bin;
+					bin.bin_min = bin_json["bin_min"];
+					bin.bin_max = bin_json["bin_max"];
+					bin.bin_prop = bin_json["bin_prop"];
+					bin.bin_mean = bin_json["bin_mean"];
+					bin.bin_stdev = bin_json["bin_stdev"];
+					param.bins.push_back(bin);
+			}
 
+		
 			if (name == "nowned")
 			{
 				nowned = mean;
 				nowned_stdv = stddev;
+				nowned_bins = bins;
+
+
 			}
 			else if (name == "nremote")
 			{
 				nremote = mean;
 				nremote_stdv = stddev;
+				nremote_bins = bins;
+
+
+				
 			}
 			else if (name == "blocksize")
 			{
 				blocksz = mean;
 				blocksz_stdv = stddev;
+				blocksz_bins = bins;
 			}
 			else if (name == "comm_partners")
 			{
 				nneighbors = mean;
 				nneighbors_stdv = stddev;
+				nneighbors_bins = bins;
 			}
 			else if (name == "stride")
 			{
 				stride = mean;
 				stride_stdv = stddev;
+				stride_bins = bins;
 			}
 			else
 			{
-				// todo
+			    // Handle any other parameters (this can be extended in the future)
+                // For now, it just has a placeholder comment for future functionality
 			}
 		}
 	}
 }
 
-bool setValue()
-{
-	return true;
-}
 
+// Function to print an error message and exit the program with an error code
 void exitError(const std::string &error_message)
 {
 	std::cerr << error_message << std::flush; // Use std::cerr for error messages
@@ -415,22 +437,30 @@ void exitError(const std::string &error_message)
 	std::exit(-1); // Exit the program with error code
 }
 
+
+
+
+// Function to set a value based on a command-line argument and check its validity.
 void setAndCheckValue(int &value, TCLAP::ValueArg<int> &arg,
 					  const char *errorMessage, int minValue = 0, int maxValue = INT_MAX)
 {
 	int tempValue = arg.getValue();
-
+ 	// If the value from the argument is not -1 (indicating it was set by the user),
+    // update the 'value' reference with the new value.
 	if (tempValue != -1)
 	{
 		value = tempValue;
 	}
 
-	// General value check
+	// Check if the value is within the allowed range (between minValue and maxValue).
 	if (value < minValue || value > maxValue)
 	{
 		exitError(errorMessage);
 	}
 }
+
+
+
 
 void parseArgs(int argc, char **argv)
 {
@@ -459,10 +489,10 @@ void parseArgs(int argc, char **argv)
 		TCLAP::ValueArg<int> strideArg("s", "stride", "Average size of stride", false, -1, "int");
 		TCLAP::ValueArg<int> strideStdvArg("T", "stride_stdv", "Standard deviation of stride", false, -1, "int");
 		TCLAP::ValueArg<int> seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
-        TCLAP::ValueArg<int> neighbordiscoverArg("n", "neighbor algo", "0 Default built-in discovery in cabana", false, 0, "int");
+		TCLAP::ValueArg<int> neighbordiscoverArg("n", "neighbor algo", "0 Default built-in discovery in cabana", false, 0, "int");
 		TCLAP::ValueArg<std::string> distributionArg("d", "distribution", "Choose from: gaussian (default), empirical", false, "gaussian", "string");
 		TCLAP::ValueArg<std::string> unitsArg("u", "units", "Choose from: a,b,k,m,g (auto, bytes, kilobytes, etc.)", false, "auto", "string");
-	    TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", false);
+		TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", false);
 		TCLAP::SwitchArg reportParamsArg("", "report-params", "Enables parameter reporting for use with analysis scripts", false);
 		TCLAP::SwitchArg disableirregularityArg("", "disable-irregularity", "Use the `--disable-irregularity` flag to only run the reference benchmark.", false);
 		cmd.add(filepathArg);
@@ -485,8 +515,8 @@ void parseArgs(int argc, char **argv)
 		cmd.add(reportParamsArg);
 		cmd.add(neighbordiscoverArg);
 		cmd.add(disableirregularityArg);
-        cmd.add(useedArg);
-        cmd.parse(argc, argv);
+		cmd.add(useedArg);
+		cmd.parse(argc, argv);
 
 		filepath = filepathArg.getValue();
 		bool config_file_used = false; // todo
@@ -519,8 +549,8 @@ void parseArgs(int argc, char **argv)
 				std::cerr << "Error: " << e.what() << std::endl;
 			}
 		}
-		unique_seed =  useedArg.getValue();
-        neighbor_discovery_algo =  neighbordiscoverArg.getValue();
+		unique_seed = useedArg.getValue();
+		neighbor_discovery_algo = neighbordiscoverArg.getValue();
 
 		setAndCheckValue(typesize, typeSizeArg, "ERROR: Invalid typesize\n", 1, 8);
 
@@ -620,6 +650,15 @@ void parseArgs(int argc, char **argv)
 		{
 			distribution_type = EMPIRICAL;
 		}
+		else if (distribution == "empirical" ||
+			distribution == "e")
+   {
+	   distribution_type = 	else if (distribution == "static" ||
+				 distribution == "s")
+		{
+			distribution_type = STATIC_VALUE
+		};
+   }
 		else
 		{
 			exitError("ERROR: Invalid distribution choice [empirical,gaussian]\n");
@@ -631,13 +670,15 @@ void parseArgs(int argc, char **argv)
 			seed = time(NULL);
 		}
 
-
-		if(unique_seed){
+		if (unique_seed)
+		{
 			int comm_rank = -1;
 			MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
-            srand(seed+comm_rank);
-		}else{
-                  srand(seed);
+			srand(seed + comm_rank);
+		}
+		else
+		{
+			srand(seed);
 		}
 
 		irregularity = disableirregularityArg.getValue();
@@ -664,11 +705,10 @@ int main(int argc, char **argv)
 
 		parseArgs(argc, argv);
 		Kokkos::ScopeGuard scope_guard(argc, argv);
-
-		migrationExample();
+		run_benchmark();
 	}
 	MPI_Finalize();
 
-	printf("Hi\n");
+	
 	return 0;
 }
