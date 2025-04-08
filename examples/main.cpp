@@ -272,7 +272,7 @@ Kokkos::Profiling::pushRegion("className::functionName");
 				slice_ranks(i) = comm_rank;
 				slice_ids(i) = i + (num_tuple * comm_rank);
 			}
-			CALI_MARK_END("fill_arrays");
+			Kokkos::Profiling::popRegion();
 
 
 			Kokkos::Profiling::pushRegion("fill_export_ranks");
@@ -316,7 +316,7 @@ Kokkos::Profiling::pushRegion("className::functionName");
 					}
 				}
 			}
-			CALI_MARK_END("fill_export_ranks");
+			Kokkos::Profiling::popRegion();
 
 			Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 			//runs this distributor niterations amount of times  ^^^^
@@ -336,7 +336,7 @@ Kokkos::Profiling::pushRegion("className::functionName");
 				slice_ids = Cabana::slice<1>(aosoa);
 
 			}
-			CALI_MARK_END("iterations");
+			Kokkos::Profiling::popRegion();
 
 	
 
@@ -344,7 +344,7 @@ Kokkos::Profiling::pushRegion("className::functionName");
 
 	}
 
-	CALI_MARK_END("Bench mark loop");
+	Kokkos::Profiling::popRegion();
 
 }
 
