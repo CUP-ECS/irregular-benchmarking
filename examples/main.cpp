@@ -212,7 +212,7 @@ void run_benchmark()
 
 		CALI_MARK_BEGIN("set distribution");
         // Modify parameters based on the chosen distribution type
-		if (distribution == GAUSSIAN)
+		if (distribution_type == GAUSSIAN)
 		{
 			nowned = gauss_dist(nowned_orig, nowned_stdv);
 			nremote = gauss_dist(nremote_orig, nremote_stdv);
@@ -220,7 +220,7 @@ void run_benchmark()
 			nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv);
 			stride = gauss_dist(stride_orig, stride_stdv);
 			
-		}else if (distribution == EMPIRICAL){
+		}else if (distribution_type == EMPIRICAL){
 
 
 			nowned     = empirical_dist(nowned_bins);
@@ -229,7 +229,7 @@ void run_benchmark()
 			nneighbors = empirical_dist(nneighbors_bins);
 			stride     = empirical_dist(stride_bins);
 
-		}else if (distribution== STATIC_VALUE)
+		}else if (distribution_type== STATIC_VALUE)
 			nowned     = nowned_orig;
 			nremote    = nneighbors_orig;
 			blocksz    = nremote_orig;
