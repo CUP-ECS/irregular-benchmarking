@@ -77,6 +77,8 @@ include_directories(${NLOHMANN_JSON_INCLUDE_DIR})
 
 
 
+find_package(MPI REQUIRED)
+target_link_libraries(main PRIVATE MPI::MPI_CXX)
 
 
 target_link_libraries( main PRIVATE myproject )
