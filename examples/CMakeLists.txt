@@ -3,6 +3,39 @@ blt_add_executable( NAME main
         OUTPUT_DIR ${EXAMPLE_OUTPUT_DIRECTORY})
 
 
+
+
+
+
+
+#CALIPER_start
+find_path(CALIPER_INCLUDE_DIR caliper/cali.h
+        PATHS
+        ${SPACK_PREFIX}/include
+)
+
+find_library(CALIPER_LIBRARY caliper
+        PATHS
+        ${SPACK_PREFIX}/lib
+)
+
+# Check if we found Caliper
+if (CALIPER_INCLUDE_DIR AND CALIPER_LIBRARY)
+    message(STATUS "Found Caliper: ${CALIPER_LIBRARY}")
+    set(CALIPER_FOUND TRUE)
+else ()
+    message(FATAL_ERROR "Caliper not found!")
+endif ()
+
+set(CALIPER_INCLUDE_DIRS ${CALIPER_INCLUDE_DIR})
+set(CALIPER_LIBRARIES ${CALIPER_LIBRARY})
+
+include_directories(${CALIPER_INCLUDE_DIR})
+#CALIPER_end
+
+
+
+
 #TCLAP_start
 find_path(TCLAP_INCLUDE_DIR tclap/CmdLine.h
         PATHS

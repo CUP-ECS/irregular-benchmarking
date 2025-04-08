@@ -169,7 +169,7 @@ int empirical_dist(std::vector<Bin> bins)
 			double value_at_bin=-1;
 			do {
 				value_at_bin= gauss_dist(bin.bin_mean ,bin.bin_stdev);
-			} while (value_at_bin< bin.bin_min || value_at_bin > bin.bin_max);
+			} while (value_at_bin=< bin.bin_min || value_at_bin >=bin.bin_max);
 			return value_at_bin;
 	
 		}
@@ -179,7 +179,7 @@ int empirical_dist(std::vector<Bin> bins)
 	double value_at_bin=-1;
 	do {
 		value_at_bin= gauss_dist(lastBin.bin_mean ,lastBin.bin_stdev);
-	} while (value_at_bin< lastBin.bin_min || value_at_bin > lastBin.bin_max);
+	} while (value_at_bin=< lastBin.bin_min || value_at_bin >= lastBin.bin_max);
 	// Return the generated value from the last bin.	
 	return value_at_last_bin
 }
