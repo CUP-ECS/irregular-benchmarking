@@ -231,7 +231,7 @@ Kokkos::Profiling::pushRegion("className::functionName");
 			nneighbors = empirical_dist(nneighbors_bins);
 			stride     = empirical_dist(stride_bins);
 
-		}else if (distribution_type== STATIC_VALUE)
+		}else if (distribution_type== STATIC_VALUE){
 			nowned     = nowned_orig;
 			nremote    = nneighbors_orig;
 			blocksz    = nremote_orig;
@@ -280,7 +280,6 @@ Kokkos::Profiling::pushRegion("className::functionName");
 			int remainder = nneighbors % 2;
 			int offset = 0;
 			int *preneighbors = new int[nneighbors + 1];
-			int *recvbuf = new int[(nneighbors + 1) * comm_size];
 			for (int i = -nneighbors / 2; i <= (nneighbors / 2) + remainder; i++)
 			{
 				int partner = (comm_size + i + comm_rank) % comm_size;
