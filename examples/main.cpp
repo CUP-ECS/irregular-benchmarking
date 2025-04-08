@@ -203,7 +203,7 @@ void run_benchmark()
 	MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
 	int comm_size = -1;
 	MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-Kokkos::Profiling::pushRegion("className::functionName");
+	Kokkos::Profiling::pushRegion("className::functionName");
 
 
     Kokkos::Profiling::pushRegion("Bench_mark_loop");
@@ -221,7 +221,7 @@ Kokkos::Profiling::pushRegion("className::functionName");
 			blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
 			nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv);
 			stride = gauss_dist(stride_orig, stride_stdv);
-			
+
 		}else if (distribution_type == EMPIRICAL){
 
 
@@ -242,11 +242,11 @@ Kokkos::Profiling::pushRegion("className::functionName");
 
 		Kokkos::Profiling::popRegion();
 
-	
+
         // Debug output if needed (currently disabled)
 		if (0)
 		{
-			
+
 			printf("PARAM: nowned - %d\n", nowned);
 			printf("PARAM: nremote - %d\n", nremote);
 			printf("PARAM: blocksize - %d\n", blocksz);
@@ -255,8 +255,7 @@ Kokkos::Profiling::pushRegion("className::functionName");
 		}
         // Run the benchmark using a specific neighbor discovery algorithm
         // 0 is bulit into Cabana
-		if (neighbor_discovery_algo == 0)
-		{
+
 
 			using DataTypes = Cabana::MemberTypes<int, int>;
 			const int VectorLength = 8;
@@ -300,19 +299,7 @@ Kokkos::Profiling::pushRegion("className::functionName");
 
 				for (int i = 0; i < (stride + blocksz); i++)
 				{
-					if (i < stride)
-					{
-						export_ranks(inum++) = preneighbors[curneighbor];
-					}
-					else
-					{
-						inum++;
-					}
 
-					if (inum % (num_tuple / (nneighbors + 1)) == 0)
-					{
-						curneighbor++;
-					}
 				}
 			}
 			Kokkos::Profiling::popRegion();
@@ -320,8 +307,8 @@ Kokkos::Profiling::pushRegion("className::functionName");
 			Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 			//runs this distributor niterations amount of times  ^^^^
 			Kokkos::Profiling::pushRegion("iterations");
-			for (int i = 0; i < niterations ; i++)
-			{
+		for (int i = 0; i < niterations ; i++)
+		{
 
 					Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
 					"destination", distributor.totalNumImport());
@@ -334,10 +321,10 @@ Kokkos::Profiling::pushRegion("className::functionName");
 				slice_ranks = Cabana::slice<0>(aosoa);
 				slice_ids = Cabana::slice<1>(aosoa);
 
-			}
+		}
 			Kokkos::Profiling::popRegion();
 
-	
+
 
 
 
