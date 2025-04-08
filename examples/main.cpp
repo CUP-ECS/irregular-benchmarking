@@ -121,7 +121,7 @@ static int neighbor_discovery_algo = 0;
 
 int gauss_dist(double mean, double stdev)
 {
-  	CALI_CXX_MARK_FUNCTION;
+  	
 	// Generates a Gaussian (normal) distribution with only positive values.
 	// generates two random numbers that form the seeds
 	// of the transform
@@ -152,7 +152,7 @@ int gauss_dist(double mean, double stdev)
 // Function to calculate an empirical distribution value based on Bin objects.
 int empirical_dist(std::vector<Bin> bins)
 {
-  	CALI_CXX_MARK_FUNCTION;
+  	
 	double rand = static_cast<double>(std::rand()) / RAND_MAX;
 	double prob = 0.0;
 
@@ -191,7 +191,7 @@ int empirical_dist(std::vector<Bin> bins)
 // https://github.com/ECP-copa/Cabana/wiki/2-Programming-Guide
 void run_benchmark()
 {
-	CALI_CXX_MARK_FUNCTION;
+	
 	int nowned_orig = nowned;
 	int nneighbors_orig = nneighbors;
 	int nremote_orig = nremote;
@@ -240,7 +240,7 @@ Kokkos::Profiling::pushRegion("className::functionName");
 
 		}
 
-		Kokkos::Profiling::popRegion("set_distribution");
+		Kokkos::Profiling::popRegion();
 
 	
         // Debug output if needed (currently disabled)
