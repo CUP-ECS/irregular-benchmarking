@@ -36,7 +36,6 @@
 
 #include <stdbool.h>
 
-#include <caliper/cali.h>
 
 
 
@@ -204,15 +203,16 @@ void run_benchmark()
 	MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
 	int comm_size = -1;
 	MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+Kokkos::Profiling::pushRegion("className::functionName");
 
 
-    CALI_MARK_BEGIN("Bench_mark_loop");
+    Kokkos::Profiling::pushRegion("Bench_mark_loop");
 	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
 	{
 
 
 
-		CALI_MARK_BEGIN("set_distribution");
+		Kokkos::Profiling::pushRegion("set_distribution");
         // Modify parameters based on the chosen distribution type
 		if (distribution_type == GAUSSIAN)
 		{
@@ -240,7 +240,7 @@ void run_benchmark()
 
 		}
 
-		CALI_MARK_END("set_distribution");
+		Kokkos::Profiling::popRegion("set_distribution");
 
 	
         // Debug output if needed (currently disabled)
@@ -264,7 +264,7 @@ void run_benchmark()
 
 			int num_tuple = nowned;
 			Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
-			CALI_MARK_BEGIN("fill_arrays");
+			Kokkos::Profiling::pushRegion("fill_arrays");
 			auto slice_ranks = Cabana::slice<0>(aosoa);
 			auto slice_ids = Cabana::slice<1>(aosoa);
 			for (int i = 0; i < num_tuple; ++i)
@@ -275,7 +275,7 @@ void run_benchmark()
 			CALI_MARK_END("fill_arrays");
 
 
-			CALI_MARK_BEGIN("fill_export_ranks");
+			Kokkos::Profiling::pushRegion("fill_export_ranks");
 			Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
 			int remainder = nneighbors % 2;
 			int offset = 0;
@@ -320,7 +320,7 @@ void run_benchmark()
 
 			Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 			//runs this distributor niterations amount of times  ^^^^
-			CALI_MARK_BEGIN("iterations");
+			Kokkos::Profiling::pushRegion("iterations");
 			for (int i = 0; i < niterations ; i++)
 			{
 
