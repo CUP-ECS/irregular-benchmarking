@@ -153,10 +153,10 @@ int gauss_dist(double mean, double stdev)
 int empirical_dist(std::vector<Bin> bins)
 {
 	double rand = static_cast<double>(std::rand()) / RAND_MAX;
-	double prob = 0.0
+	double prob = 0.0;
 
     // Iterate over all bins except the last one.
-	for (size_t i = 0; i < bins.size()-1; ++i) {
+	for (int i = 0; i < bins.size()-1; ++i) {
 		Bin& bin = bins[i];  
 		 // Accumulate the probability
 		prob+=bin.bin_prop;
@@ -179,7 +179,7 @@ int empirical_dist(std::vector<Bin> bins)
 	double value_at_bin=-1;
 	do {
 		value_at_bin= gauss_dist(lastBin.bin_mean ,lastBin.bin_stdev);
-	} while (value_at_bin=< lastBin.bin_min || value_at_bin >= lastBin.bin_max);
+	} while (value_at_bin<= lastBin.bin_min || value_at_bin >= lastBin.bin_max);
 	// Return the generated value from the last bin.	
 	return value_at_last_bin
 }
