@@ -373,7 +373,7 @@ void parse_config_file(std::string config_file)
 			int mean = param["mean"].get<int>();
 
 			int stddev = param["stdev"].get<int>();  
-			std::vector<Bin> bins;
+//			std::vector<Bin> bins;
 			for (const auto& bin_json : param_json["bins"]) {
 					Bin bin;
 					bin.bin_min = bin_json["bin_min"];
@@ -655,7 +655,7 @@ void parseArgs(int argc, char **argv)
 		 else if (distribution == "static" ||
 				 distribution == "s")
 		{
-			distribution_type = STATIC_VALUE
+			distribution_type = STATIC_VALUE;
 		}else
 		{
 			exitError("ERROR: Invalid distribution choice [empirical,gaussian]\n");
@@ -678,7 +678,7 @@ void parseArgs(int argc, char **argv)
 			srand(seed);
 		}
 
-		irregularity = disableirregularityArg.getValue();
+//		irregularity = disableirregularityArg.getValue();
 
 
 	}
