@@ -184,7 +184,10 @@ int empirical_dist(std::vector<Bin> bins)
 	return value_at_last_bin
 }
 
-
+// Function to run a performance benchmark
+// meat and potatos of the code
+// copyed and changed form this code
+// https://github.com/ECP-copa/Cabana/wiki/2-Programming-Guide
 void run_benchmark()
 {
 
@@ -202,15 +205,14 @@ void run_benchmark()
 
 
     CALI_MARK_BEGIN("Bench mark loop");
-
-	for (int sample_iter = 0; sample_iter < nsamples + 1; sample_iter++)
+	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
 	{
 
 
 
 		CALI_MARK_BEGIN("set distribution");
-
-		if (distribution== GAUSSIAN)
+        // Modify parameters based on the chosen distribution type
+		if (distribution == GAUSSIAN)
 		{
 			nowned = gauss_dist(nowned_orig, nowned_stdv);
 			nremote = gauss_dist(nremote_orig, nremote_stdv);
@@ -218,7 +220,7 @@ void run_benchmark()
 			nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv);
 			stride = gauss_dist(stride_orig, stride_stdv);
 			
-		}else if (distribution== EMPIRICAL)
+		}else if (distribution == EMPIRICAL)
 
 
 			nowned     = empirical_dist(nowned_bins);
@@ -235,10 +237,11 @@ void run_benchmark()
 			stride     = stride_orig;
 
 		}
+
 		CALI_MARK_END("set distribution");
 
 	
-
+        // Debug output if needed (currently disabled)
 		if (0)
 		{
 			
@@ -248,7 +251,8 @@ void run_benchmark()
 			printf("PARAM: stride - %d\n", stride);
 			printf("PARAM: nneighbors - %d\n", nneighbors);
 		}
-
+        // Run the benchmark using a specific neighbor discovery algorithm
+        // 0 is bulit into Cabana
 		if (neighbor_discovery_algo == 0)
 		{
 
@@ -313,7 +317,7 @@ void run_benchmark()
 			CALI_MARK_END("fill export ranks");
 
 			Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
-
+			//runs this distributor niterations amount of times  ^^^^
 			CALI_MARK_BEGIN("iterations");
 			for (int i = 0; i < niterations ; i++)
 			{
@@ -321,11 +325,8 @@ void run_benchmark()
 					Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
 					"destination", distributor.totalNumImport());
 				Cabana::migrate(distributor, aosoa, destination);
-
 				auto slice_ranks_dst = Cabana::slice<0>(destination);
-
 				auto slice_ids_dst = Cabana::slice<1>(destination);
-
 				Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
 				Cabana::migrate(distributor, slice_ids, slice_ids_dst);
 				Cabana::migrate(distributor, aosoa);
@@ -421,8 +422,9 @@ void parse_config_file(std::string config_file)
 			}
 			else
 			{
-			    // Handle any other parameters (this can be extended in the future)
+			    // Handle any other parameters
                 // For now, it just has a placeholder comment for future functionality
+                // mostlike an error
 			}
 		}
 	}
@@ -683,12 +685,7 @@ void parseArgs(int argc, char **argv)
 
 		irregularity = disableirregularityArg.getValue();
 
-		//        irregularity_owned
-		//        irregularity_neighbors
-		//        irregularity_stride
-		//        irregularity_blocksz
-		//        irregularity_remote
-		//        report_params
+
 	}
 	catch (TCLAP::ArgException &e)
 	{
@@ -702,11 +699,16 @@ int main(int argc, char **argv)
 
 	MPI_Init(&argc, &argv);
 	{
-
+        // Parse command-line arguments to set global static variables
 		parseArgs(argc, argv);
+
+
 		Kokkos::ScopeGuard scope_guard(argc, argv);
+
+        // Run the benchmark
 		run_benchmark();
 	}
+
 	MPI_Finalize();
 
 	
