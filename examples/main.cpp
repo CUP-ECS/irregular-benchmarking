@@ -652,16 +652,11 @@ void parseArgs(int argc, char **argv)
 		{
 			distribution_type = EMPIRICAL;
 		}
-		else if (distribution == "empirical" ||
-			distribution == "e")
-   {
-	   distribution_type = 	else if (distribution == "static" ||
+		 else if (distribution == "static" ||
 				 distribution == "s")
 		{
 			distribution_type = STATIC_VALUE
-		};
-   }
-		else
+		}else
 		{
 			exitError("ERROR: Invalid distribution choice [empirical,gaussian]\n");
 		}
