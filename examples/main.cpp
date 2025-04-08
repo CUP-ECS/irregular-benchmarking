@@ -374,7 +374,7 @@ void parse_config_file(std::string config_file)
 
 			int stddev = param["stdev"].get<int>();  
 //			std::vector<Bin> bins;
-			for (const auto& bin_json : param_json["bins"]) {
+			for (const auto& bin_json : param["bins"]) {
 					Bin bin;
 					bin.bin_min = bin_json["bin_min"];
 					bin.bin_max = bin_json["bin_max"];
