@@ -81,6 +81,6 @@ include_directories(${NLOHMANN_JSON_INCLUDE_DIR})
 
 target_link_libraries( main PRIVATE myproject )
 
-target_link_libraries( main PRIVATE $CALIPER_LIBRARY )
+target_link_libraries( main PRIVATE ${CALIPER_LIBRARY} )
 
 install(TARGETS main DESTINATION ${CMAKE_INSTALL_BINDIR})
