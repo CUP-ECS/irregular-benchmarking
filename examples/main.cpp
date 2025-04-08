@@ -203,7 +203,7 @@ void run_benchmark()
 	MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
 	int comm_size = -1;
 	MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-	Kokkos::Profiling::pushRegion("className::functionName");
+Kokkos::Profiling::pushRegion("className::functionName");
 
 
     Kokkos::Profiling::pushRegion("Bench_mark_loop");
@@ -299,7 +299,19 @@ void run_benchmark()
 
 				for (int i = 0; i < (stride + blocksz); i++)
 				{
+					if (i < stride)
+					{
+						export_ranks(inum++) = preneighbors[curneighbor];
+					}
+					else
+					{
+						inum++;
+					}
 
+					if (inum % (num_tuple / (nneighbors + 1)) == 0)
+					{
+						curneighbor++;
+					}
 				}
 			}
 			Kokkos::Profiling::popRegion();
@@ -307,8 +319,8 @@ void run_benchmark()
 			Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 			//runs this distributor niterations amount of times  ^^^^
 			Kokkos::Profiling::pushRegion("iterations");
-		for (int i = 0; i < niterations ; i++)
-		{
+			for (int i = 0; i < niterations ; i++)
+			{
 
 					Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
 					"destination", distributor.totalNumImport());
@@ -321,7 +333,7 @@ void run_benchmark()
 				slice_ranks = Cabana::slice<0>(aosoa);
 				slice_ids = Cabana::slice<1>(aosoa);
 
-		}
+			}
 			Kokkos::Profiling::popRegion();
 
 
