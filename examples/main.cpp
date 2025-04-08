@@ -373,7 +373,7 @@ void parse_config_file(std::string config_file)
 			int mean = param["mean"].get<int>();
 
 			int stddev = param["stdev"].get<int>();  
-//			std::vector<Bin> bins;
+			std::vector<Bin> bins;
 			for (const auto& bin_json : param["bins"]) {
 					Bin bin;
 					bin.bin_min = bin_json["bin_min"];
@@ -381,7 +381,7 @@ void parse_config_file(std::string config_file)
 					bin.bin_prop = bin_json["bin_prop"];
 					bin.bin_mean = bin_json["bin_mean"];
 					bin.bin_stdev = bin_json["bin_stdev"];
-					param.bins.push_back(bin);
+					bins.push_back(bin);
 			}
 
 		
