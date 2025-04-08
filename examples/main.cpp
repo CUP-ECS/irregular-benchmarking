@@ -181,7 +181,7 @@ int empirical_dist(std::vector<Bin> bins)
 		value_at_bin= gauss_dist(lastBin.bin_mean ,lastBin.bin_stdev);
 	} while (value_at_bin<= lastBin.bin_min || value_at_bin >= lastBin.bin_max);
 	// Return the generated value from the last bin.	
-	return value_at_last_bin;
+	return value_at_bin;
 }
 
 // Function to run a performance benchmark
@@ -220,7 +220,7 @@ void run_benchmark()
 			nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv);
 			stride = gauss_dist(stride_orig, stride_stdv);
 			
-		}else if (distribution == EMPIRICAL)
+		}else if (distribution == EMPIRICAL){
 
 
 			nowned     = empirical_dist(nowned_bins);
