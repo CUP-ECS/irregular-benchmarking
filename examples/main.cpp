@@ -339,7 +339,7 @@ void run_benchmark()
 	
 
 
-		}
+
 	}
 
 	CALI_MARK_END("Bench mark loop");
