@@ -491,7 +491,6 @@ void parseArgs(int argc, char **argv)
 		TCLAP::ValueArg<int> strideArg("s", "stride", "Average size of stride", false, -1, "int");
 		TCLAP::ValueArg<int> strideStdvArg("T", "stride_stdv", "Standard deviation of stride", false, -1, "int");
 		TCLAP::ValueArg<int> seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
-		TCLAP::ValueArg<int> neighbordiscoverArg("n", "neighbor algo", "0 Default built-in discovery in cabana", false, 0, "int");
 		TCLAP::ValueArg<std::string> distributionArg("d", "distribution", "Choose from: gaussian (default), empirical", false, "gaussian", "string");
 		TCLAP::ValueArg<std::string> unitsArg("u", "units", "Choose from: a,b,k,m,g (auto, bytes, kilobytes, etc.)", false, "auto", "string");
 		TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", false);
@@ -515,7 +514,6 @@ void parseArgs(int argc, char **argv)
 		cmd.add(distributionArg);
 		cmd.add(unitsArg);
 		cmd.add(reportParamsArg);
-		cmd.add(neighbordiscoverArg);
 		cmd.add(disableirregularityArg);
 		cmd.add(useedArg);
 		cmd.parse(argc, argv);
@@ -552,7 +550,6 @@ void parseArgs(int argc, char **argv)
 			}
 		}
 		unique_seed = useedArg.getValue();
-		neighbor_discovery_algo = neighbordiscoverArg.getValue();
 
 		setAndCheckValue(typesize, typeSizeArg, "ERROR: Invalid typesize\n", 1, 8);
 
