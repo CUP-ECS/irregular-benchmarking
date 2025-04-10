@@ -316,14 +316,16 @@ Kokkos::Profiling::pushRegion("className::functionName");
 			}
 			Kokkos::Profiling::popRegion();
 
-			Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
+
 			//runs this distributor niterations amount of times  ^^^^
 			Kokkos::Profiling::pushRegion("iterations");
 			for (int i = 0; i < niterations ; i++)
 			{
-
-					Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
+				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
+				Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
 					"destination", distributor.totalNumImport());
+
+
 				Cabana::migrate(distributor, aosoa, destination);
 				auto slice_ranks_dst = Cabana::slice<0>(destination);
 				auto slice_ids_dst = Cabana::slice<1>(destination);
@@ -629,8 +631,8 @@ void parseArgs(int argc, char **argv)
 			char unit_symbol = it->second.first;
 			int unit_div = it->second.second;
 
-			std::cout << "Unit Symbol: " << unit_symbol << std::endl;
-			std::cout << "Unit Division: " << unit_div << std::endl;
+//			std::cout << "Unit Symbol: " << unit_symbol << std::endl;
+//			std::cout << "Unit Division: " << unit_div << std::endl;
 		}
 		else
 		{
