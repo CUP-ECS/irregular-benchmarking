@@ -213,6 +213,11 @@ Kokkos::Profiling::pushRegion("className::functionName");
 
 
 		Kokkos::Profiling::pushRegion("set_distribution");
+        if (comm_rank == 0){
+            std::cout << "line : " << __LINE__ << std::endl;
+        }
+
+
         // Modify parameters based on the chosen distribution type
 		if (distribution_type == GAUSSIAN)
 		{
@@ -241,6 +246,9 @@ Kokkos::Profiling::pushRegion("className::functionName");
 		}
 
 		Kokkos::Profiling::popRegion();
+  if (comm_rank == 0){
+            std::cout << "line : " << __LINE__ << std::endl;
+        }
 
 
         // Debug output if needed (currently disabled)
@@ -255,6 +263,9 @@ Kokkos::Profiling::pushRegion("className::functionName");
 		}
         // Run the benchmark using a specific neighbor discovery algorithm
         // 0 is bulit into Cabana
+  if (comm_rank == 0){
+            std::cout << "line : " << __LINE__ << std::endl;
+        }
 
 
 			using DataTypes = Cabana::MemberTypes<int, int>;
@@ -273,6 +284,9 @@ Kokkos::Profiling::pushRegion("className::functionName");
 			}
 			Kokkos::Profiling::popRegion();
 
+  if (comm_rank == 0){
+            std::cout << "line : " << __LINE__ << std::endl;
+        }
 
 			Kokkos::Profiling::pushRegion("fill_export_ranks");
 			Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
@@ -286,6 +300,9 @@ Kokkos::Profiling::pushRegion("className::functionName");
 				offset++;
 			}
 			std::vector<int> neighbors;
+  if (comm_rank == 0){
+            std::cout << "line : " << __LINE__ << std::endl;
+        }
 
 			int curneighbor = 0;
 			int inum = 0;
@@ -293,6 +310,9 @@ Kokkos::Profiling::pushRegion("className::functionName");
 			{
 				export_ranks(i) = -1;
 			}
+  if (comm_rank == 0){
+            std::cout << "line : " << __LINE__ << std::endl;
+        }
 
 			for (int j = 0; j < num_tuple / (stride + blocksz); j++)
 			{
@@ -315,12 +335,20 @@ Kokkos::Profiling::pushRegion("className::functionName");
 				}
 			}
 			Kokkos::Profiling::popRegion();
+  if (comm_rank == 0){
+            std::cout << "line : " << __LINE__ << std::endl;
+        }
 
 
 			//runs this distributor niterations amount of times  ^^^^
 			Kokkos::Profiling::pushRegion("iterations");
 			for (int i = 0; i < niterations ; i++)
 			{
+
+                            if (comm_rank == 0){
+            std::cout << "line : " << __LINE__ << std::endl;
+        }
+
 				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 				Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
 					"destination", distributor.totalNumImport());
