@@ -340,16 +340,16 @@ Kokkos::Profiling::pushRegion("className::functionName");
         }
 
 
-			//runs this distributor niterations amount of times  ^^^^
 			Kokkos::Profiling::pushRegion("iterations");
 			for (int i = 0; i < niterations ; i++)
 			{
 
-                            if (comm_rank == 0){
-            std::cout << "line : " << __LINE__ << std::endl;
-        }
+             if (comm_rank == 0){
+            	std::cout << "line : " << __LINE__ << std::endl;
+        	}
+			Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
+			//runs this distributor niterations amount of times  ^^^^
 
-				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 				Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
 					"destination", distributor.totalNumImport());
 
@@ -357,6 +357,7 @@ Kokkos::Profiling::pushRegion("className::functionName");
 				Cabana::migrate(distributor, aosoa, destination);
 				auto slice_ranks_dst = Cabana::slice<0>(destination);
 				auto slice_ids_dst = Cabana::slice<1>(destination);
+
 				Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
 				Cabana::migrate(distributor, slice_ids, slice_ids_dst);
 				Cabana::migrate(distributor, aosoa);
