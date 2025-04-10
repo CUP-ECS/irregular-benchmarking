@@ -353,16 +353,16 @@ Kokkos::Profiling::pushRegion("className::functionName");
 				Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
 					"destination", distributor.totalNumImport());
 
-
+				Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> test("A", num_tuple);
 				Cabana::migrate(distributor, aosoa, destination);
 				auto slice_ranks_dst = Cabana::slice<0>(destination);
 				auto slice_ids_dst = Cabana::slice<1>(destination);
 
 				Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
 				Cabana::migrate(distributor, slice_ids, slice_ids_dst);
-				Cabana::migrate(distributor, aosoa);
-				slice_ranks = Cabana::slice<0>(aosoa);
-				slice_ids = Cabana::slice<1>(aosoa);
+				Cabana::migrate(distributor, test);
+				slice_ranks = Cabana::slice<0>(test);
+				slice_ids = Cabana::slice<1>(test);
 
 			}
 			Kokkos::Profiling::popRegion();
