@@ -375,7 +375,7 @@ void run_benchmark()
 				auto slice_ids_dst = Cabana::slice<1>(destination);
 
  				for ( std::size_t i = 0; i < slice_ranks_dst.size(); ++i ){
-   					setofN.insert(slice_ranks_dst( i ))
+   					setofN.insert(slice_ranks_dst( i ));
  				}
 
 
