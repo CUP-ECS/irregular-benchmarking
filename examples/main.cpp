@@ -357,8 +357,8 @@ void run_benchmark()
             auto iterations = std::chrono::high_resolution_clock::now();
 			Kokkos::Profiling::pushRegion("iterations");
 
-             int incoming_neigbors = 0;
-
+            int incoming_neigbors = 0;
+			std::set<int> setofN();
 
 			for (int i = 0; i < niterations ; i++)
 			{
@@ -374,12 +374,17 @@ void run_benchmark()
 				auto slice_ranks_dst = Cabana::slice<0>(destination);
 				auto slice_ids_dst = Cabana::slice<1>(destination);
 
-          		std::set<int> setofN(slice_ranks_dst.begin(), slice_ranks_dst.end());
+ 				for ( std::size_t i = 0; i < slice_ranks_dst.size(); ++i ){
+   					setofN.insert(slice_ranks_dst( i ))
+ 				}
 
-				incoming_neigbors = setofN.size();
+
+
+
 
 
 			}
+                    incoming_neigbors = setofN.size();
             auto iterations_end = std::chrono::high_resolution_clock::now();
 			Kokkos::Profiling::popRegion();
     		std::chrono::duration<double> iterations_duration = iterations_end - iterations;
