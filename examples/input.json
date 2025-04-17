@@ -24,9 +24,9 @@
       "name": "comm_partners",
       "bin_count": 1,
       "min": 3,
-      "max": 3,
-      "mean": 3,
-      "stdev": 0,
+      "max": 20,
+      "mean": 10,
+      "stdev": 5,
       "bins": [
         {"bin_min": 3, "bin_max": 3, "bin_prop": 1.0, "bin_mean": 3, "bin_stdev": 0}
       ]
