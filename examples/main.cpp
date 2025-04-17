@@ -388,6 +388,7 @@ void run_benchmark()
     	for (double t : time) {
         	oss << t << " ";
     	}
+
         std::string result = oss.str();
         printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d %s\n", nowned,nremote,blocksz,stride,nneighbors,result.c_str());
 	}
