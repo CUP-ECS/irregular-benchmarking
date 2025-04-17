@@ -385,7 +385,7 @@ void run_benchmark()
         double Bench_mark_loop_microseconds = Bench_mark_loop_duration.count() * 1e6;
         time.push_back(Bench_mark_loop_microseconds);
     	std::ostringstream oss;
-    	for (double t : time_differences) {
+    	for (double t : time) {
         	oss << t << " ";
     	}
         std::string result = oss.str();
