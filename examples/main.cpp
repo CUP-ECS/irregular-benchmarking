@@ -337,7 +337,7 @@ void run_benchmark()
 
 
 
-			auto distributor = std::chrono::high_resolution_clock::now();
+			auto distributor_t = std::chrono::high_resolution_clock::now();
             Kokkos::Profiling::pushRegion("distributor");
 
 			Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
@@ -345,7 +345,7 @@ void run_benchmark()
             Kokkos::Profiling::popRegion();
 			auto distributor_end = std::chrono::high_resolution_clock::now();
 
-            std::chrono::duration<double> distributor_duration = distributor_end - distributor;
+            std::chrono::duration<double> distributor_duration = distributor_end - distributor_t;
  			double distributor_microseconds = distributor_duration.count() * 1e6;
     		time.push_back(distributor_microseconds);
 
