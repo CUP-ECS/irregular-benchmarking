@@ -387,11 +387,11 @@ void run_benchmark()
         time.push_back(Bench_mark_loop_microseconds);
     	std::ostringstream oss;
     	for (double t : time) {
-        	oss << t << " ";
+        	oss << t << ", ";
     	}
 
         std::string result = oss.str();
-        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d %s\n", nowned,nremote,blocksz,stride,nneighbors,result.c_str());
+        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d, %s\n", nowned,nremote,blocksz,stride,nneighbors,result.c_str());
 	}
 
 
