@@ -203,7 +203,7 @@ void run_benchmark()
 	MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
 	int comm_size = -1;
 	MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-	std::vector<double> time;
+
 
 
 
@@ -214,6 +214,7 @@ void run_benchmark()
 
 	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
 	{
+         std::vector<double> time;
 	auto bench_mark_loop = std::chrono::high_resolution_clock::now();
     Kokkos::Profiling::pushRegion("Bench_mark_loop");
 
