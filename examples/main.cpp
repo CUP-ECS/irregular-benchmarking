@@ -396,6 +396,7 @@ void run_benchmark()
     	}
 
 
+
         std::string result = oss.str();
         printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,size  %d,incoming %d, %s\n", nowned,nremote,blocksz,stride,nneighbors, distributor.totalNumImport(),incoming_neigbors,result.c_str());
 
