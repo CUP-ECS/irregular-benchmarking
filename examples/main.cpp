@@ -203,19 +203,23 @@ void run_benchmark()
 	MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
 	int comm_size = -1;
 	MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-Kokkos::Profiling::pushRegion("className::functionName");
+	std::vector<double> time;
 
 
-    Kokkos::Profiling::pushRegion("Bench_mark_loop");
+
+
+
+
+
+
 	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
 	{
+	auto bench_mark_loop = std::chrono::high_resolution_clock::now();
+    Kokkos::Profiling::pushRegion("Bench_mark_loop");
 
-
-
+		auto set_distribution = std::chrono::high_resolution_clock::now();
 		Kokkos::Profiling::pushRegion("set_distribution");
-        if (comm_rank == 0){
-            std::cout << "line : " << __LINE__ << std::endl;
-        }
+      
 
 
         // Modify parameters based on the chosen distribution type
@@ -246,26 +250,14 @@ Kokkos::Profiling::pushRegion("className::functionName");
 		}
 
 		Kokkos::Profiling::popRegion();
-  if (comm_rank == 0){
-            std::cout << "line : " << __LINE__ << std::endl;
-        }
+		auto set_distribution_end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> set_distribution_duration = set_distribution_end - set_distribution;
+ 		double set_distribution_microseconds = set_distribution_duration.count() * 1e6;
+    	time.push_back(set_distribution_microseconds);
 
 
-        // Debug output if needed (currently disabled)
-		if (0)
-		{
 
-			printf("PARAM: nowned - %d\n", nowned);
-			printf("PARAM: nremote - %d\n", nremote);
-			printf("PARAM: blocksize - %d\n", blocksz);
-			printf("PARAM: stride - %d\n", stride);
-			printf("PARAM: nneighbors - %d\n", nneighbors);
-		}
-        // Run the benchmark using a specific neighbor discovery algorithm
-        // 0 is bulit into Cabana
-  if (comm_rank == 0){
-            std::cout << "line : " << __LINE__ << std::endl;
-        }
+
 
 
 			using DataTypes = Cabana::MemberTypes<int, int>;
@@ -273,8 +265,13 @@ Kokkos::Profiling::pushRegion("className::functionName");
 			using MemorySpace = Kokkos::HostSpace;
 
 			int num_tuple = nowned;
-			Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
+
+            auto fill_arrays = std::chrono::high_resolution_clock::now();
 			Kokkos::Profiling::pushRegion("fill_arrays");
+
+
+            Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
+
 			auto slice_ranks = Cabana::slice<0>(aosoa);
 			auto slice_ids = Cabana::slice<1>(aosoa);
 			for (int i = 0; i < num_tuple; ++i)
@@ -283,10 +280,12 @@ Kokkos::Profiling::pushRegion("className::functionName");
 				slice_ids(i) = i + (num_tuple * comm_rank);
 			}
 			Kokkos::Profiling::popRegion();
+ 			auto fill_arrays_end = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<double> fill_arrays_duration = fill_arrays_end - fill_arrays;
+ 			double fill_arrays_microseconds = fill_arrays_duration.count() * 1e6;
+    		time.push_back(fill_arrays_microseconds);
 
-  if (comm_rank == 0){
-            std::cout << "line : " << __LINE__ << std::endl;
-        }
+			auto fill_export_ranks = std::chrono::high_resolution_clock::now();
 
 			Kokkos::Profiling::pushRegion("fill_export_ranks");
 			Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
@@ -300,9 +299,7 @@ Kokkos::Profiling::pushRegion("className::functionName");
 				offset++;
 			}
 			std::vector<int> neighbors;
-  if (comm_rank == 0){
-            std::cout << "line : " << __LINE__ << std::endl;
-        }
+
 
 			int curneighbor = 0;
 			int inum = 0;
@@ -310,9 +307,7 @@ Kokkos::Profiling::pushRegion("className::functionName");
 			{
 				export_ranks(i) = -1;
 			}
-  if (comm_rank == 0){
-            std::cout << "line : " << __LINE__ << std::endl;
-        }
+
 
 			for (int j = 0; j < num_tuple / (stride + blocksz); j++)
 			{
@@ -335,53 +330,74 @@ Kokkos::Profiling::pushRegion("className::functionName");
 				}
 			}
 			Kokkos::Profiling::popRegion();
-  if (comm_rank == 0){
-            std::cout << "line : " << __LINE__ << std::endl;
-        }
+			auto fill_export_ranks_end = std::chrono::high_resolution_clock::now();
+  			std::chrono::duration<double> fill_export_ranks_duration = fill_export_ranks_end - fill_export_ranks;
+ 			double fill_export_ranks_microseconds = fill_export_ranks_duration.count() * 1e6;
+    		time.push_back(fill_export_ranks_microseconds);
+
+
+
+			auto distributor = std::chrono::high_resolution_clock::now();
+            Kokkos::Profiling::pushRegion("distributor");
 
 			Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
+
+            Kokkos::Profiling::popRegion();
+			auto distributor_end = std::chrono::high_resolution_clock::now();
+
+            std::chrono::duration<double> distributor_duration = distributor_end - distributor;
+ 			double distributor_microseconds = distributor_duration.count() * 1e6;
+    		time.push_back(distributor_microseconds);
+
+
+
+            auto iterations = std::chrono::high_resolution_clock::now();
 			Kokkos::Profiling::pushRegion("iterations");
+
 			for (int i = 0; i < niterations ; i++)
 			{
 
-             if (comm_rank == 0){
-            	std::cout << "line : " << __LINE__ << std::endl;
-        	}
+
 
 			//runs this distributor niterations amount of times  ^^^^
-      if (comm_rank == 0){
-            	std::cout << "line : " << __LINE__ << std::endl;
-        	}
+
 				Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
 					"destination", distributor.totalNumImport());
-      if (comm_rank == 0){
-            	std::cout << "line : " << __LINE__ << std::endl;
-        	}
+
 				Cabana::migrate(distributor, aosoa, destination);
 				auto slice_ranks_dst = Cabana::slice<0>(destination);
 				auto slice_ids_dst = Cabana::slice<1>(destination);
-     			if (comm_rank == 0){
-            		std::cout << "line : " << __LINE__ << std::endl;
-        		}
-//				Cabana::migrate(distributor, slice_ranks, slice_ranks_dst);
-//				Cabana::migrate(distributor, slice_ids, slice_ids_dst);
-//
-//                Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> test("A", num_tuple);
-//
-//				Cabana::migrate(distributor, test);
-//				slice_ranks = Cabana::slice<0>(test);
-//				slice_ids = Cabana::slice<1>(test);
+
+                        
+
 
 			}
+            auto iterations_end = std::chrono::high_resolution_clock::now();
 			Kokkos::Profiling::popRegion();
+    		std::chrono::duration<double> iterations_duration = iterations_end - iterations;
+ 			double iterations_microseconds = iterations_duration.count() * 1e6;
+    		time.push_back(iterations_microseconds);
 
 
-
-
-
+        auto Bench_mark_loop_end= std::chrono::high_resolution_clock::now();
+        Kokkos::Profiling::popRegion();
+        std::chrono::duration<double> Bench_mark_loop_duration = Bench_mark_loop_end - bench_mark_loop;
+        double Bench_mark_loop_microseconds = Bench_mark_loop_duration.count() * 1e6;
+        time.push_back(Bench_mark_loop_microseconds);
+    	std::ostringstream oss;
+    	for (double t : time_differences) {
+        	oss << t << " ";
+    	}
+        std::string result = oss.str();
+        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d %s\n", nowned,nremote,blocksz,stride,nneighbors,result.c_str());
 	}
 
-	Kokkos::Profiling::popRegion();
+
+
+
+
+
+
 
 }
 
