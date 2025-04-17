@@ -358,7 +358,7 @@ void run_benchmark()
 			Kokkos::Profiling::pushRegion("iterations");
 
             int incoming_neigbors = 0;
-			std::set<int> setofN();
+			std::set<int> setofN;
 
 			for (int i = 0; i < niterations ; i++)
 			{
