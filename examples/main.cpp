@@ -355,6 +355,9 @@ void run_benchmark()
             auto iterations = std::chrono::high_resolution_clock::now();
 			Kokkos::Profiling::pushRegion("iterations");
 
+             int incoming_neigbors = 0;
+
+
 			for (int i = 0; i < niterations ; i++)
 			{
 
@@ -369,7 +372,9 @@ void run_benchmark()
 				auto slice_ranks_dst = Cabana::slice<0>(destination);
 				auto slice_ids_dst = Cabana::slice<1>(destination);
 
-                        
+          		std::set<int> setofN(slice_ranks_dst.begin(), slice_ranks_dst.end());
+
+				incoming_neigbors = setofN.size();
 
 
 			}
@@ -392,7 +397,8 @@ void run_benchmark()
 
 
         std::string result = oss.str();
-        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d, %s\n", nowned,nremote,blocksz,stride,nneighbors,result.c_str());
+        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,size  %d,incoming %d, %s\n", nowned,nremote,blocksz,stride,nneighbors, distributor.totalNumImport(),incoming_neigbors,result.c_str());
+
 	}
 
 
