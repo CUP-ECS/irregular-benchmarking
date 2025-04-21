@@ -306,11 +306,7 @@ void run_benchmark()
 
 			int curneighbor = 0;
 			int inum = 0;
-			for (int i = 0; i < num_tuple; ++i)
-			{
-				export_ranks(i) = -1;
-			}
-
+			int amount_sent = 0;
 
 			for (int j = 0; j < num_tuple / (stride + blocksz); j++)
 			{
@@ -320,6 +316,7 @@ void run_benchmark()
 					if (i < stride)
 					{
 						export_ranks(inum++) = preneighbors[curneighbor];
+                        amount_sent++;
 					}
 					else
 					{
@@ -332,6 +329,15 @@ void run_benchmark()
 					}
 				}
 			}
+
+
+            for (int i = inum; i < num_tuple; ++i)
+			{
+				export_ranks(i) = -1;
+			}
+
+
+
 			Kokkos::Profiling::popRegion();
 			auto fill_export_ranks_end = std::chrono::high_resolution_clock::now();
   			std::chrono::duration<double> fill_export_ranks_duration = fill_export_ranks_end - fill_export_ranks;
@@ -405,7 +411,7 @@ void run_benchmark()
 
 
         std::string result = oss.str();
-        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,size  %ld, incoming %d, %s\n", nowned,nremote,blocksz,stride,nneighbors, distributor.totalNumImport(),incoming_neigbors,result.c_str());
+        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,size  %ld, incoming %d, out going total %d, %s\n", nowned,nremote,blocksz,stride,nneighbors, distributor.totalNumImport(),amount_sent,incoming_neigbors,result.c_str());
 
 	}
 
