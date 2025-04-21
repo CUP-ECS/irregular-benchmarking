@@ -411,7 +411,7 @@ void run_benchmark()
 
 
         std::string result = oss.str();
-        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,size  %ld, out going total %d, %s\n", nowned,nremote,blocksz,stride,nneighbors, distributor.totalNumImport(),amount_sent,result.c_str());
+        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,size  %ld, out going total %d, %s\n", nowned,nremote,blocksz,stride,nneighbors, distributor.totalNumImport(),distributor.totalNumExport(),result.c_str());
 
 	}
 
