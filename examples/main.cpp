@@ -411,12 +411,13 @@ void run_benchmark()
 
 
         std::string result = oss.str();
-        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,a  %ld,b  %ld,c  %ld,d  %ld\n",
+        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,a  %ld,b  %ld,c  %ld,d  %ld, %s\n",
                nowned,nremote,blocksz,stride,nneighbors,
                distributor.totalNumImport(),
                distributor.totalNumExport(),
                distributor.numNeighbor(),
-			   distributor.exportSize()
+			   distributor.exportSize(),
+               result.c_str()
                );
 
 	}
