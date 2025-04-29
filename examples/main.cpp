@@ -412,11 +412,7 @@ void run_benchmark()
 
 //				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
 				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
-                                if(comm_rank == 0){
-for (int val : neighbors) {
-    std::cout << val << " ";
-}
-                                }
+
 
 	printf("---%d   %ld\n",  distributor.numNeighbor(), neighbors.size());
                     fflush(stdout);
@@ -445,8 +441,7 @@ for (int val : neighbors) {
 			for (int i = 0; i < niterations ; i++)
 			{
 
-		printf("%d in file %s\n", __LINE__, __FILE__);
-			fflush(stdout);
+
 
 			//runs this distributor niterations amount of times  ^^^^
 
@@ -488,12 +483,13 @@ for (int val : neighbors) {
 
 
         std::string result = oss.str();
-        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,a  %ld,b  %ld,c  %d,d  %ld, %s\n",
+        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,a  %ld,b  %ld,c  %d,d  %ld, %ld,%s\n",
                nowned,nremote,blocksz,stride,nneighbors,
                distributor.totalNumImport(),
                distributor.totalNumExport(),
                distributor.numNeighbor(),
 			   distributor.exportSize(),
+                neighbors.size(),
                result.c_str()
                );
 
