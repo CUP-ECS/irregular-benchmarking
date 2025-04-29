@@ -314,7 +314,7 @@ void run_benchmark()
 			}
 			for (int i = -nneighbors / 2; i <= (nneighbors / 2) + remainder; i++)
 			{
-				int partner = (comm_size + i + comm_rank) % comm_rank;
+				int partner = (comm_size + i + comm_rank) % comm_size;
 				preneighbors[offset] = partner;
 				offset++;
 			}
@@ -326,8 +326,6 @@ void run_benchmark()
 
 			for (int j = 0; j < num_tuple / (stride + blocksz); j++)
 			{
-
-
 
 				for (int i = 0; i < (stride + blocksz); i++)
 				{
@@ -413,21 +411,9 @@ void run_benchmark()
 				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
 			if(0 == comm_rank){
-                  std::vector<int> distributor_neighbors;
-				  for (int i = 0; i < distributor.numNeighbor(); ++i){
-      					distributor_neighbors.push_back(distributor.neighborRank(i));
-
-				  }
-                  std::sort(distributor_neighbors.begin(), distributor_neighbors.end());
-				  std::sort(neighbors.begin(), neighbors.end());
-size_t n = std::min(distributor_neighbors.size(), neighbors.size());
-for (size_t i = 0; i < n; ++i) {
-    std::cout << "(" << distributor_neighbors[i] << ", " << neighbors[i] << ") ";
-}
-std::cout << std::endl;
-
-
-
+                      for(int i = 0; i < distributor.numNeighbor(); ++i){
+                          std::cout << distributor.neighborRank(i) << " "; std::cout << std::endl;
+                      }
 
 
 			}
@@ -497,15 +483,15 @@ std::cout << std::endl;
 
 
         std::string result = oss.str();
-        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,a  %ld,b  %ld,c  %d,d  %ld, %ld,%s\n",
-               nowned,nremote,blocksz,stride,nneighbors,
-               distributor.totalNumImport(),
-               distributor.totalNumExport(),
-               distributor.numNeighbor(),
-			   distributor.exportSize(),
-                neighbors.size(),
-               result.c_str()
-               );
+//        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,a  %ld,b  %ld,c  %d,d  %ld, %ld,%s\n",
+//               nowned,nremote,blocksz,stride,nneighbors,
+//               distributor.totalNumImport(),
+//               distributor.totalNumExport(),
+//               distributor.numNeighbor(),
+//			   distributor.exportSize(),
+//                neighbors.size(),
+//               result.c_str()
+//               );
 
 	}
 
