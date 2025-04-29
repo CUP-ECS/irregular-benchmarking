@@ -384,7 +384,7 @@ void run_benchmark()
 
 				std::vector < int > neighbors;
 				for (int j = 0; j < comm_size; ++j) {
-					for (int i = 0; i < nneighbors + 1; ++i) {
+					for (int i = 0; i < comm_size; ++i) {
 						if (recvbuf[i * comm_size + j] != -1) {
 
                             if (i == comm_rank)
