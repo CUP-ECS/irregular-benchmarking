@@ -361,9 +361,9 @@ void run_benchmark()
 
 
             Kokkos::Profiling::pushRegion("distributor");
-            Cabana::Distributor<MemorySpace> distributor;
-
-            if(neighbor_discovery_algo == 0 ){
+//            Cabana::Distributor<MemorySpace> distributor;
+//
+//            if(neighbor_discovery_algo == 0 ){
 
 
 
@@ -401,12 +401,9 @@ void run_benchmark()
 
 		 		auto unique_end = std::unique(neighbors.begin(), neighbors.end());
 		 		neighbors.resize(std::distance(neighbors.begin(), unique_end));
-				distributor = new Cabana::Distributor<MemorySpace>distributor(MPI_COMM_WORLD, export_ranks,neighbors);
+				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
+//				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
-            }else{
-		  		distributor = new Cabana::Distributor<MemorySpace>distributor(MPI_COMM_WORLD, export_ranks);
-
-            }
 
 
 
