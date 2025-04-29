@@ -393,7 +393,7 @@ void run_benchmark()
         					}
         					else if (recvbuf[j * comm_size + i] == comm_rank)
         					{
-        						neighbors.push_back(j);
+//        						neighbors.push_back(j);
         					}
 						}
 					}
