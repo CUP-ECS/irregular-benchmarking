@@ -405,8 +405,9 @@ void run_benchmark()
 				}
 
 
-		 		auto unique_end = std::unique(neighbors.begin(), neighbors.end());
-		 		neighbors.resize(std::distance(neighbors.begin(), unique_end));
+				 std::sort(neighbors.begin(), neighbors.end());
+				auto last = std::unique(neighbors.begin(), neighbors.end());
+				neighbors.erase(last, neighbors.end());
 
 
 //				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
