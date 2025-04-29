@@ -411,9 +411,21 @@ void run_benchmark()
 				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
 			if(0 == comm_rank){
-                      for(int i = 0; i < distributor.numNeighbor(); ++i){
-                          std::cout << distributor.neighborRank(i) << " "; std::cout << std::endl;
-                      }
+                  std::vector<int> distributor_neighbors;
+				  for (int i = 0; i < distributor.numNeighbor(); ++i){
+      					distributor_neighbors.push_back(distributor.neighborRank(i));
+
+				  }
+std::vector<int> diff;
+for (int rank : distributor_neighbors) {
+    if (std::find(neighbors.begin(), neighbors.end(), rank) == neighbors.end()) {
+        diff.push_back(rank);
+    }
+}
+std::cout << "Ranks in distributor_neighbors but not in neighbors: ";
+for (int r : diff)
+    std::cout << r << " ";
+std::cout << std::endl;
 
 
 			}
