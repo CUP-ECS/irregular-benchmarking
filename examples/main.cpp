@@ -487,15 +487,15 @@ std::cout << std::endl;
 
 
         std::string result = oss.str();
-//        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,a  %ld,b  %ld,c  %d,d  %ld, %ld,%s\n",
-//               nowned,nremote,blocksz,stride,nneighbors,
-//               distributor.totalNumImport(),
-//               distributor.totalNumExport(),
-//               distributor.numNeighbor(),
-//			   distributor.exportSize(),
-//                neighbors.size(),
-//               result.c_str()
-//               );
+        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,a  %ld,b  %ld,c  %d,d  %ld, %ld,%s\n",
+               nowned,nremote,blocksz,stride,nneighbors,
+               distributor.totalNumImport(),
+               distributor.totalNumExport(),
+               distributor.numNeighbor(),
+			   distributor.exportSize(),
+                neighbors.size(),
+               result.c_str()
+               );
 
 	}
 
