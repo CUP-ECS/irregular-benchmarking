@@ -372,36 +372,32 @@ void run_benchmark()
 //            if(neighbor_discovery_algo == 0 ){
 
 
-
-              	int* myneighbors = new int[comm_size];
-
-
-			  	for (int i = 0; i < comm_size; ++i) {
+	for (int i = 0; i < comm_size; ++i) {
    					 myneighbors[i] = -1;  // default fill
 				}
 
-				for (int i = 0; i < nneighbors + 1; ++i) {
+				for (int i = 0; i < curneighbor; ++i) {
     				myneighbors[i] = usedneighbors[i];
 				}
-
+              	int* myneighbors = new int[comm_size];
 				int* recvbuf = new int[comm_size* comm_size];
 				MPI_Allgather(myneighbors, comm_size, MPI_INT, recvbuf, comm_size, MPI_INT, MPI_COMM_WORLD);
 
 
 				std::vector < int > neighbors;
-				for (int j = 0; j < comm_size; ++j) {
+				for (int rank = 0; rank < comm_size; ++rank)
+					{
 					for (int i = 0; i < comm_size; ++i) {
 
-						if (recvbuf[j * comm_size + i] != -1) {
+						if (recvbuf[rank * comm_size + i] != -1) {
 
-                       		if (j == comm_rank)
+                       		if (rank == comm_rank)
         					{
-        						neighbors.push_back(recvbuf[j * comm_size + i]);
+        						neighbors.push_back(recvbuf[rank * comm_size + i]);
         					}
-        					else if (recvbuf[j * comm_size + i] == comm_rank)
+        					else if (recvbuf[rank * comm_size + i] == comm_rank)
         					{
-
-        						neighbors.push_back(j);
+        						neighbors.push_back(rank);
         					}
 						}
 					}
