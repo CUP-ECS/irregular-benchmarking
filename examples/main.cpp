@@ -306,9 +306,11 @@ void run_benchmark()
 			int remainder = nneighbors % 2;
 			int offset = 0;
 			int *preneighbors = new int[nneighbors + 1];
+            int *usedneighbors = new int[nneighbors + 1];
             for (int i = 0; i < nneighbors + 1; ++i)
 			{
 				preneighbors[i] = -1;
+                usedneighbors[i] = -1;
 			}
 			for (int i = -nneighbors / 2; i <= (nneighbors / 2) + remainder; i++)
 			{
@@ -339,6 +341,7 @@ void run_benchmark()
 
 					if (inum % (num_tuple / (nneighbors + 1)) == 0)
 					{
+                        usedneighbors[curneighbor]=preneighbors[curneighbor]    ;
 						curneighbor++;
 					}
 				}
@@ -378,7 +381,7 @@ void run_benchmark()
 				}
 
 				for (int i = 0; i < nneighbors + 1; ++i) {
-    				myneighbors[i] = preneighbors[i];
+    				myneighbors[i] = usedneighbors[i];
 				}
 
 				int* recvbuf = new int[comm_size* comm_size];
@@ -410,10 +413,16 @@ void run_benchmark()
 				neighbors.erase(last, neighbors.end());
 
 
-				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
-//				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
+//				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
+				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
+                                if(comm_rank == 0){
+for (int val : neighbors) {
+    std::cout << val << " ";
+}
+                                }
 
-
+	printf("---%d   %d\n",  distributor.numNeighbor(), neighbors.size());
+                    fflush(stdout);
 
 
 
