@@ -361,7 +361,7 @@ void run_benchmark()
 
 
             Kokkos::Profiling::pushRegion("distributor");
-            std::optional<Cabana::Distributor<MemorySpace>> distributor;
+            Cabana::Distributor<MemorySpace> distributor;
 
             if(neighbor_discovery_algo == 0 ){
 
