@@ -404,6 +404,8 @@ void run_benchmark()
 			fflush(stdout);
 		 		auto unique_end = std::unique(neighbors.begin(), neighbors.end());
 		 		neighbors.resize(std::distance(neighbors.begin(), unique_end));
+
+                	printf("%d in file %s-size  %d\n", __LINE__, __FILE__, neighbors.size());
 				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
 //				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
