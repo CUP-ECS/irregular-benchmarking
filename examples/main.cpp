@@ -410,16 +410,10 @@ void run_benchmark()
 				neighbors.erase(last, neighbors.end());
 
 
-//				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
-				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
-                                if(comm_rank == 0){
-for (int val : neighbors) {
-    std::cout << val << " ";
-}
-                                }
+				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
+//				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
-	printf("---%d   %d\n",  distributor.numNeighbor(), neighbors.size());
-                    fflush(stdout);
+
 
 
 
