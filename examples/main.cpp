@@ -324,6 +324,13 @@ void run_benchmark()
 			int inum = 0;
 			int amount_sent = 0;
 
+            for (int i = 0; i < num_tuple; ++i)
+			{
+				export_ranks(i) = -1;
+			}
+
+
+
 			for (int j = 0; j < num_tuple / (stride + blocksz); j++)
 			{
 
@@ -348,10 +355,6 @@ void run_benchmark()
 			}
 
 
-            for (int i = inum; i < num_tuple; ++i)
-			{
-				export_ranks(i) = -1;
-			}
 
 
 
