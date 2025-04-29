@@ -100,7 +100,9 @@ static int stride = -1;
 static int stride_stdv = -1;
 static std::vector<Bin> stride_bins;
 
-
+static int delay = -1;
+static int delay_stdv = -1;
+static std::vector<Bin> delay_bins;
 
 static int unit_div = 1;
 static prefix unit_symbol = A;
@@ -199,7 +201,7 @@ void run_benchmark()
 	int nremote_orig = nremote;
 	int blocksz_orig = blocksz;
 	int stride_orig = stride;
-
+	int delay_orig = delay;
 	
 	int comm_rank = -1;
 	MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
@@ -208,16 +210,20 @@ void run_benchmark()
 
 
 
-
-
+//
 
 
 
 
 	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
 	{
+
+
          std::vector<double> time;
+
 	auto bench_mark_loop = std::chrono::high_resolution_clock::now();
+
+
     Kokkos::Profiling::pushRegion("Bench_mark_loop");
 
 		auto set_distribution = std::chrono::high_resolution_clock::now();
@@ -233,6 +239,7 @@ void run_benchmark()
 			blocksz = gauss_dist(blocksz_orig, blocksz_stdv);
 			nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv);
 			stride = gauss_dist(stride_orig, stride_stdv);
+            delay = gauss_dist(delay_orig, stride_stdv);
 
 		}else if (distribution_type == EMPIRICAL){
 
@@ -242,15 +249,19 @@ void run_benchmark()
 			blocksz    = empirical_dist(blocksz_bins);
 			nneighbors = empirical_dist(nneighbors_bins);
 			stride     = empirical_dist(stride_bins);
-
+   			delay = empirical_dist(delay_bins);
 		}else if (distribution_type== STATIC_VALUE){
 			nowned     = nowned_orig;
 			nremote    = nneighbors_orig;
 			blocksz    = nremote_orig;
 			nneighbors = blocksz_orig;
 			stride     = stride_orig;
-
+			delay     = delay_orig;
 		}
+
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay)); // simulate delay amount of work  in ms
+
 
 		Kokkos::Profiling::popRegion();
 		auto set_distribution_end = std::chrono::high_resolution_clock::now();
@@ -347,11 +358,64 @@ void run_benchmark()
 
 
 			auto distributor_t = std::chrono::high_resolution_clock::now();
-            Kokkos::Profiling::pushRegion("distributor");
 
-			Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
+
+            Kokkos::Profiling::pushRegion("distributor");
+            std::optional<Cabana::Distributor<MemorySpace>> distributor;
+
+            if(neighbor_discovery_algo == 0 ){
+
+
+
+              	int* myneighbors = new int[comm_size];
+
+
+			  	for (int i = 0; i < comm_size; ++i) {
+   					 myneighbors[i] = -1;  // default fill
+				}
+
+				for (int i = 0; i < nneighbors + 1; ++i) {
+    				myneighbors[i] = preneighbors[i];
+				}
+
+				int* recvbuf = new int[comm_size* comm_size];
+				MPI_Allgather(myneighbor, comm_size, MPI_INT, recvbuf, comm_size, MPI_INT, MPI_COMM_WORLD)
+
+
+				std::vector < int > neighbors;
+				for (int j = 0; j < comm_size; ++j) {
+					for (int i = 0; i < nneighbors + 1; ++i) {
+						if (recvbuf[i * comm_size + j] != -1) {
+
+                            if (i == comm_rank)
+							{
+								neighbors.push_back(recvbuf[comm_size*i +j]);
+							}else if (recvbuf[comm_size*i+j] == comm_rank)
+							{
+								neighbors.push_back(j);
+							}
+						}
+					}
+				}
+
+
+		 		auto unique_end = std::unique(neighbors.begin(), neighbors.end());
+		 		neighbors.resize(std::distance(neighbors.begin(), unique_end));
+				distributor = new Cabana::Distributor<MemorySpace>distributor(MPI_COMM_WORLD, export_ranks,neighbors);
+
+            }else{
+		  		distributor = new Cabana::Distributor<MemorySpace>distributor(MPI_COMM_WORLD, export_ranks);
+
+            }
+
+
+
 
             Kokkos::Profiling::popRegion();
+
+
+
+
 			auto distributor_end = std::chrono::high_resolution_clock::now();
 
             std::chrono::duration<double> distributor_duration = distributor_end - distributor_t;
@@ -504,6 +568,12 @@ void parse_config_file(std::string config_file)
 				stride = mean;
 				stride_stdv = stddev;
 				stride_bins = bins;
+			}
+            else if (name == "delay")
+			{
+				delay = mean;
+				delay_stdv = stddev;
+				delay_bins = bins;
 			}
 			else
 			{
