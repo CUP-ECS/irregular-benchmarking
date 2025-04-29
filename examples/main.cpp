@@ -305,9 +305,10 @@ void run_benchmark()
 			Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
 			int remainder = nneighbors % 2;
 			int offset = 0;
-			int *preneighbors = new int[nneighbors + 1];
-            int *usedneighbors = new int[nneighbors + 1];
-            for (int i = 0; i < nneighbors + 1; ++i)
+            int neighbors_size = nneighbors + 1+remainder;
+			int *preneighbors = new int[neighbors_size];
+            int *usedneighbors = new int[neighbors_size];
+            for (int i = 0; i < neighbors_size; ++i)
 			{
 				preneighbors[i] = -1;
                 usedneighbors[i] = -1;
@@ -371,7 +372,7 @@ void run_benchmark()
 //
 //            if(neighbor_discovery_algo == 0 ){
 
-	int* myneighbors = new int[comm_size];
+				int* myneighbors = new int[comm_size];
 				for (int i = 0; i < comm_size; ++i) {
    					 myneighbors[i] = -1;  // default fill
 				}
@@ -417,7 +418,7 @@ for (int val : neighbors) {
 }
                                 }
 
-	printf("---%d   %d\n",  distributor.numNeighbor(), neighbors.size());
+	printf("---%d   %ld\n",  distributor.numNeighbor(), neighbors.size());
                     fflush(stdout);
 
 
