@@ -371,15 +371,15 @@ void run_benchmark()
 //
 //            if(neighbor_discovery_algo == 0 ){
 
-
-	for (int i = 0; i < comm_size; ++i) {
+	int* myneighbors = new int[comm_size];
+				for (int i = 0; i < comm_size; ++i) {
    					 myneighbors[i] = -1;  // default fill
 				}
 
 				for (int i = 0; i < curneighbor; ++i) {
     				myneighbors[i] = usedneighbors[i];
 				}
-              	int* myneighbors = new int[comm_size];
+
 				int* recvbuf = new int[comm_size* comm_size];
 				MPI_Allgather(myneighbors, comm_size, MPI_INT, recvbuf, comm_size, MPI_INT, MPI_COMM_WORLD);
 
