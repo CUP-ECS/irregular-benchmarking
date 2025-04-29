@@ -410,12 +410,10 @@ void run_benchmark()
 //				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
 				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
-			if(0 == comm_rank){
+			if(50 == comm_rank){
                       for(int i = 0; i < distributor.numNeighbor(); ++i){
                           std::cout << distributor.neighborRank(i) << " "; std::cout << std::endl;
                       }
-
-
 			}
 
 
