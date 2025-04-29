@@ -387,13 +387,13 @@ void run_benchmark()
 				for (int j = 0; j < comm_size; ++j) {
 					for (int i = 0; i < comm_size; ++i) {
 
-						if (recvbuf[j * (nneighbors + 1) + i] != -1) {
+						if (recvbuf[j * comm_size + i] != -1) {
 
                        		if (j == comm_rank)
         					{
-        						neighbors.push_back(recvbuf[j * (nneighbors + 1) + i]);
+        						neighbors.push_back(recvbuf[j * comm_size + i]);
         					}
-        					else if (recvbuf[j * (nneighbors + 1) + i] == comm_rank)
+        					else if (recvbuf[j * comm_size + i] == comm_rank)
         					{
         						neighbors.push_back(j);
         					}
