@@ -411,23 +411,10 @@ void run_benchmark()
 				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
 			if(0 == comm_rank){
-                         auto send_ranks = distributor.ranksToSend();   // ranks you send to
-auto recv_ranks = distributor.ranksToReceive(); // ranks you receive from
+                      for(int i = 0; i < distributor.numNeighbor(); ++i){
+                          std::cout << distributor.neighborRank(i) << " "; std::cout << std::endl;
+                      }
 
-
-
-                       auto send_ranks_host = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), send_ranks);
-auto recv_ranks_host = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), recv_ranks);
-
-std::cout << "Ranks to send to: ";
-for (int i = 0; i < send_ranks_host.extent(0); ++i)
-    std::cout << send_ranks_host(i) << " ";
-std::cout << std::endl;
-
-std::cout << "Ranks to receive from: ";
-for (int i = 0; i < recv_ranks_host.extent(0); ++i)
-    std::cout << recv_ranks_host(i) << " ";
-std::cout << std::endl;
 
 			}
 
