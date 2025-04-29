@@ -387,7 +387,7 @@ void run_benchmark()
 				for (int j = 0; j < comm_size; ++j) {
 					for (int i = 0; i < comm_size; ++i) {
 
-						if (recvbuf[i * comm_size + j] != -1) {
+						if (recvbuf[j * (nneighbors + 1) + i] != -1) {
 
                        		if (j == comm_rank)
         					{
