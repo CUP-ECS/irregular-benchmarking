@@ -306,6 +306,10 @@ void run_benchmark()
 			int remainder = nneighbors % 2;
 			int offset = 0;
 			int *preneighbors = new int[nneighbors + 1];
+            for (int i = 0; i < nneighbors + 1; ++i)
+			{
+				preneighbors[i] = -1;
+			}
 			for (int i = -nneighbors / 2; i <= (nneighbors / 2) + remainder; i++)
 			{
 				int partner = (comm_size + i + comm_rank) % comm_size;
@@ -393,7 +397,7 @@ void run_benchmark()
         					}
         					else if (recvbuf[j * comm_size + i] == comm_rank)
         					{
-//        						neighbors.push_back(j);
+        						neighbors.push_back(j);
         					}
 						}
 					}
