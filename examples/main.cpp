@@ -303,7 +303,7 @@ void run_benchmark()
 
 			Kokkos::Profiling::pushRegion("fill_export_ranks");
 			Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
-			int remainder = nneighbors % 2;
+			int remainder = 0;
 			int offset = 0;
             int neighbors_size = comm_size;
 			int *preneighbors = new int[comm_size];
@@ -383,7 +383,7 @@ void run_benchmark()
 					{
 					for (int i = 0; i < comm_size; ++i) {
 
-//						if (recvbuf[rank * comm_size + i] != -1) {
+						if (recvbuf[rank * comm_size + i] != -1) {
 
                        		if (rank == comm_rank)
         					{
@@ -393,7 +393,7 @@ void run_benchmark()
         					{
         						neighbors.push_back(rank);
         					}
-//						}
+						}
 					}
 				}
 
@@ -403,8 +403,8 @@ void run_benchmark()
 				neighbors.erase(last, neighbors.end());
 
 
-				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
-//				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
+//				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
+				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
 
 
