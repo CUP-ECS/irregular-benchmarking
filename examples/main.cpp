@@ -397,6 +397,7 @@ void run_benchmark()
         					}
         					else if (recvbuf[j * comm_size + i] == comm_rank)
         					{
+
         						neighbors.push_back(j);
         					}
 						}
@@ -410,6 +411,11 @@ void run_benchmark()
 
 //				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
 				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
+                                if(comm_rank == 0){
+for (int val : neighbors) {
+    std::cout << val << " ";
+}
+                                }
 
 	printf("---%d   %d\n",  distributor.numNeighbor(), neighbors.size());
                     fflush(stdout);
