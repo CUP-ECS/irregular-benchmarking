@@ -407,8 +407,6 @@ void run_benchmark()
 //				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
 
-	printf("---%d   %ld\n",  distributor.numNeighbor(), neighbors.size());
-                    fflush(stdout);
 
 
 
