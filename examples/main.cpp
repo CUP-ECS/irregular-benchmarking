@@ -305,13 +305,12 @@ void run_benchmark()
 			Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
 			int remainder = nneighbors % 2;
 			int offset = 0;
-            int neighbors_size = nneighbors + 1+remainder;
-			int *preneighbors = new int[neighbors_size];
-            int *usedneighbors = new int[neighbors_size];
+            int neighbors_size = comm_size;
+			int *preneighbors = new int[comm_size];
+
             for (int i = 0; i < neighbors_size; ++i)
 			{
 				preneighbors[i] = -1;
-                usedneighbors[i] = -1;
 			}
 			for (int i = -nneighbors / 2; i <= (nneighbors / 2) + remainder; i++)
 			{
@@ -372,14 +371,8 @@ void run_benchmark()
 //
 //            if(neighbor_discovery_algo == 0 ){
 
-				int* myneighbors = new int[comm_size];
-				for (int i = 0; i < comm_size; ++i) {
-   					 myneighbors[i] = -1;  // default fill
-				}
 
-				for (int i = 0; i < curneighbor; ++i) {
-    				myneighbors[i] = usedneighbors[i];
-				}
+
 
 				int* recvbuf = new int[comm_size* comm_size];
 				MPI_Allgather(myneighbors, comm_size, MPI_INT, recvbuf, comm_size, MPI_INT, MPI_COMM_WORLD);
