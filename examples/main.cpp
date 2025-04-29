@@ -411,9 +411,11 @@ void run_benchmark()
 				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
 			if(50 == comm_rank){
-                      for(int i = 0; i < distributor.numNeighbor(); ++i){
-                          std::cout << distributor.neighborRank(i) << " "; std::cout << std::endl;
-                      }
+                   size_t n = std::min(distributor_neighbors.size(), neighbors.size());
+for (size_t i = 0; i < n; ++i) {
+    std::cout << "(" << distributor_neighbors[i] << ", " << neighbors[i] << ") ";
+}
+std::cout << std::endl;
 			}
 
 
