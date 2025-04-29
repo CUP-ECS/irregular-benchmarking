@@ -381,6 +381,10 @@ void run_benchmark()
 				std::vector < int > neighbors;
 				for (int rank = 0; rank < comm_size; ++rank)
 					{
+                    if (rank == comm_rank)
+        			{
+        				neighbors.push_back(comm_rank);
+        			}
 					for (int i = 0; i < comm_size; ++i) {
 
 						if (recvbuf[rank * comm_size + i] != -1) {
@@ -398,7 +402,7 @@ void run_benchmark()
 				}
 
 
-				 std::sort(neighbors.begin(), neighbors.end());
+				std::sort(neighbors.begin(), neighbors.end());
 				auto last = std::unique(neighbors.begin(), neighbors.end());
 				neighbors.erase(last, neighbors.end());
 
