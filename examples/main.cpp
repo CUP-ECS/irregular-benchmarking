@@ -411,7 +411,12 @@ void run_benchmark()
 				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
 
-
+//                                for (int i = 0; i <distributor.element_export_ranks; ++i){
+//                                  printf("rank %d, %d\n", i, );
+//                                }
+for (int x: distributor.element_export_ranks){
+  printf("rank %d, %d\n", x, );
+}
 
             Kokkos::Profiling::popRegion();
 
