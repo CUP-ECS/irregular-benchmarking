@@ -314,7 +314,7 @@ void run_benchmark()
 			}
 			for (int i = -nneighbors / 2; i <= (nneighbors / 2) + remainder; i++)
 			{
-				int partner = (comm_size + i + comm_rank) % comm_size;
+				int partner = (comm_size + i + comm_rank) % comm_rank;
 				preneighbors[offset] = partner;
 				offset++;
 			}
@@ -418,16 +418,16 @@ void run_benchmark()
       					distributor_neighbors.push_back(distributor.neighborRank(i));
 
 				  }
-std::vector<int> diff;
-for (int rank : distributor_neighbors) {
-    if (std::find(neighbors.begin(), neighbors.end(), rank) == neighbors.end()) {
-        diff.push_back(rank);
-    }
+                  std::sort(distributor_neighbors.begin(), distributor_neighbors.end());
+				  std::sort(neighbors.begin(), neighbors.end());
+size_t n = std::min(distributor_neighbors.size(), neighbors.size());
+for (size_t i = 0; i < n; ++i) {
+    std::cout << "(" << distributor_neighbors[i] << ", " << neighbors[i] << ") ";
 }
-std::cout << "Ranks in distributor_neighbors but not in neighbors: ";
-for (int r : diff)
-    std::cout << r << " ";
 std::cout << std::endl;
+
+
+
 
 
 			}
@@ -497,15 +497,15 @@ std::cout << std::endl;
 
 
         std::string result = oss.str();
-//        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,a  %ld,b  %ld,c  %d,d  %ld, %ld,%s\n",
-//               nowned,nremote,blocksz,stride,nneighbors,
-//               distributor.totalNumImport(),
-//               distributor.totalNumExport(),
-//               distributor.numNeighbor(),
-//			   distributor.exportSize(),
-//                neighbors.size(),
-//               result.c_str()
-//               );
+        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,a  %ld,b  %ld,c  %d,d  %ld, %ld,%s\n",
+               nowned,nremote,blocksz,stride,nneighbors,
+               distributor.totalNumImport(),
+               distributor.totalNumExport(),
+               distributor.numNeighbor(),
+			   distributor.exportSize(),
+                neighbors.size(),
+               result.c_str()
+               );
 
 	}
 
