@@ -383,7 +383,7 @@ void run_benchmark()
 					{
 					for (int i = 0; i < comm_size; ++i) {
 
-						if (recvbuf[rank * comm_size + i] != -1) {
+//						if (recvbuf[rank * comm_size + i] != -1) {
 
                        		if (rank == comm_rank)
         					{
@@ -393,7 +393,7 @@ void run_benchmark()
         					{
         						neighbors.push_back(rank);
         					}
-						}
+//						}
 					}
 				}
 
@@ -403,10 +403,12 @@ void run_benchmark()
 				neighbors.erase(last, neighbors.end());
 
 
-				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
-//				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
+//				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
+				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
 
+	printf("---%d   %ld\n",  distributor.numNeighbor(), neighbors.size());
+                    fflush(stdout);
 
 
 
