@@ -410,13 +410,27 @@ void run_benchmark()
 //				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
 				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
+			if(0 == comm_rank){
+                         auto send_ranks = distributor.ranksToSend();   // ranks you send to
+auto recv_ranks = distributor.ranksToReceive(); // ranks you receive from
 
-//                                for (int i = 0; i <distributor.element_export_ranks; ++i){
-//                                  printf("rank %d, %d\n", i, );
-//                                }
-for (int x: distributor.element_export_ranks){
-  printf("rank %d, %d\n", x, );
-}
+
+
+                       auto send_ranks_host = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), send_ranks);
+auto recv_ranks_host = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), recv_ranks);
+
+std::cout << "Ranks to send to: ";
+for (int i = 0; i < send_ranks_host.extent(0); ++i)
+    std::cout << send_ranks_host(i) << " ";
+std::cout << std::endl;
+
+std::cout << "Ranks to receive from: ";
+for (int i = 0; i < recv_ranks_host.extent(0); ++i)
+    std::cout << recv_ranks_host(i) << " ";
+std::cout << std::endl;
+
+			}
+
 
             Kokkos::Profiling::popRegion();
 
@@ -482,15 +496,15 @@ for (int x: distributor.element_export_ranks){
 
 
         std::string result = oss.str();
-        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,a  %ld,b  %ld,c  %d,d  %ld, %ld,%s\n",
-               nowned,nremote,blocksz,stride,nneighbors,
-               distributor.totalNumImport(),
-               distributor.totalNumExport(),
-               distributor.numNeighbor(),
-			   distributor.exportSize(),
-                neighbors.size(),
-               result.c_str()
-               );
+//        printf("nowned - %d, nremote - %d,  blocksize - %d,stride - %d,nneighbors - %d,a  %ld,b  %ld,c  %d,d  %ld, %ld,%s\n",
+//               nowned,nremote,blocksz,stride,nneighbors,
+//               distributor.totalNumImport(),
+//               distributor.totalNumExport(),
+//               distributor.numNeighbor(),
+//			   distributor.exportSize(),
+//                neighbors.size(),
+//               result.c_str()
+//               );
 
 	}
 
