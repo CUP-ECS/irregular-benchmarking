@@ -341,7 +341,7 @@ void run_benchmark()
 
 					if (inum % (num_tuple / (nneighbors + 1)) == 0)
 					{
-                        usedneighbors[curneighbor]=preneighbors[curneighbor]    ;
+
 						curneighbor++;
 					}
 				}
@@ -375,7 +375,7 @@ void run_benchmark()
 
 
 				int* recvbuf = new int[comm_size* comm_size];
-				MPI_Allgather(myneighbors, comm_size, MPI_INT, recvbuf, comm_size, MPI_INT, MPI_COMM_WORLD);
+				MPI_Allgather(preneighbors, comm_size, MPI_INT, recvbuf, comm_size, MPI_INT, MPI_COMM_WORLD);
 
 
 				std::vector < int > neighbors;
