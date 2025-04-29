@@ -376,13 +376,11 @@ void run_benchmark()
 				for (int i = 0; i < nneighbors + 1; ++i) {
     				myneighbors[i] = preneighbors[i];
 				}
-		printf("%d in file %s\n", __LINE__, __FILE__);
-			fflush(stdout);
+
 				int* recvbuf = new int[comm_size* comm_size];
 				MPI_Allgather(myneighbors, comm_size, MPI_INT, recvbuf, comm_size, MPI_INT, MPI_COMM_WORLD);
 
-		printf("%d in file %s\n", __LINE__, __FILE__);
-			fflush(stdout);
+
 				std::vector < int > neighbors;
 				for (int j = 0; j < comm_size; ++j) {
 					for (int i = 0; i < comm_size; ++i) {
@@ -401,25 +399,22 @@ void run_benchmark()
 					}
 				}
 
-		printf("%d in file %s\n", __LINE__, __FILE__);
-			fflush(stdout);
+
 		 		auto unique_end = std::unique(neighbors.begin(), neighbors.end());
 		 		neighbors.resize(std::distance(neighbors.begin(), unique_end));
 
-                	printf("%d in file %s-size  %d\n", __LINE__, __FILE__, neighbors.size());
+
+//				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
+				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
+
+	printf("---%d   %d\n",  distributor.numNeighbor(), neighbors.size());
                     fflush(stdout);
-				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks,neighbors);
-//				Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
 
-
-		printf("%d in file %s\n", __LINE__, __FILE__);
-			fflush(stdout);
 
             Kokkos::Profiling::popRegion();
 
-		printf("%d in file %s\n", __LINE__, __FILE__);
-			fflush(stdout);
+
 
 
 			auto distributor_end = std::chrono::high_resolution_clock::now();
@@ -428,8 +423,7 @@ void run_benchmark()
  			double distributor_microseconds = distributor_duration.count() * 1e6;
     		time.push_back(distributor_microseconds);
 
-		printf("%d in file %s\n", __LINE__, __FILE__);
-			fflush(stdout);
+
 
             auto iterations = std::chrono::high_resolution_clock::now();
 			Kokkos::Profiling::pushRegion("iterations");
