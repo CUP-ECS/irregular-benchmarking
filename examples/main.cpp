@@ -379,7 +379,7 @@ void run_benchmark()
 				}
 
 				int* recvbuf = new int[comm_size* comm_size];
-				MPI_Allgather(myneighbor, comm_size, MPI_INT, recvbuf, comm_size, MPI_INT, MPI_COMM_WORLD)
+				MPI_Allgather(myneighbors, comm_size, MPI_INT, recvbuf, comm_size, MPI_INT, MPI_COMM_WORLD)
 
 
 				std::vector < int > neighbors;
