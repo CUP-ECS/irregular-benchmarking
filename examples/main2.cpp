@@ -158,13 +158,13 @@ int gauss_dist(double mean, double stdev)
 // Function to calculate an empirical distribution value based on Bin objects.
 int empirical_dist(std::vector<Bin> bins)
 {
-
+  	
 	double rand = static_cast<double>(std::rand()) / RAND_MAX;
 	double prob = 0.0;
 
     // Iterate over all bins except the last one.
 	for (int i = 0; i < bins.size()-1; ++i) {
-		Bin& bin = bins[i];
+		Bin& bin = bins[i];  
 		 // Accumulate the probability
 		prob+=bin.bin_prop;
 
@@ -190,12 +190,12 @@ int empirical_dist(std::vector<Bin> bins)
 // https://github.com/ECP-copa/Cabana/wiki/2-Programming-Guide
 void run_benchmark()
 {
-
+	
 	double nneighbors_orig        = nneighbors;
 	double dist_to_neighbors_orig = dist_to_neighbors;
 	double data_sent_orig         = data_sent;
 
-
+	
 	int comm_rank = -1;
 	MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
 	int comm_size = -1;
