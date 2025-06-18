@@ -548,7 +548,7 @@ void parseArgs(int argc, char **argv)
 			srand(seed);
 		}
 
-//		irregularity = disableirregularityArg.getValue();
+
 
 
 	}
