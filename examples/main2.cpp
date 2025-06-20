@@ -201,6 +201,8 @@ void run_benchmark()
 	int comm_size = -1;
 	MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
+
+
 	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
 	{
 
@@ -221,7 +223,7 @@ void run_benchmark()
 
 		if (distribution_type == GAUSSIAN)
 		{
-			nneighbors = gauss_dist(nowned_orig, nowned_stdv,nowned_min,nowned_max);
+			nneighbors = gauss_dist(nneighbors_orig,nneighbors_stdv,nnneighbors_min,nneighbors_max);
 			for (int i = 0; i < nneighbors; ++i){
 				data_sent = gauss_dist(data_sent_orig, data_sent_stdv,data_sent_min,data_sent_max);
 				total_data+=data_sent;
@@ -236,7 +238,7 @@ void run_benchmark()
 				}
 			}
 		}else if (distribution_type == EMPIRICAL){
-			nneighbors     = empirical_dist(nowned_bins);
+			nneighbors     = empirical_dist(nneighbors_bins);
 			for (int i = 0; i < nneighbors; ++i){
 				data_sent = empirical_dist(data_sent_bins);
 				total_data+=data_sent;
@@ -258,7 +260,7 @@ void run_benchmark()
 		const int VectorLength = 8;
 		using MemorySpace = Kokkos::HostSpace;
 
-		int num_tuple = nowned;
+		int num_tuple = total_data+1000;//todo
 		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
 		auto slice_ranks = Cabana::slice<0>(aosoa);
 		auto slice_ids = Cabana::slice<1>(aosoa);
