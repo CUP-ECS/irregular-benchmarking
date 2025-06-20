@@ -300,6 +300,8 @@ void run_benchmark()
 
 		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
+		printf("test\n");
+		fflush(stdout); // Will now print everything in the stdout buffer
 
 
 
