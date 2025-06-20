@@ -101,6 +101,11 @@ static int dist_to_neighbors_min = -1;
 static int dist_to_neighbors_max = -1;
 
 
+static double delay = -1;
+static double delay_stdv = -1;
+static std::vector<Bin> delay_bins;
+static int delay_min = -1;
+static int delay_max = -1;
 
 
 
