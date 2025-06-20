@@ -119,7 +119,7 @@ static int neighbor_discovery_algo = 0;
 int gauss_dist(double mean, double stdev,double min,double max)
 {
 
-	double generated=-1;
+	int generated=-1;
 	do {
 		generated= gauss_dist(mean , stdev);
 	} while (generated<= min || generated >=max);
