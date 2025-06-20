@@ -275,6 +275,7 @@ void run_benchmark()
 		auto it_data = neighbors_data.begin();
 		auto it_neighbors = neighbors.begin();
 		int inum =0;
+		Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
 		while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
 
 			for (int i = 0; i < num_tuple; ++i){
