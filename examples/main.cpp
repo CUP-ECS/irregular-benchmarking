@@ -138,7 +138,6 @@ int gauss_dist(double mean, double stdev)
 
 	u1 = (double)rand() / RAND_MAX;
 	u2 = (double)rand() / RAND_MAX;
-
 		// generates the R and Theta values from the above
 		// documentation
 	r = sqrt(-2. * log(u1));
