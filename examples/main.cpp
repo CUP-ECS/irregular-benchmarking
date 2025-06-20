@@ -371,8 +371,8 @@ void parse_config_file(std::string config_file)
 			{
 				nneighbors = mean;
 				nneighbors_stdv = stddev;
-				neighbors_min = mean;
-				neighbors_max = stddev;
+				neighbors_min = min;
+				neighbors_max = max;
 				nneighbors_bins = bins;
 			}
 
@@ -380,16 +380,16 @@ void parse_config_file(std::string config_file)
 			{
 				delay = mean;
 				delay_stdv = stddev;
-delay_min = mean;
-delay_max = stddev;
+				delay_min = min;
+				delay_max = max;
 
 				delay_bins = bins;
 			}else if (name == "data_sent")
 			{
 				data_sent = mean;
 				data_sent_stdv = stddev;
-	data_sent_min = mean;
-data_sent_max = stddev;
+				data_sent_min = min;
+				data_sent_max = max;
 
 				data_sent_bins = bins;
 			}else if (name == "dist_to_neighbors")
