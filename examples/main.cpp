@@ -371,8 +371,8 @@ void parse_config_file(std::string config_file)
 			{
 				nneighbors = mean;
 				nneighbors_stdv = stddev;
-				neighbors_min = min;
-				neighbors_max = max;
+				nneighbors_min = min;
+				nneighbors_max = max;
 				nneighbors_bins = bins;
 			}
 
