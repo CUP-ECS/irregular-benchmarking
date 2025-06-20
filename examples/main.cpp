@@ -228,8 +228,8 @@ void run_benchmark()
 					int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
 					if (distanceToN!=0&&seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
 						seen_neighbors.insert(distanceToN);
-						neighbors.insert(distanceToN);
-						neighbors_data.insert(data_sent);
+						neighbors.push_back(distanceToN);
+						neighbors_data.push_back(data_sent);
 						break;
 					}
 				}
@@ -243,8 +243,8 @@ void run_benchmark()
 					int distanceToN = empirical_dist(dist_to_neighbors_bins);
 					if (distanceToN!=0&& seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
 						seen_neighbors.insert(distanceToN);
-						neighbors.insert(distanceToN);
-						neighbors_data.insert(data_sent);
+						neighbors.push_back(distanceToN);
+						neighbors_data.push_back(data_sent);
 						break;
 					}
 				}
