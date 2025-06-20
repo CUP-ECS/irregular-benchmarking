@@ -258,6 +258,7 @@ void run_benchmark()
 		using MemorySpace = Kokkos::HostSpace;
 
 		int num_tuple = total_data+1999;//todo
+
 		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
 		auto slice_ranks = Cabana::slice<0>(aosoa);
 		auto slice_ids = Cabana::slice<1>(aosoa);
