@@ -115,6 +115,31 @@ static bool unique_seed = 0;
 static int neighbor_discovery_algo = 0;
 
 
+int gauss_dist(double mean, double stdev)
+{
+
+	// Generates a Gaussian (normal) distribution with only positive values.
+	// generates two random numbers that form the seeds
+	// of the transform
+	double u1, u2, r, theta;
+	int generated = -1;
+
+	u1 = (double)rand() / RAND_MAX;
+	u2 = (double)rand() / RAND_MAX;
+	// generates the R and Theta values from the above
+	// documentation
+	r = sqrt(-2. * log(u1));
+	theta = (2 * M_PI * u2);
+
+	// an additional number can be generated in the
+	// same distribution using the alternate form
+	// ((r*sin(theta)) * stdev) + mean
+
+	generated = round(((r * cos(theta)) * stdev) + mean);
+
+
+	return generated;
+}
 
 int gauss_dist(double mean, double stdev,double min,double max)
 {
@@ -127,31 +152,6 @@ int gauss_dist(double mean, double stdev,double min,double max)
 }
 
 
-int gauss_dist(double mean, double stdev)
-{
-
-	// Generates a Gaussian (normal) distribution with only positive values.
-	// generates two random numbers that form the seeds
-	// of the transform
-	double u1, u2, r, theta;
-	int generated = -1;
-
-	u1 = (double)rand() / RAND_MAX;
-	u2 = (double)rand() / RAND_MAX;
-		// generates the R and Theta values from the above
-		// documentation
-	r = sqrt(-2. * log(u1));
-	theta = (2 * M_PI * u2);
-
-		// an additional number can be generated in the
-		// same distribution using the alternate form
-		// ((r*sin(theta)) * stdev) + mean
-
-	generated = round(((r * cos(theta)) * stdev) + mean);
-
-
-	return generated;
-}
 
 
 // Function to calculate an empirical distribution value based on Bin objects.
