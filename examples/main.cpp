@@ -257,7 +257,7 @@ void run_benchmark()
 					printf("xyz 4\n");
 
 					int distanceToN = empirical_dist(dist_to_neighbors_bins);
-					printf("xyz 5\n");
+					printf("xyz 5, distanceToN %i\n", distanceToN);
 
 					if (distanceToN!=0&& seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
 						seen_neighbors.insert(distanceToN);
