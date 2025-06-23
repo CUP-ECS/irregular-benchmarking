@@ -179,7 +179,6 @@ int empirical_dist(std::vector<Bin> bins)
 		if (prob >= rand)
 		{
 			int random = gauss_dist(bin.bin_mean ,bin.bin_stdev,bin.bin_min,bin.bin_max);
-			printf("Prob: %f, rand %lf , number %i \n", prob, rand,random);
 			return random;
 
 		}
