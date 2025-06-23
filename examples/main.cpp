@@ -262,8 +262,6 @@ void run_benchmark()
 			}
 		}
 
-		printf("xyz 4\n");
-
 		TIME_END = std::chrono::high_resolution_clock::now();
 		duration = TIME_END - TIME_START;
 		MPI_Barrier(MPI_COMM_WORLD);
