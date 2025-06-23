@@ -176,7 +176,7 @@ int empirical_dist(std::vector<Bin> bins)
 
 		// Generate  Gaussian distribution for the bin.
         // Repeat until the value is within  minimum and maximum limits.
-		if (prob<= rand)
+		if (prob >= rand)
 		{
 			int random = gauss_dist(bin.bin_mean ,bin.bin_stdev,bin.bin_min,bin.bin_max);
 			printf("Prob: %f, rand %lf , number %i \n", prob, rand,random);
