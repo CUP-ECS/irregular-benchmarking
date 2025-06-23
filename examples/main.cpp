@@ -280,11 +280,13 @@ void run_benchmark()
 		auto slice_ranks = Cabana::slice<0>(aosoa);
 		auto slice_ids = Cabana::slice<1>(aosoa);
 
+		Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
 
 		for (int i = 0; i < num_tuple; ++i)
 		{
 			slice_ranks(i) = comm_rank;
 			slice_ids(i) = i + (num_tuple * comm_rank);
+			export_ranks(i)= -1;
 		}
 
 		printf("test  %i \n",__LINE__);
@@ -294,7 +296,6 @@ void run_benchmark()
 		auto it_data = neighbors_data.begin();
 		auto it_neighbors = neighbors.begin();
 		int inum =0;
-		Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
 		while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
 
 			for (int i = 0; i < num_tuple; ++i){
