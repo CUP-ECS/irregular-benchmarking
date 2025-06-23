@@ -355,7 +355,7 @@ void run_benchmark()
 		MPI_Reduce(local_vals, sum_vals, data_size, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 		if(comm_rank ==0){
-			const char* labels[4] = {
+			const char* labels[data_size] = {
 				"iterations_time",
 				"distributor_time",
 				"fill_space_time",
