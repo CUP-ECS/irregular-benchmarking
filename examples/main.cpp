@@ -207,7 +207,8 @@ void run_benchmark()
 
 	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
 	{
-
+		printf("test  %i \n",__LINE__);
+		fflush(stdout);
 
         std::vector<double> time;
 
@@ -255,7 +256,8 @@ void run_benchmark()
 				}
 			}
 		}
-
+		printf("test  %i \n",__LINE__);
+		fflush(stdout);
 
 
 		using DataTypes = Cabana::MemberTypes<int, int>;
@@ -284,7 +286,7 @@ void run_benchmark()
 		while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
 
 			for (int i = 0; i < num_tuple; ++i){
-			export_ranks(inum++) = *it_neighbors;
+			export_ranks(inum++) = (*it_neighbors+comm_rank)%comm_rank;
 			}
 			++it_data;
 			++it_neighbors;
@@ -300,9 +302,8 @@ void run_benchmark()
 
 		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
-		printf("test\n");
-		fflush(stdout); // Will now print everything in the stdout buffer
-
+		printf("test  %i \n",__LINE__);
+		fflush(stdout);
 
 
 		for (int i = 0; i < niterations ; i++)
