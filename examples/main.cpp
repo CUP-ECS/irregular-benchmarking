@@ -306,6 +306,9 @@ void run_benchmark()
 
 
 
+		printf("test  %i \n",__LINE__);
+		fflush(stdout);
+
 
 
 
