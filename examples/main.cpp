@@ -234,7 +234,12 @@ void run_benchmark()
 				data_sent = gauss_dist(data_sent_orig, data_sent_stdv,data_sent_min,data_sent_max);
 				total_data+=data_sent;
 				while (true) {
+
+
+
 					int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
+					printf("test  %i , dn %i dno %lf dnostd %lf a %i b %i\n",__LINE__,distanceToN,dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
+					fflush(stdout);
 					if (distanceToN!=0&&seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
 						seen_neighbors.insert(distanceToN);
 						neighbors.push_back(distanceToN);
