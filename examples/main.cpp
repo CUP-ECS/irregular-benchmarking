@@ -152,6 +152,7 @@ int gauss_dist(double mean, double stdev,double min,double max)
 	int generated=-1;
 	do {
 		generated= gauss_dist(mean , stdev);
+		printf("test ----");
 	} while (generated<= min || generated >=max);
 	return generated;
 }
