@@ -334,36 +334,40 @@ void run_benchmark()
 		double iterations_time = duration.count() * 1e6;
 
 
+		int data_size =6
 
-
-		double local_vals[4] = {
+		double local_vals[data_size] = {
 			iterations_time,
 			distributor_time,
 			fill_space_time,
-			distribution_time
+			distribution_time,
+			nneighbors,
+			inum
 		};
 
-		double min_vals[4];
-		double max_vals[4];
-		double sum_vals[4];
+		double min_vals[data_size];
+		double max_vals[data_size];
+		double sum_vals[data_size];
 
 		// Perform reductions
-		MPI_Reduce(local_vals, min_vals, 4, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
-		MPI_Reduce(local_vals, max_vals, 4, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-		MPI_Reduce(local_vals, sum_vals, 4, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+		MPI_Reduce(local_vals, min_vals, data_size, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+		MPI_Reduce(local_vals, max_vals, data_size, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+		MPI_Reduce(local_vals, sum_vals, data_size, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 		if(comm_rank ==0){
 			const char* labels[4] = {
 				"iterations_time",
 				"distributor_time",
 				"fill_space_time",
-				"distribution_time"
+				"distribution_time",
+				"neighbors",
+				"data sent"
 			};
 
 			printf("%-20s %-12s %-12s %-12s\n", "Metric", "Min", "Max", "Average");
 			printf("------------------------------------------------------------\n");
 
-			for (int i = 0; i < 4; ++i) {
+			for (int i = 0; i < data_size; ++i) {
 				double avg = sum_vals[i] / comm_size;
 				printf("%-20s %-.6f     %-.6f     %-.6f\n", labels[i], min_vals[i], max_vals[i], avg);
 			}
