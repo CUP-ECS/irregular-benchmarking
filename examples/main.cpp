@@ -242,12 +242,23 @@ void run_benchmark()
 				}
 			}
 		}else if (distribution_type == EMPIRICAL){
+
+			printf("xyz\n");
 			nneighbors     = empirical_dist(nneighbors_bins);
+			printf("xyz 1\n");
 			for (int i = 0; i < nneighbors; ++i){
+				printf("xyz 2\n");
+
 				data_sent = empirical_dist(data_sent_bins);
+				printf("xyz 3\n");
+
 				total_data+=data_sent;
 				while (true) {
+					printf("xyz 4\n");
+
 					int distanceToN = empirical_dist(dist_to_neighbors_bins);
+					printf("xyz 5\n");
+
 					if (distanceToN!=0&& seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
 						seen_neighbors.insert(distanceToN);
 						neighbors.push_back(distanceToN);
