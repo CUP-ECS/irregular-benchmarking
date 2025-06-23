@@ -427,6 +427,9 @@ void parse_config_file(std::string config_file)
 					bins.push_back(bin);
 			}
 
+			std::sort(bins.begin(), bins.end(), [](const Bin& a, const Bin& b) {
+				return a.bin_prop < b.bin_prop;  // Sorts in ascending order
+			});
 
             if (name == "comm_partners")
 			{
