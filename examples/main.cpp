@@ -212,11 +212,6 @@ void run_benchmark()
 
         std::vector<double> time;
 
-		auto bench_mark_loop = std::chrono::high_resolution_clock::now();
-  		Kokkos::Profiling::pushRegion("Bench_mark_loop");
-		auto set_distribution = std::chrono::high_resolution_clock::now();
-		Kokkos::Profiling::pushRegion("set_distribution");
-
         // Modify parameters based on the chosen distribution type
 		std::list<int> neighbors_data;
 		std::list<int> neighbors;
@@ -227,7 +222,15 @@ void run_benchmark()
 		if (distribution_type == GAUSSIAN)
 		{
 			nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv,nneighbors_min,nneighbors_max);
+			printf("test  %i \n",__LINE__);
+			fflush(stdout);
+
+
 			for (int i = 0; i < nneighbors; ++i){
+				printf("test  %i \n",__LINE__);
+				fflush(stdout);
+
+
 				data_sent = gauss_dist(data_sent_orig, data_sent_stdv,data_sent_min,data_sent_max);
 				total_data+=data_sent;
 				while (true) {
