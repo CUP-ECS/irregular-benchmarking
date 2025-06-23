@@ -300,7 +300,7 @@ void run_benchmark()
 		while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
 
 			for (int i = 0; i < num_tuple; ++i){
-			export_ranks(inum++) = (*it_neighbors+comm_rank)%comm_size;
+			export_ranks(inum++) = (*it_neighbors+comm_rank+comm_size)%comm_size;
 			}
 			++it_data;
 			++it_neighbors;
