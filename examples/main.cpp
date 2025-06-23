@@ -277,6 +277,8 @@ void run_benchmark()
 			slice_ids(i) = i + (num_tuple * comm_rank);
 		}
 
+		printf("test  %i \n",__LINE__);
+		fflush(stdout);
 
 
 		auto it_data = neighbors_data.begin();
@@ -299,12 +301,10 @@ void run_benchmark()
 
 
 
-
 		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
 		printf("test  %i \n",__LINE__);
 		fflush(stdout);
-
 
 		for (int i = 0; i < niterations ; i++)
 		{
