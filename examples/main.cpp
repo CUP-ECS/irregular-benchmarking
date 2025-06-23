@@ -415,8 +415,8 @@ void parse_config_file(std::string config_file)
 				dist_to_neighbors = mean;
 				dist_to_neighbors_stdv = stddev;
 				dist_to_neighbors_bins = bins;
-				dist_to_neighbors_min = mean;
-				dist_to_neighbors_max = stddev;
+				dist_to_neighbors_min = min;
+				dist_to_neighbors_max = max;
 			}
 			else
 			{
