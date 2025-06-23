@@ -334,7 +334,7 @@ void run_benchmark()
 		double iterations_time = duration.count() * 1e6;
 
 
-		int data_size =6
+		int data_size =6;
 
 		double local_vals[data_size] = {
 			iterations_time,
