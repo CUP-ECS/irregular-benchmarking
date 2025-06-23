@@ -178,9 +178,9 @@ int empirical_dist(std::vector<Bin> bins)
         // Repeat until the value is within  minimum and maximum limits.
 		if (prob<= rand)
 		{
-
-
-			return gauss_dist(bin.bin_mean ,bin.bin_stdev,bin.bin_min,bin.bin_max);
+			int random = gauss_dist(bin.bin_mean ,bin.bin_stdev,bin.bin_min,bin.bin_max);
+			printf("Prob: %f, rand %lf , number %i \n", prob, rand,random);
+			return random;
 
 		}
 	}
