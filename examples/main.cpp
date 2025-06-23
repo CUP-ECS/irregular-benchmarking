@@ -149,10 +149,11 @@ int gauss_dist(double mean, double stdev)
 int gauss_dist(double mean, double stdev,double min,double max)
 {
 
+	printf("test ---- max %lf min %lf mean %lf std %lf\n",max,min,mean,stdev);
 	int generated=-1;
 	do {
 		generated= gauss_dist(mean , stdev);
-		printf("test ----");
+
 	} while (generated<= min || generated >=max);
 	return generated;
 }
