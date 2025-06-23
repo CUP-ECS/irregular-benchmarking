@@ -526,7 +526,7 @@ void parseArgs(int argc, char **argv)
 
 		TCLAP::ValueArg<int> iterationsArg("i", "iterations", "Number of updates each sample performs", false, 100, "int");
 		TCLAP::ValueArg<int> seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
-		TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", false);
+		TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", true);
 		TCLAP::SwitchArg reportParamsArg("", "report-params", "Enables parameter reporting for use with analysis scripts", false);
 		TCLAP::ValueArg<std::string> distributionArg("d", "distribution", "Choose from: gaussian (default), empirical", false, "gaussian", "string");
 
