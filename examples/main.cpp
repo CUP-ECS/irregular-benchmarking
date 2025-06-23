@@ -296,7 +296,7 @@ void run_benchmark()
 		auto it_data = neighbors_data.begin();
 		auto it_neighbors = neighbors.begin();
 		int inum =0;
-/*
+
 		while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
 
 			for (int i = 0; i < num_tuple; ++i){
@@ -306,7 +306,7 @@ void run_benchmark()
 			++it_neighbors;
 		}
 
-*/
+
 
 		printf("test  %i \n",__LINE__);
 		fflush(stdout);
