@@ -149,7 +149,6 @@ int gauss_dist(double mean, double stdev)
 int gauss_dist(double mean, double stdev,double min,double max)
 {
 
-	printf("test ---- max %lf min %lf mean %lf std %lf\n",max,min,mean,stdev);
 	int generated=-1;
 	do {
 		generated= gauss_dist(mean , stdev);
@@ -207,10 +206,14 @@ void run_benchmark()
 	int comm_size = -1;
 	MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
 
+
+	auto TIME_START = std::chrono::high_resolution_clock::now();
+	auto TIME_END = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> duration = TIME_END - TIME_START;
+
 	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
 	{
-		printf("test  %i \n",__LINE__);
-		fflush(stdout);
+
 
         std::vector<double> time;
 
@@ -220,28 +223,16 @@ void run_benchmark()
 		std::set<int> seen_neighbors;
 
 		int total_data=0;
+		TIME_START = std::chrono::high_resolution_clock::now();
 
 		if (distribution_type == GAUSSIAN)
 		{
 			nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv,nneighbors_min,nneighbors_max);
-			printf("test  %i \n",__LINE__);
-			fflush(stdout);
-
-
 			for (int i = 0; i < nneighbors; ++i){
-				printf("test  %i \n",__LINE__);
-				fflush(stdout);
-
-
 				data_sent = gauss_dist(data_sent_orig, data_sent_stdv,data_sent_min,data_sent_max);
 				total_data+=data_sent;
 				while (true) {
-
-
-
 					int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
-					printf("test  %i , dn %i dno %lf dnostd %lf a %i b %i\n",__LINE__,distanceToN,dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
-					fflush(stdout);
 					if (distanceToN!=0&&seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
 						seen_neighbors.insert(distanceToN);
 						neighbors.push_back(distanceToN);
@@ -266,10 +257,15 @@ void run_benchmark()
 				}
 			}
 		}
-		printf("test  %i \n",__LINE__);
-		fflush(stdout);
 
 
+		TIME_END = std::chrono::high_resolution_clock::now();
+		duration = TIME_END - TIME_START;
+		MPI_Barrier(MPI_COMM_WORLD);
+
+		double distribution_time = duration.count() * 1e6;
+
+		TIME_START = std::chrono::high_resolution_clock::now();
 		using DataTypes = Cabana::MemberTypes<int, int>;
 		const int VectorLength = 8;
 		using MemorySpace = Kokkos::HostSpace;
@@ -289,13 +285,13 @@ void run_benchmark()
 			export_ranks(i)= -1;
 		}
 
-		printf("test  %i \n",__LINE__);
-		fflush(stdout);
+
 
 
 		auto it_data = neighbors_data.begin();
 		auto it_neighbors = neighbors.begin();
 		int inum =0;
+		auto Tfillranks = std::chrono::high_resolution_clock::now();
 
 		while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
 
@@ -306,21 +302,19 @@ void run_benchmark()
 			++it_neighbors;
 		}
 
+		TIME_END = std::chrono::high_resolution_clock::now();
+		duration = TIME_END - TIME_START;
+		double fill_space_time = duration.count() * 1e6;
 
-
-		printf("test  %i \n",__LINE__);
-		fflush(stdout);
-
-
-
-
-
+		TIME_START = std::chrono::high_resolution_clock::now();
 
 		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
-		printf("test  %i \n",__LINE__);
-		fflush(stdout);
+		TIME_END = std::chrono::high_resolution_clock::now();
+		duration = TIME_END - TIME_START;
+		double distributor_time = duration.count() * 1e6;
 
+		TIME_START = std::chrono::high_resolution_clock::now();
 		for (int i = 0; i < niterations ; i++)
 		{
 			//runs this distributor niterations amount of times  ^^^^
@@ -332,6 +326,47 @@ void run_benchmark()
 			auto slice_ids_dst = Cabana::slice<1>(destination);
 		}
 
+		TIME_END = std::chrono::high_resolution_clock::now();
+		duration = TIME_END - TIME_START;
+		double iterations_time = duration.count() * 1e6;
+
+
+
+
+		double local_vals[4] = {
+			iterations_time,
+			distributor_time,
+			fill_space_time,
+			distribution_time
+		};
+
+		double min_vals[4];
+		double max_vals[4];
+		double sum_vals[4];
+
+		// Perform reductions
+		MPI_Reduce(local_vals, min_vals, 4, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+		MPI_Reduce(local_vals, max_vals, 4, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+		MPI_Reduce(local_vals, sum_vals, 4, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+		if(comm_rank ==0){
+			const char* labels[4] = {
+				"iterations_time",
+				"distributor_time",
+				"fill_space_time",
+				"distribution_time"
+			};
+
+			printf("%-20s %-12s %-12s %-12s\n", "Metric", "Min", "Max", "Average");
+			printf("------------------------------------------------------------\n");
+
+			for (int i = 0; i < 4; ++i) {
+				double avg = sum_vals[i] / comm_size;
+				printf("%-20s %-.6f     %-.6f     %-.6f\n", labels[i], min_vals[i], max_vals[i], avg);
+			}
+			printf("------------------------------------------------------------\n");
+
+		}
 
 
 
