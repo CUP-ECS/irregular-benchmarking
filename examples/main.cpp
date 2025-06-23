@@ -372,7 +372,7 @@ void run_benchmark()
 				printf("%-20s %-.6f     %-.6f     %-.6f\n", labels[i], min_vals[i], max_vals[i], avg);
 			}
 			printf("------------------------------------------------------------\n");
-
+			fflush(stdout);
 		}
 
 
