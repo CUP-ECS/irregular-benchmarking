@@ -313,12 +313,21 @@ void run_benchmark()
 
 		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
 
+
+//import halo
+// https://github.com/CUP-ECS/Cabana/blob/add-MPI_Advance/core/src/Cabana_Halo.hpp --constructor
+//
+////spack develop cabana@master
+//
+
 		TIME_END = std::chrono::high_resolution_clock::now();
 		duration = TIME_END - TIME_START;
 		double distributor_time = duration.count() * 1e6;
 
 		TIME_START = std::chrono::high_resolution_clock::now();
-		for (int i = 0; i < niterations ; i++)
+//		for (int i = 0; i < niterations ; i++)
+
+		for (int i = 0; i < 1 ; i++)
 		{
 			//runs this distributor niterations amount of times  ^^^^
 			Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
