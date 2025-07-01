@@ -80,6 +80,7 @@ static int nsamples = 25;
 static int niterations = 100;
 
 
+static std::map<int, std::map<int, double>> distToNeighbors;
 
 
 static double nneighbors = -1;//comm_partners
@@ -94,11 +95,6 @@ static std::vector<Bin> data_sent_bins;
 static int data_sent_min = -1;
 static int data_sent_max = -1;
 
-static double dist_to_neighbors = -1;
-static double dist_to_neighbors_stdv = -1;
-static std::vector<Bin> dist_to_neighbors_bins;
-static int dist_to_neighbors_min = -1;
-static int dist_to_neighbors_max = -1;
 
 
 static double delay = -1;
@@ -118,6 +114,27 @@ static bool report_params = 0;
 static int seed = -1;
 static bool unique_seed = 0;
 static int neighbor_discovery_algo = 0;
+
+int getDistToNeighbors(int nneighbors){
+	int sample = nneighbors
+
+	if (!distToNeighbors.contains(nneighbors)) {
+		auto it = distToNeighbors.upper_bound(nneighbors);
+		sample = it->first
+	}
+	distToNeighbors[ sample ]
+
+	double threshold = static_cast<double>(std::rand()) / RAND_MAX;
+	double sum = 0.0;
+	for (const auto& [innerKey, weight] : distToNeighbors[sample]) {
+		sum += weight;
+		if (sum >= threshold) {
+			return innerKey;
+			break;
+		}
+	}
+}
+
 
 
 int gauss_dist(double mean, double stdev)
@@ -196,7 +213,6 @@ void run_benchmark()
 {
 
 	double nneighbors_orig        = nneighbors;
-	double dist_to_neighbors_orig = dist_to_neighbors;
 	double data_sent_orig         = data_sent;
 
 
@@ -231,7 +247,8 @@ void run_benchmark()
 				data_sent = gauss_dist(data_sent_orig, data_sent_stdv,data_sent_min,data_sent_max);
 				total_data+=data_sent;
 				while (true) {
-					int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
+					int distanceToN = getDistToNeighbors(nneighbors);
+					// todo int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
 					if (distanceToN!=0&&seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
 						seen_neighbors.insert(distanceToN);
 						neighbors.push_back(distanceToN);
@@ -250,8 +267,7 @@ void run_benchmark()
 				total_data+=data_sent;
 				while (true) {
 
-					int distanceToN = empirical_dist(dist_to_neighbors_bins);
-
+					int distanceToN = getDistToNeighbors(nneighbors);
 					if (distanceToN!=0&& seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
 						seen_neighbors.insert(distanceToN);
 						neighbors.push_back(distanceToN);
@@ -419,18 +435,35 @@ void parse_config_file(std::string config_file)
 		for (const auto &param : j["parameters"])
 		{
 
+
 			std::string name = param["name"].get<std::string>();
 
-			double mean = param["mean"].get<double>();
+			if (name == "dist_to_neighbors")
+			{
 
-			double stddev = param["stdev"].get<double>();
+				for (auto& [key, value] : j.items()) {
+					int outer_key = std::stoi(key); // Convert the key to an integer
+					std::map<int, double> inner_map;
+
+					for (auto& [inner_key, inner_value] : value.items()) {
+						int inner_map_key = std::stoi(inner_key); // Convert inner key
+						inner_map[inner_map_key] = inner_value.get<double>(); // Get value as double
+					}
+
+					distToNeighbors[outer_key] = inner_map; // Insert the inner map into the outer map
+				}
+
+			}else{
+				double mean = param["mean"].get<double>();
+
+				double stddev = param["stdev"].get<double>();
 
 
-			int min = static_cast<int>(std::round(param["min"].get<double>()));
-			int max = static_cast<int>(std::round(param["max"].get<double>()));
+				int min = static_cast<int>(std::round(param["min"].get<double>()));
+				int max = static_cast<int>(std::round(param["max"].get<double>()));
 
-			std::vector<Bin> bins;
-			for (const auto& bin_json : param["bins"]) {
+				std::vector<Bin> bins;
+				for (const auto& bin_json : param["bins"]) {
 					Bin bin;
 					bin.bin_min = bin_json["bin_min"];
 					bin.bin_max = bin_json["bin_max"];
@@ -438,51 +471,47 @@ void parse_config_file(std::string config_file)
 					bin.bin_mean = bin_json["bin_mean"];
 					bin.bin_stdev = bin_json["bin_stdev"];
 					bins.push_back(bin);
+				}
+
+				std::sort(bins.begin(), bins.end(), [](const Bin& a, const Bin& b) {
+					return a.bin_prop > b.bin_prop;
+				});
+
+				if (name == "comm_partners")
+				{
+					nneighbors = mean;
+					nneighbors_stdv = stddev;
+					nneighbors_min = min;
+					nneighbors_max = max;
+					nneighbors_bins = bins;
+				}
+
+				else if (name == "delay")
+				{
+					delay = mean;
+					delay_stdv = stddev;
+					delay_min = min;
+					delay_max = max;
+
+					delay_bins = bins;
+				}else if (name == "data_sent")
+				{
+					data_sent = mean;
+					data_sent_stdv = stddev;
+					data_sent_min = min;
+					data_sent_max = max;
+
+					data_sent_bins = bins;
+				}
+				else
+				{
+					// Handle any other parameters
+					// For now, it just has a placeholder comment for future functionality
+					// mostlike an error
+				}
 			}
 
-			std::sort(bins.begin(), bins.end(), [](const Bin& a, const Bin& b) {
-				return a.bin_prop > b.bin_prop;
-			});
 
-            if (name == "comm_partners")
-			{
-				nneighbors = mean;
-				nneighbors_stdv = stddev;
-				nneighbors_min = min;
-				nneighbors_max = max;
-				nneighbors_bins = bins;
-			}
-
-            else if (name == "delay")
-			{
-				delay = mean;
-				delay_stdv = stddev;
-				delay_min = min;
-				delay_max = max;
-
-				delay_bins = bins;
-			}else if (name == "data_sent")
-			{
-				data_sent = mean;
-				data_sent_stdv = stddev;
-				data_sent_min = min;
-				data_sent_max = max;
-
-				data_sent_bins = bins;
-			}else if (name == "dist_to_neighbors")
-			{
-				dist_to_neighbors = mean;
-				dist_to_neighbors_stdv = stddev;
-				dist_to_neighbors_bins = bins;
-				dist_to_neighbors_min = min;
-				dist_to_neighbors_max = max;
-			}
-			else
-			{
-			    // Handle any other parameters
-                // For now, it just has a placeholder comment for future functionality
-                // mostlike an error
-			}
 		}
 	}
 }
