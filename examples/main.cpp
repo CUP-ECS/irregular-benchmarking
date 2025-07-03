@@ -246,7 +246,7 @@ void run_benchmark()
 		    nneighborsV = gauss_dist(nneighbors, nneighbors_stdv,nneighbors_min,nneighbors_max);
 
 			for (int i = 0; i < nneighborsV; ++i){
-				int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max);
+				int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max)/4;
 				total_data+=data_sentV;
 				while (true) {
 
@@ -312,7 +312,7 @@ void run_benchmark()
 		auto it_data = neighbors_data.begin();
 		auto it_neighbors = neighbors.begin();
 		int inum =0;
-		auto Tfillranks = std::chrono::high_resolution_clock::now();
+		TIME_START = std::chrono::high_resolution_clock::now();
 
 		while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
 
