@@ -368,7 +368,7 @@ void run_benchmark()
 			distributor_time,
 			fill_space_time,
 			distribution_time,
-			nneighbors,
+			nneighborsV,
 			inum
 		};
 
