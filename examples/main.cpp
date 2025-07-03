@@ -249,6 +249,8 @@ void run_benchmark()
 				total_data+=data_sent;
 				while (true) {
 					int distanceToN = getDistToNeighbors(nneighbors);
+					printf("-bencchmark while - %i \n",distanceToN);
+
 					// todo int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
 					if (distanceToN!=0&&seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
 						seen_neighbors.insert(distanceToN);
@@ -278,6 +280,7 @@ void run_benchmark()
 				}
 			}
 		}
+		printf("-bencchmark after - %i \n",distanceToN);
 
 		TIME_END = std::chrono::high_resolution_clock::now();
 		duration = TIME_END - TIME_START;
