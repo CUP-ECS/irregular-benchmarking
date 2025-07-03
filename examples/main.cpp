@@ -250,9 +250,10 @@ void run_benchmark()
 				data_sent = gauss_dist(data_sent_orig, data_sent_stdv,data_sent_min,data_sent_max);
 				total_data+=data_sent;
 				while (true) {
-					printf("-bencchmark while - %i \n",distanceToN);
+					printf("-bencchmark while \n");
 
 					int distanceToN = getDistToNeighbors(nneighbors);
+					printf("-bencchmark while - %i \n",distanceToN);
 
 					// todo int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
 					if (distanceToN!=0&&seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
