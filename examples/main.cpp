@@ -165,6 +165,9 @@ int gauss_dist(double mean, double stdev)
 
 int gauss_dist(double mean, double stdev,double min,double max)
 {
+	if (min == max) {
+		return min;
+	}
 
 	int generated=-1;
 	do {
