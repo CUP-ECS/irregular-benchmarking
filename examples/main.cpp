@@ -229,7 +229,7 @@ void run_benchmark()
 
 	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
 	{
-
+		int nneighborsV =-1;
 
         std::vector<double> time;
 
@@ -243,7 +243,7 @@ void run_benchmark()
 
 		if (distribution_type == GAUSSIAN)
 		{
-			int nneighborsV = gauss_dist(nneighbors, nneighbors_stdv,nneighbors_min,nneighbors_max);
+		    nneighborsV = gauss_dist(nneighbors, nneighbors_stdv,nneighbors_min,nneighbors_max);
 
 			for (int i = 0; i < nneighborsV; ++i){
 				int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max);
