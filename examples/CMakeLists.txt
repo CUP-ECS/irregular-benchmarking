@@ -82,7 +82,7 @@ include_directories(${NLOHMANN_JSON_INCLUDE_DIR})
 find_package(vernier REQUIRED)
 
 
-target_link_libraries( main vernier::vernier PRIVATE myproject )
+target_link_libraries( main vernier::vernier myproject )
 
 #target_link_libraries( main PRIVATE ${CALIPER_LIBRARY} )
 
