@@ -242,8 +242,8 @@ void run_benchmark()
 
 		if (distribution_type == GAUSSIAN)
 		{
-			nneighborsV = gauss_dist(nneighbors, nneighbors_stdv,nneighbors_min,nneighbors_max);
-			printf("-gauss_dist nneighbors - %i \n",nneighbors);
+			int nneighborsV = gauss_dist(nneighbors, nneighbors_stdv,nneighbors_min,nneighbors_max);
+			printf("-gauss_dist nneighbors - %i \n",nneighborsV);
 
 			for (int i = 0; i < nneighborsV; ++i){
 				int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max);
@@ -265,7 +265,7 @@ void run_benchmark()
 			}
 		}else if (distribution_type == EMPIRICAL){
 
-			nneighborsV     = empirical_dist(nneighbors_bins);
+			int nneighborsV     = empirical_dist(nneighbors_bins);
 			for (int i = 0; i < nneighborsV; ++i){
 
 				int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max);
