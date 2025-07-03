@@ -280,7 +280,7 @@ void run_benchmark()
 				}
 			}
 		}
-		printf("-bencchmark after - %i \n",distanceToN);
+		printf("-bencchmark after \n");
 
 		TIME_END = std::chrono::high_resolution_clock::now();
 		duration = TIME_END - TIME_START;
