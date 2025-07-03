@@ -123,7 +123,7 @@ int getDistToNeighbors(int nneighbors){
 		sample = it->first;
 	}
 //	distToNeighbors[ sample ];
-	printf("getDistToNeighbors: nneighbors: %d\n", nneighbors);
+	printf("getDistToNeighbors: nneighbors: %d\n", sample);
 	double threshold = static_cast<double>(std::rand()) / RAND_MAX;
 	double sum = 0.0;
 	for (const auto& [innerKey, weight] : distToNeighbors[sample]) {
@@ -213,8 +213,7 @@ void run_benchmark()
 {
 	printf("-bencchmark-\n");
 
-	double nneighbors_orig        = nneighbors;
-	double data_sent_orig         = data_sent;
+
 
 
 	int comm_rank = -1;
@@ -243,12 +242,12 @@ void run_benchmark()
 
 		if (distribution_type == GAUSSIAN)
 		{
-			nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv,nneighbors_min,nneighbors_max);
+			nneighborsV = gauss_dist(nneighbors, nneighbors_stdv,nneighbors_min,nneighbors_max);
 			printf("-gauss_dist nneighbors - %i \n",nneighbors);
 
-			for (int i = 0; i < nneighbors; ++i){
-				data_sent = gauss_dist(data_sent_orig, data_sent_stdv,data_sent_min,data_sent_max);
-				total_data+=data_sent;
+			for (int i = 0; i < nneighborsV; ++i){
+				int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max);
+				total_data+=data_sentV;
 				while (true) {
 					printf("-bencchmark while \n");
 
@@ -259,26 +258,25 @@ void run_benchmark()
 					if (distanceToN!=0&&seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
 						seen_neighbors.insert(distanceToN);
 						neighbors.push_back(distanceToN);
-						neighbors_data.push_back(data_sent);
+						neighbors_data.push_back(data_sentV);
 						break;
 					}
 				}
 			}
 		}else if (distribution_type == EMPIRICAL){
 
-			nneighbors     = empirical_dist(nneighbors_bins);
-			for (int i = 0; i < nneighbors; ++i){
+			nneighborsV     = empirical_dist(nneighbors_bins);
+			for (int i = 0; i < nneighborsV; ++i){
 
-				data_sent = empirical_dist(data_sent_bins);
-
-				total_data+=data_sent;
+				int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max);
+				total_data+=data_sentV;
 				while (true) {
 
 					int distanceToN = getDistToNeighbors(nneighbors);
 					if (distanceToN!=0&& seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
 						seen_neighbors.insert(distanceToN);
 						neighbors.push_back(distanceToN);
-						neighbors_data.push_back(data_sent);
+						neighbors_data.push_back(data_sentV);
 						break;
 					}
 				}
@@ -466,13 +464,9 @@ void parse_config_file(std::string config_file)
 				}
 			}else{
 				double mean = param["mean"].get<double>();
-
 				double stddev = param["stdev"].get<double>();
-
-
 				int min = static_cast<int>(std::round(param["min"].get<double>()));
 				int max = static_cast<int>(std::round(param["max"].get<double>()));
-
 				std::vector<Bin> bins;
 				for (const auto& bin_json : param["bins"]) {
 					Bin bin;
