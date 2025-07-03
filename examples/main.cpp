@@ -115,11 +115,11 @@ static int seed = -1;
 static bool unique_seed = 0;
 static int neighbor_discovery_algo = 0;
 
-int getDistToNeighbors(int nneighbors){
-	int sample = nneighbors;
+int getDistToNeighbors(int neighbors){
+	int sample = neighbors;
 
-	if (distToNeighbors.find(nneighbors) == distToNeighbors.end()) {
-		auto it = distToNeighbors.upper_bound(nneighbors);
+	if (distToNeighbors.find(neighbors) == distToNeighbors.end()) {
+		auto it = distToNeighbors.upper_bound(neighbors);
 		sample = it->first;
 	}
 //	distToNeighbors[ sample ];
@@ -254,7 +254,7 @@ void run_benchmark()
 				while (true) {
 					printf("-bencchmark while \n");
 
-					int distanceToN = getDistToNeighbors(nneighbors);
+					int distanceToN = getDistToNeighbors(nneighborsV);
 					printf("-bencchmark while - %i \n",distanceToN);
 
 					// todo int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
@@ -275,7 +275,7 @@ void run_benchmark()
 				total_data+=data_sentV;
 				while (true) {
 
-					int distanceToN = getDistToNeighbors(nneighbors);
+					int distanceToN = getDistToNeighbors(nneighborsV);
 					if (distanceToN!=0&& seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
 						seen_neighbors.insert(distanceToN);
 						neighbors.push_back(distanceToN);
