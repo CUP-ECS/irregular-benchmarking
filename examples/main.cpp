@@ -440,7 +440,7 @@ void parse_config_file(std::string config_file)
 
 			if (name == "dist_to_neighbors")
 			{
-
+/*
 				for (auto& [key, value] : j.items()) {
 					int outer_key = std::stoi(key); // Convert the key to an integer
 					std::map<int, double> inner_map;
@@ -452,7 +452,7 @@ void parse_config_file(std::string config_file)
 
 					distToNeighbors[outer_key] = inner_map; // Insert the inner map into the outer map
 				}
-
+*/
 			}else{
 				double mean = param["mean"].get<double>();
 
