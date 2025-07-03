@@ -123,7 +123,7 @@ int getDistToNeighbors(int nneighbors){
 		sample = it->first;
 	}
 //	distToNeighbors[ sample ];
-
+	printf("getDistToNeighbors: nneighbors: %d\n", nneighbors);
 	double threshold = static_cast<double>(std::rand()) / RAND_MAX;
 	double sum = 0.0;
 	for (const auto& [innerKey, weight] : distToNeighbors[sample]) {
