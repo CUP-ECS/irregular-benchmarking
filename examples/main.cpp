@@ -246,17 +246,13 @@ void run_benchmark()
 		if (distribution_type == GAUSSIAN)
 		{
 			int nneighborsV = gauss_dist(nneighbors, nneighbors_stdv,nneighbors_min,nneighbors_max);
-			printf("-gauss_dist nneighbors - %i \n",nneighborsV);
 
 			for (int i = 0; i < nneighborsV; ++i){
 				int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max);
 				total_data+=data_sentV;
 				while (true) {
-					printf("-bencchmark while \n");
 
 					int distanceToN = getDistToNeighbors(nneighborsV);
-					printf("-bencchmark while - %i \n",distanceToN);
-
 					// todo int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
 					if (distanceToN!=0&&seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
 						seen_neighbors.insert(distanceToN);
@@ -285,7 +281,6 @@ void run_benchmark()
 				}
 			}
 		}
-		printf("-bencchmark after \n");
 
 		TIME_END = std::chrono::high_resolution_clock::now();
 		duration = TIME_END - TIME_START;
