@@ -118,7 +118,7 @@ static int neighbor_discovery_algo = 0;
 int getDistToNeighbors(int nneighbors){
 	int sample = nneighbors;
 
-	if (!distToNeighbors.contains(nneighbors)) {
+	if (distToNeighbors.find(nneighbors) == distToNeighbors.end()) {
 		auto it = distToNeighbors.upper_bound(nneighbors);
 		sample = it->first;
 	}
