@@ -211,6 +211,7 @@ int empirical_dist(std::vector<Bin> bins)
 // https://github.com/ECP-copa/Cabana/wiki/2-Programming-Guide
 void run_benchmark()
 {
+	printf("-bencchmark-\n");
 
 	double nneighbors_orig        = nneighbors;
 	double data_sent_orig         = data_sent;
