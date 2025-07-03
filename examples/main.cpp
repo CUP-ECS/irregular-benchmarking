@@ -120,7 +120,7 @@ int getDistToNeighbors(int nneighbors){
 
 	if (!distToNeighbors.contains(nneighbors)) {
 		auto it = distToNeighbors.upper_bound(nneighbors);
-		sample = it->first
+		sample = it->first;
 	}
 //	distToNeighbors[ sample ];
 
