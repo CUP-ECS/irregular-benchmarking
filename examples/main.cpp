@@ -123,7 +123,6 @@ int getDistToNeighbors(int neighbors){
 		sample = it->first;
 	}
 //	distToNeighbors[ sample ];
-	printf("getDistToNeighbors: nneighbors: %d\n", sample);
 	double threshold = static_cast<double>(std::rand()) / RAND_MAX;
 	double sum = 0.0;
 	for (const auto& [innerKey, weight] : distToNeighbors[sample]) {
@@ -214,7 +213,6 @@ int empirical_dist(std::vector<Bin> bins)
 // https://github.com/ECP-copa/Cabana/wiki/2-Programming-Guide
 void run_benchmark()
 {
-	printf("-bencchmark-\n");
 
 
 
