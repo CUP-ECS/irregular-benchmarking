@@ -172,7 +172,7 @@ int gauss_dist(double mean, double stdev,double min,double max)
 	do {
 		generated= gauss_dist(mean , stdev);
 
-	} while (generated<= min || generated >=(max+0.5));
+	} while (generated<= (min-0.5) || generated >=(max+0.5));
 	return generated;
 }
 
