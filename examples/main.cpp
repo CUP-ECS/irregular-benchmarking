@@ -244,12 +244,15 @@ void run_benchmark()
 		if (distribution_type == GAUSSIAN)
 		{
 			nneighbors = gauss_dist(nneighbors_orig, nneighbors_stdv,nneighbors_min,nneighbors_max);
+			printf("-gauss_dist nneighbors - %i \n",nneighbors);
+
 			for (int i = 0; i < nneighbors; ++i){
 				data_sent = gauss_dist(data_sent_orig, data_sent_stdv,data_sent_min,data_sent_max);
 				total_data+=data_sent;
 				while (true) {
-					int distanceToN = getDistToNeighbors(nneighbors);
 					printf("-bencchmark while - %i \n",distanceToN);
+
+					int distanceToN = getDistToNeighbors(nneighbors);
 
 					// todo int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
 					if (distanceToN!=0&&seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
