@@ -442,18 +442,20 @@ void parse_config_file(std::string config_file)
 			{
 
 
-				for (auto& [key, value] :  param["bins"]) {
-					int outer_key = std::stoi(key); // Convert the key to an integer
+				for (auto& outer_pair : param["bins"].items()) {
+					int outer_key = std::stoi(outer_pair.key()); // Convert outer key to int
+					const json& inner_obj = outer_pair.value();  // The inner JSON object
+
 					std::map<int, double> inner_map;
 
-					for (auto& [inner_key, inner_value] : value.items()) {
-						int inner_map_key = std::stoi(inner_key); // Convert inner key
-						inner_map[inner_map_key] = inner_value.get<double>(); // Get value as double
+					for (auto& inner_pair : inner_obj.items()) {
+						int inner_key = std::stoi(inner_pair.key());       // Convert inner key
+						double inner_value = inner_pair.value().get<double>(); // Get value as double
+						inner_map[inner_key] = inner_value;                // Store in map
 					}
 
-					distToNeighbors[outer_key] = inner_map; // Insert the inner map into the outer map
+					distToNeighbors[outer_key] = inner_map;
 				}
-
 			}else{
 				double mean = param["mean"].get<double>();
 
