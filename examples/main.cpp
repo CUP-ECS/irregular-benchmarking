@@ -338,6 +338,7 @@ void run_benchmark()
 		if(halo_type == IMPORT){
 			TIME_START = std::chrono::high_resolution_clock::now();
 
+
 			Cabana::Halo<MemorySpace,Cabana::Import> halo( MPI_COMM_WORLD, num_tuple, export_ids,export_ranks );
 			TIME_END = std::chrono::high_resolution_clock::now();
 			duration = TIME_END - TIME_START;
