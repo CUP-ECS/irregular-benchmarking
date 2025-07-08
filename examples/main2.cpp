@@ -38,7 +38,7 @@
 
 #include <stdbool.h>
 
-
+#include <caliper/cali.h>
 
 #include <limits>
 
@@ -291,14 +291,12 @@ void run_benchmark()
 
 
 
-
+		CALI_MARK_COMM_REGION_BEGIN("distributor");
 
 
 		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
-
-
-
-
+		CALI_MARK_COMM_REGION_END("distributor");
+		CALI_MARK_COMM_REGION_BEGIN("migrate");
 		for (int i = 0; i < niterations ; i++)
 		{
 			//runs this distributor niterations amount of times  ^^^^
@@ -309,8 +307,7 @@ void run_benchmark()
 			auto slice_ranks_dst = Cabana::slice<0>(destination);
 			auto slice_ids_dst = Cabana::slice<1>(destination);
 		}
-
-
+		CALI_MARK_COMM_REGION_END("migrate");
 
 
 	}

@@ -60,15 +60,8 @@ enum distribution
 	EMPIRICAL,
 	STATIC_VALUE
 };
+
 typedef enum distribution distribution_t;
-
-enum halo
-{
-	SCATTER,
-	Gather
-};
-
-typedef enum halo halo_t;
 
 enum prefix
 {
@@ -116,7 +109,6 @@ static int unit_div = 1;
 static prefix unit_symbol = A;
 static std::string filepath = "";
 static distribution_t distribution_type = GAUSSIAN;
-static halo_t halo_type = SCATTER;
 
 static bool report_params = 0;
 static int seed = -1;
@@ -293,121 +285,97 @@ void run_benchmark()
 		MPI_Barrier(MPI_COMM_WORLD);
 
 		double distribution_time = duration.count() * 1e6;
+
 		TIME_START = std::chrono::high_resolution_clock::now();
-
-
-		using DataTypes = Cabana::MemberTypes<double, double>;
+		using DataTypes = Cabana::MemberTypes<int, int>;
 		const int VectorLength = 8;
 		using MemorySpace = Kokkos::HostSpace;
-		int num_tuple = data_sent_max*nneighbors_max;
-		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa( "my_aosoa",
-																	num_tuple);
 
-	   	auto slice_ranks = Cabana::slice<0>( aosoa );
-	    auto slice_ids = Cabana::slice<1>( aosoa );
-	    for ( int i = 0; i < num_tuple; ++i )
-	    {
-	        slice_ranks( i ) = comm_rank;
-	        slice_ids( i ) = i;
-	    }
+		int num_tuple = total_data;//todo
 
-		Kokkos::View<int*, MemorySpace> export_ranks( "export_ranks",total_data );
-		Kokkos::View<int*, MemorySpace> export_ids( "export_ids", total_data );
+		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
+		auto slice_ranks = Cabana::slice<0>(aosoa);
+		auto slice_ids = Cabana::slice<1>(aosoa);
 
+		Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
+
+		for (int i = 0; i < num_tuple; ++i)
+		{
+			slice_ranks(i) = comm_rank;
+			slice_ids(i) = i + (num_tuple * comm_rank);
+			export_ranks(i)= -1;
+		}
+
+
+
+
+		auto it_data = neighbors_data.begin();
+		auto it_neighbors = neighbors.begin();
 		int inum =0;
+		TIME_START = std::chrono::high_resolution_clock::now();
 
 		while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
 
 			for (int i = 0; i < *it_data; ++i){
-				export_ids(inum) = inum ;
-				export_ranks(inum++) = (*it_neighbors+comm_rank+comm_size)%comm_size;
+			export_ranks(inum++) = (*it_neighbors+comm_rank+comm_size)%comm_size;
 			}
 			++it_data;
 			++it_neighbors;
 		}
 
+		TIME_END = std::chrono::high_resolution_clock::now();
+		duration = TIME_END - TIME_START;
+		double fill_space_time = duration.count() * 1e6;
 
-		double haloTime;
-		double resizeTime;
-		double gatherTime;
+		TIME_START = std::chrono::high_resolution_clock::now();
 
-
-		if(halo_type == IMPORT){
-			TIME_START = std::chrono::high_resolution_clock::now();
-
-			Cabana::Halo<MemorySpace,Cabana::import> halo( MPI_COMM_WORLD, num_tuple, export_ids,export_ranks );
-			TIME_END = std::chrono::high_resolution_clock::now();
-			duration = TIME_END - TIME_START;
-		    haloTime = duration.count() * 1e6;
+//		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
+		Cabana::Halo<MemorySpace> halo( MPI_COMM_WORLD, num_tuple, export_ids,
+										  export_ranks );
 
 
-			TIME_START = std::chrono::high_resolution_clock::now();
+//import halo
+// https://github.com/CUP-ECS/Cabana/blob/add-MPI_Advance/core/src/Cabana_Halo.hpp --constructor
+//
+////spack develop cabana@master
+//
+
+		TIME_END = std::chrono::high_resolution_clock::now();
+		duration = TIME_END - TIME_START;
+		double distributor_time = duration.count() * 1e6;
+
+		TIME_START = std::chrono::high_resolution_clock::now();
+//		for (int i = 0; i < niterations ; i++)
+
+		for (int i = 0; i < niterations ; i++)
+		{
 			aosoa.resize( halo.numLocal() + halo.numGhost() );
+
+
 			slice_ranks = Cabana::slice<0>( aosoa );
 			slice_ids = Cabana::slice<1>( aosoa );
-
-
-			TIME_END = std::chrono::high_resolution_clock::now();
-			duration = TIME_END - TIME_START;
-			resizeTime  = duration.count() * 1e6;
-
-
-
-
-			TIME_START = std::chrono::high_resolution_clock::now();
-			for (int i = 0; i < niterations ; i++)
-			{
 			Cabana::gather( halo, aosoa );
-			}
-
-			TIME_END = std::chrono::high_resolution_clock::now();
-			duration = TIME_END - TIME_START;
-			gatherTime = duration.count() * 1e6;
-
-
-		}else if(halo_type == EXPORT){
-			TIME_START = std::chrono::high_resolution_clock::now();
-			Cabana::Halo<MemorySpace> halo( MPI_COMM_WORLD, num_tuple, export_ids, export_ranks );
-			TIME_END = std::chrono::high_resolution_clock::now();
-			duration = TIME_END - TIME_START;
-			haloTime = duration.count() * 1e6;
-
-
-			TIME_START = std::chrono::high_resolution_clock::now();
-			aosoa.resize( halo.numLocal() + halo.numGhost() );
-			slice_ranks = Cabana::slice<0>( aosoa );
-			slice_ids = Cabana::slice<1>( aosoa );
-
-
-			TIME_END = std::chrono::high_resolution_clock::now();
-			duration = TIME_END - TIME_START;
-			resizeTime  = duration.count() * 1e6;
-
-
-
-
-			TIME_START = std::chrono::high_resolution_clock::now();
-			for (int i = 0; i < niterations ; i++)
-			{
-				Cabana::gather( halo, aosoa );
-			}
-
-			TIME_END = std::chrono::high_resolution_clock::now();
-			duration = TIME_END - TIME_START;
-			gatherTime = duration.count() * 1e6;
-
 		}
 
 
 
 
 
+
+
+
+		TIME_END = std::chrono::high_resolution_clock::now();
+		duration = TIME_END - TIME_START;
+		double iterations_time = duration.count() * 1e6;
+
+
 		int data_size =6;
 
 		double local_vals[data_size] = {
-			haloTime,
-			resizeTime,
-			gatherTime,
+			iterations_time,
+			distributor_time,
+			fill_space_time,
+			distribution_time,
 			nneighborsV,
 			inum
 		};
@@ -423,10 +391,11 @@ void run_benchmark()
 
 		if(comm_rank ==0){
 			const char* labels[data_size] = {
-				"haloTime",
-				"resizeTime",
-				"gatherTime",
-				"nneighbors",
+				"iterations_time",
+				"distributor_time",
+				"fill_space_time",
+				"distribution_time",
+				"neighbors",
 				"data sent"
 			};
 
