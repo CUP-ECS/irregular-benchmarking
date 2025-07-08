@@ -64,8 +64,8 @@ typedef enum distribution distribution_t;
 
 enum halo
 {
-	SCATTER,
-	Gather
+	IMPORT,
+	EXPORT
 };
 
 typedef enum halo halo_t;
@@ -315,6 +315,8 @@ void run_benchmark()
 		Kokkos::View<int*, MemorySpace> export_ids( "export_ids", total_data );
 
 		int inum =0;
+		auto it_data = neighbors_data.begin();
+		auto it_neighbors = neighbors.begin();
 
 		while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
 
