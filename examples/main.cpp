@@ -70,6 +70,7 @@ enum halo
 
 typedef enum halo halo_t;
 
+
 enum prefix
 {
 	A,
