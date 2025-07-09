@@ -429,7 +429,7 @@ void run_benchmark()
 		nneighborsV = gauss_dist(nneighbors, nneighbors_stdv,nneighbors_min,nneighbors_max);
 
 		for (int i = 0; i < nneighborsV; ++i){
-			int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max)/4;
+			int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max);
 			total_data+=data_sentV;
 			while (true) {
 
