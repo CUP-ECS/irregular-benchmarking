@@ -544,9 +544,6 @@ void run_benchmark()
     slice_ids = Cabana::slice<1>( aosoa );
     Cabana::gather( halo, aosoa );
 
-    /*
-      Having exchanged the data, let's print out the data on one rank.
-    */
     if ( comm_rank == 0 )
     {
         std::cout << "AFTER gather" << std::endl
@@ -565,25 +562,7 @@ void run_benchmark()
                   << std::endl;
     }
 
-    /*
-      Having exchanged the data, let's print out the data on one rank.
-    */
-    if ( comm_rank == 0 )
-    {
-        std::cout << "AFTER scatter" << std::endl
-                  << "(Rank " << comm_rank << ") ";
-        for ( std::size_t i = 0; i < slice_ranks.size(); ++i )
-            std::cout << slice_ranks( i ) << " ";
-        std::cout << std::endl
-                  << "(" << slice_ranks.size() << " ranks after scatter)"
-                  << std::endl
-                  << "(Rank " << comm_rank << ") ";
-        for ( std::size_t i = 0; i < slice_ids.size(); ++i )
-            std::cout << slice_ids( i ) << " ";
-        std::cout << std::endl
-                  << "(" << slice_ids.size() << " IDs after scatter)"
-                  << std::endl;
-    }
+
 }
 
 
