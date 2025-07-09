@@ -223,196 +223,6 @@ int empirical_dist(std::vector<Bin> bins)
 void run_benchmark()
 {
 
-/*
-
-
-	int comm_rank = -1;
-	MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
-	int comm_size = -1;
-	MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-
-
-	auto TIME_START = std::chrono::high_resolution_clock::now();
-	auto TIME_END = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> duration = TIME_END - TIME_START;
-
-	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
-	{
-		int nneighborsV =-1;
-
-        std::vector<double> time;
-
-        // Modify parameters based on the chosen distribution type
-		std::list<int> neighbors_data;
-		std::list<int> neighbors;
-		std::set<int> seen_neighbors;
-
-		int total_data=0;
-		TIME_START = std::chrono::high_resolution_clock::now();
-
-
-
-		TIME_END = std::chrono::high_resolution_clock::now();
-		duration = TIME_END - TIME_START;
-		MPI_Barrier(MPI_COMM_WORLD);
-
-		double distribution_time = duration.count() * 1e6;
-		TIME_START = std::chrono::high_resolution_clock::now();
-
-
-		using DataTypes = Cabana::MemberTypes<double, double>;
-		const int VectorLength = 8;
-		using MemorySpace = Kokkos::HostSpace;
-		int num_tuple = data_sent_max*nneighbors_max;
-		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa( "my_aosoa",
-																	num_tuple);
-
-	   	auto slice_ranks = Cabana::slice<0>( aosoa );
-	    auto slice_ids = Cabana::slice<1>( aosoa );
-	    for ( int i = 0; i < num_tuple; ++i )
-	    {
-	        slice_ranks( i ) = comm_rank;
-	        slice_ids( i ) = i;
-	    }
-
-		Kokkos::View<int*, MemorySpace> export_ranks( "export_ranks",total_data );
-		Kokkos::View<int*, MemorySpace> export_ids( "export_ids", total_data );
-
-
-		printf("line number: %d\n", __LINE__);
-		fflush(stdout);
-
-		double haloTime;
-		double resizeTime;
-		double gatherTime;
-
-
-		if(halo_type == IMPORT||true){
-			TIME_START = std::chrono::high_resolution_clock::now();
-
-			printf("line number: %d\n", __LINE__);
-			fflush(stdout);
-			Cabana::Halo<MemorySpace,Cabana::Import> halo( MPI_COMM_WORLD, num_tuple, export_ids,export_ranks );
-			TIME_END = std::chrono::high_resolution_clock::now();
-			duration = TIME_END - TIME_START;
-		    haloTime = duration.count() * 1e6;
-
-
-			TIME_START = std::chrono::high_resolution_clock::now();
-			aosoa.resize( halo.numLocal() + halo.numGhost() );
-			slice_ranks = Cabana::slice<0>( aosoa );
-			slice_ids = Cabana::slice<1>( aosoa );
-
-
-			TIME_END = std::chrono::high_resolution_clock::now();
-			duration = TIME_END - TIME_START;
-			resizeTime  = duration.count() * 1e6;
-
-
-
-
-			TIME_START = std::chrono::high_resolution_clock::now();
-			for (int i = 0; i < 1 ; i++)
-			{
-				printf("line number: %d\n", __LINE__);
-				fflush(stdout);
-				Cabana::gather( halo, aosoa );
-				printf("line number: %d\n", __LINE__);
-				fflush(stdout);
-			}
-
-			TIME_END = std::chrono::high_resolution_clock::now();
-			duration = TIME_END - TIME_START;
-			gatherTime = duration.count() * 1e6;
-
-
-		}else if(halo_type == EXPORT){
-			TIME_START = std::chrono::high_resolution_clock::now();
-			Cabana::Halo<MemorySpace> halo( MPI_COMM_WORLD, num_tuple, export_ids, export_ranks );
-			TIME_END = std::chrono::high_resolution_clock::now();
-			duration = TIME_END - TIME_START;
-			haloTime = duration.count() * 1e6;
-
-
-			TIME_START = std::chrono::high_resolution_clock::now();
-			aosoa.resize( halo.numLocal() + halo.numGhost() );
-			slice_ranks = Cabana::slice<0>( aosoa );
-			slice_ids = Cabana::slice<1>( aosoa );
-
-
-			TIME_END = std::chrono::high_resolution_clock::now();
-			duration = TIME_END - TIME_START;
-			resizeTime  = duration.count() * 1e6;
-
-
-
-
-			TIME_START = std::chrono::high_resolution_clock::now();
-			for (int i = 0; i < niterations ; i++)
-			{
-				Cabana::gather( halo, aosoa );
-			}
-
-			TIME_END = std::chrono::high_resolution_clock::now();
-			duration = TIME_END - TIME_START;
-			gatherTime = duration.count() * 1e6;
-
-		}
-
-
-		printf("line number: %d\n", __LINE__);
-		fflush(stdout);
-
-
-		int data_size =6;
-
-		double local_vals[data_size] = {
-			haloTime,
-			resizeTime,
-			gatherTime,
-			nneighborsV,
-			inum
-		};
-
-		double min_vals[data_size];
-		double max_vals[data_size];
-		double sum_vals[data_size];
-
-		// Perform reductions
-		MPI_Reduce(local_vals, min_vals, data_size, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
-		MPI_Reduce(local_vals, max_vals, data_size, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-		MPI_Reduce(local_vals, sum_vals, data_size, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-
-		if(comm_rank ==0){
-			const char* labels[data_size] = {
-				"haloTime",
-				"resizeTime",
-				"gatherTime",
-				"nneighbors",
-				"data sent"
-			};
-
-			printf("%-20s %-12s %-12s %-12s\n", "Metric", "Min", "Max", "Average");
-			printf("------------------------------------------------------------\n");
-
-			for (int i = 0; i < data_size; ++i) {
-				double avg = sum_vals[i] / comm_size;
-				printf("%-20s %-.6f     %-.6f     %-.6f\n", labels[i], min_vals[i], max_vals[i], avg);
-			}
-			printf("------------------------------------------------------------\n");
-			fflush(stdout);
-		}
-
-
-
-	}
-
-
-
-
-
-
-*/
 	auto TIME_START = std::chrono::high_resolution_clock::now();
 	auto TIME_END = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = TIME_END - TIME_START;
@@ -492,7 +302,7 @@ void run_benchmark()
 
 
 
-    if ( comm_rank == 0 )
+    if ( comm_rank == -1 )
     {
         std::cout << "BEFORE exchange" << std::endl
                   << "(Rank " << comm_rank << ") ";
@@ -608,7 +418,7 @@ void run_benchmark()
 
 
 
-    if ( comm_rank == 0 )
+    if ( comm_rank == -1 )
     {
         std::cout << "AFTER gather" << std::endl
                   << "(Rank " << comm_rank << ") ";
