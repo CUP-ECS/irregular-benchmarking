@@ -361,7 +361,7 @@ void run_benchmark()
 
 
 			TIME_START = std::chrono::high_resolution_clock::now();
-			for (int i = 0; i < niterations ; i++)
+			for (int i = 0; i < 1 ; i++)
 			{
 				printf("line number: %d\n", __LINE__);
 				fflush(stdout);
