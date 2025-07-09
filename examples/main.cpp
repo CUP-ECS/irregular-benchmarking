@@ -421,7 +421,8 @@ void run_benchmark()
 	std::set<int> seen_neighbors;
 	int total_data=0;
 	int nneighborsV =-1;
-
+	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
+	{
 	if (distribution_type == GAUSSIAN)
 	{
 		nneighborsV = gauss_dist(nneighbors, nneighbors_stdv,nneighbors_min,nneighbors_max);
@@ -667,7 +668,7 @@ void run_benchmark()
 		printf("------------------------------------------------------------\n");
 		fflush(stdout);
 	}
-
+	}
 
 }
 
