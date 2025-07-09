@@ -416,13 +416,14 @@ void run_benchmark()
 	auto TIME_START = std::chrono::high_resolution_clock::now();
 	auto TIME_END = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = TIME_END - TIME_START;
+	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
+	{
 	std::list<int> neighbors_data;
 	std::list<int> neighbors;
 	std::set<int> seen_neighbors;
 	int total_data=0;
 	int nneighborsV =-1;
-	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
-	{
+
 	if (distribution_type == GAUSSIAN)
 	{
 		nneighborsV = gauss_dist(nneighbors, nneighbors_stdv,nneighbors_min,nneighbors_max);
@@ -553,7 +554,7 @@ void run_benchmark()
 
 
 		TIME_START = std::chrono::high_resolution_clock::now();
-		for (int i = 0; i < niterations ; i++)
+		for (int i = 0; i < 1 ; i++)
 		{
 			Cabana::gather( halo, aosoa );
 		}
@@ -563,8 +564,6 @@ void run_benchmark()
 		gatherTime = duration.count() * 1e6;
 
 	}else if(halo_type == IMPORT){
-
-
 		TIME_START = std::chrono::high_resolution_clock::now();
 		Cabana::Halo<MemorySpace,Cabana::Import> halo( MPI_COMM_WORLD, num_tuple, export_ids, export_ranks );
 		TIME_END = std::chrono::high_resolution_clock::now();
