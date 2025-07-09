@@ -509,17 +509,11 @@ void run_benchmark()
                   << std::endl;
     }
 
-    /*
-      Build a halo where the last 10 elements are sent to the next rank.
-    */
-    int local_num_send = 10;
+
+    int local_num_send = total_data;
     Kokkos::View<int*, MemorySpace> export_ranks( "export_ranks",
                                                   local_num_send );
     Kokkos::View<int*, MemorySpace> export_ids( "export_ids", local_num_send );
-
-    // Last 10 elements (elements 90-99) go to the next rank. Note that this
-    // view will most often be filled within a parallel_for but we do so in
-    // serial here for demonstration purposes.
 
 	int inum =0;
 	auto it_data = neighbors_data.begin();
