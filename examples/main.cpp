@@ -413,7 +413,9 @@ void run_benchmark()
 
 
 */
-
+	auto TIME_START = std::chrono::high_resolution_clock::now();
+	auto TIME_END = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> duration = TIME_END - TIME_START;
 	std::list<int> neighbors_data;
 	std::list<int> neighbors;
 	std::set<int> seen_neighbors;
