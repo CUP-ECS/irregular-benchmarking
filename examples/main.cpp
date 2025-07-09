@@ -529,10 +529,9 @@ void run_benchmark()
 		++it_data;
 		++it_neighbors;
 	}
-    std::vector<int> neighbors = { previous_rank, comm_rank, next_rank };
-    std::sort( neighbors.begin(), neighbors.end() );
-    auto unique_end = std::unique( neighbors.begin(), neighbors.end() );
-    neighbors.resize( std::distance( neighbors.begin(), unique_end ) );
+
+
+
     Cabana::Halo<MemorySpace> halo( MPI_COMM_WORLD, num_tuple, export_ids,
                                     export_ranks );
     aosoa.resize( halo.numLocal() + halo.numGhost() );
