@@ -630,7 +630,7 @@ void run_benchmark()
 
 
 
-	int data_size =5
+	int data_size =5;
 	double local_vals[data_size] = {
 		haloTime,
 		resizeTime,
