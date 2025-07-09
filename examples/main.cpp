@@ -578,7 +578,7 @@ void run_benchmark()
     auto unique_end = std::unique( neighbors.begin(), neighbors.end() );
     neighbors.resize( std::distance( neighbors.begin(), unique_end ) );
     Cabana::Halo<MemorySpace> halo( MPI_COMM_WORLD, num_tuple, export_ids,
-                                    export_ranks, neighbors );
+                                    export_ranks );
 
     /*
       Resize the AoSoA to allow for additional ghost data. We can get the
