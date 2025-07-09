@@ -250,44 +250,7 @@ void run_benchmark()
 		int total_data=0;
 		TIME_START = std::chrono::high_resolution_clock::now();
 
-		if (distribution_type == GAUSSIAN)
-		{
-		    nneighborsV = gauss_dist(nneighbors, nneighbors_stdv,nneighbors_min,nneighbors_max);
 
-			for (int i = 0; i < nneighborsV; ++i){
-				int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max)/4;
-				total_data+=data_sentV;
-				while (true) {
-
-					int distanceToN = getDistToNeighbors(nneighborsV);
-					// todo int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
-					if (distanceToN!=0&&seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
-						seen_neighbors.insert(distanceToN);
-						neighbors.push_back(distanceToN);
-						neighbors_data.push_back(data_sentV);
-						break;
-					}
-				}
-			}
-		}else if (distribution_type == EMPIRICAL){
-
-			int nneighborsV     = empirical_dist(nneighbors_bins);
-			for (int i = 0; i < nneighborsV; ++i){
-
-				int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max);
-				total_data+=data_sentV;
-				while (true) {
-
-					int distanceToN = getDistToNeighbors(nneighborsV);
-					if (distanceToN!=0&& seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
-						seen_neighbors.insert(distanceToN);
-						neighbors.push_back(distanceToN);
-						neighbors_data.push_back(data_sentV);
-						break;
-					}
-				}
-			}
-		}
 
 		TIME_END = std::chrono::high_resolution_clock::now();
 		duration = TIME_END - TIME_START;
@@ -315,19 +278,7 @@ void run_benchmark()
 		Kokkos::View<int*, MemorySpace> export_ranks( "export_ranks",total_data );
 		Kokkos::View<int*, MemorySpace> export_ids( "export_ids", total_data );
 
-		int inum =0;
-		auto it_data = neighbors_data.begin();
-		auto it_neighbors = neighbors.begin();
 
-		while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
-
-			for (int i = 0; i < *it_data; ++i){
-				export_ids(inum) = inum ;
-				export_ranks(inum++) = (*it_neighbors+comm_rank+comm_size)%comm_size;
-			}
-			++it_data;
-			++it_neighbors;
-		}
 		printf("line number: %d\n", __LINE__);
 		fflush(stdout);
 
@@ -462,32 +413,47 @@ void run_benchmark()
 
 
 */
-    /*
-      The halo is a communication plan designed from halo exchange where some
-      locally-owned elements on each rank are used as ghost data on other
-      ranks. The halo supplies both forward and reverse communication
-      operations. In the forward operation (the gather), data is sent from the
-      uniquely-owned decomposition to the ghosted decomposition. In the
-      reverse operation (the scatter), data is sent from the ghosted
-      decomposition back to the uniquely-owned decomposition and collisions
-      are resolved.
 
-      In this example we will demonstrate building a halo communication
-      plan and performing both scatter and gather operations.
 
-      Note: The halo uses MPI for data movement. MPI is initialized
-      and finalized in the main function below.
+	if (distribution_type == GAUSSIAN)
+	{
+		nneighborsV = gauss_dist(nneighbors, nneighbors_stdv,nneighbors_min,nneighbors_max);
 
-      Note: The halo uses GPU-aware MPI communication. If AoSoA data is
-      allocated in GPU memory, this feature will be used automatically.
-    */
+		for (int i = 0; i < nneighborsV; ++i){
+			int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max)/4;
+			total_data+=data_sentV;
+			while (true) {
 
-    std::cout << "Cabana Halo Example\n" << std::endl;
+				int distanceToN = getDistToNeighbors(nneighborsV);
+				// todo int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
+				if (distanceToN!=0&&seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
+					seen_neighbors.insert(distanceToN);
+					neighbors.push_back(distanceToN);
+					neighbors_data.push_back(data_sentV);
+					break;
+				}
+			}
+		}
+	}else if (distribution_type == EMPIRICAL){
 
-    /*
-       Get parameters from the communicator. We will use MPI_COMM_WORLD for
-       this example but any MPI communicator may be used.
-    */
+		int nneighborsV     = empirical_dist(nneighbors_bins);
+		for (int i = 0; i < nneighborsV; ++i){
+
+			int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max);
+			total_data+=data_sentV;
+			while (true) {
+
+				int distanceToN = getDistToNeighbors(nneighborsV);
+				if (distanceToN!=0&& seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
+					seen_neighbors.insert(distanceToN);
+					neighbors.push_back(distanceToN);
+					neighbors_data.push_back(data_sentV);
+					break;
+				}
+			}
+		}
+	}
+
     int comm_rank = -1;
     MPI_Comm_rank( MPI_COMM_WORLD, &comm_rank );
     int comm_size = -1;
@@ -500,10 +466,7 @@ void run_benchmark()
     const int VectorLength = 8;
     using MemorySpace = Kokkos::HostSpace;
 
-    /*
-       Create the AoSoA.
-    */
-    int num_tuple = 100;
+	int num_tuple = data_sent_max*nneighbors_max;
     Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa( "my_aosoa",
                                                                num_tuple );
 
@@ -520,10 +483,9 @@ void run_benchmark()
         slice_ids( i ) = i;
     }
 
-    /*
-      Before migrating the data, let's print out the data in the slices
-      on one rank.
-    */
+
+
+
     if ( comm_rank == 0 )
     {
         std::cout << "BEFORE exchange" << std::endl
@@ -553,60 +515,29 @@ void run_benchmark()
     // Last 10 elements (elements 90-99) go to the next rank. Note that this
     // view will most often be filled within a parallel_for but we do so in
     // serial here for demonstration purposes.
-    int previous_rank = ( comm_rank == 0 ) ? comm_size - 1 : comm_rank - 1;
-    int next_rank = ( comm_rank == comm_size - 1 ) ? 0 : comm_rank + 1;
-    for ( int i = 0; i < local_num_send; ++i )
-    {
-        export_ranks( i ) = next_rank;
-        export_ids( i ) = i + num_tuple - 10;
-    }
 
-    /*
-      We have two ways to make a halo. In the first case we know what ranks we
-      are sending the data to but not the ranks we are receiving data from. In
-      the second we know the topology of the communication plan (i.e. the
-      ranks we send and receive from).
+	int inum =0;
+	auto it_data = neighbors_data.begin();
+	auto it_neighbors = neighbors.begin();
 
-      We know that we will only send/receive from this rank and the
-      next/previous rank so use that information in this case because this
-      substantially reduces the amount of communication needed to compose the
-      communication plan. If this neighbor data were not supplied, extra
-      global communication would be needed to generate a list of neighbors.
-     */
+	while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
+
+		for (int i = 0; i < *it_data; ++i){
+			export_ids(inum) = inum ;
+			export_ranks(inum++) = (*it_neighbors+comm_rank+comm_size)%comm_size;
+		}
+		++it_data;
+		++it_neighbors;
+	}
     std::vector<int> neighbors = { previous_rank, comm_rank, next_rank };
     std::sort( neighbors.begin(), neighbors.end() );
     auto unique_end = std::unique( neighbors.begin(), neighbors.end() );
     neighbors.resize( std::distance( neighbors.begin(), unique_end ) );
     Cabana::Halo<MemorySpace> halo( MPI_COMM_WORLD, num_tuple, export_ids,
                                     export_ranks );
-
-    /*
-      Resize the AoSoA to allow for additional ghost data. We can get the
-      number of ghosts directly from the halo as well as the number of local
-      elements (which is equal to num_tuple). We should be getting 10 ghosts
-      from our neighbor so the new size should be 110 in this case.
-
-      The halo always puts the ghost data at the end of the aosoa. In this
-      case the first 100 elements are those that we started with and the next
-      10 are the ghosts we got from our neighbor. If there are multiple ranks
-      that are sending us ghosts, the ghost data will blocked by their owning
-      rank such that all ghosts from a single rank appear in consecutive
-      order.
-     */
     aosoa.resize( halo.numLocal() + halo.numGhost() );
-
-    /*
-      Get new slices after resizing.
-     */
     slice_ranks = Cabana::slice<0>( aosoa );
     slice_ids = Cabana::slice<1>( aosoa );
-
-    /*
-      Gather data for the ghosts on this rank from our neighbors that own
-      them. We can do this with slices or the entire AoSoA. The last ten
-      elements in the AoSoA should now have data from our neighbor (with
-      their previous local ID), with a total size of 110.
-     */
     Cabana::gather( halo, aosoa );
 
     /*
