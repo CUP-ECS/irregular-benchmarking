@@ -474,12 +474,6 @@ void run_benchmark()
 	int num_tuple = data_sent_max*nneighbors_max;
     Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa( "my_aosoa",
                                                                num_tuple );
-
-    /*
-      Create slices with the MPI rank and a local ID so we can follow where the
-      data goes. One might consider using a parallel for loop in this case -
-      especially when the code being written is for an arbitrary memory space.
-     */
     auto slice_ranks = Cabana::slice<0>( aosoa );
     auto slice_ids = Cabana::slice<1>( aosoa );
     for ( int i = 0; i < num_tuple; ++i )
@@ -531,16 +525,37 @@ void run_benchmark()
 
 
 
-    Cabana::Halo<MemorySpace> halo( MPI_COMM_WORLD, num_tuple, export_ids,
-                                    export_ranks );
-    aosoa.resize( halo.numLocal() + halo.numGhost() );
-    slice_ranks = Cabana::slice<0>( aosoa );
-    slice_ids = Cabana::slice<1>( aosoa );
+	if(halo_type == IMPORT||true){
 
-	for (int i = 0; i < niterations ; i++)
-	{
-		Cabana::gather( halo, aosoa );
+		Cabana::Halo<MemorySpace,Cabana::Import> halo( MPI_COMM_WORLD, num_tuple, export_ids,export_ranks );
+
+		aosoa.resize( halo.numLocal() + halo.numGhost() );
+		slice_ranks = Cabana::slice<0>( aosoa );
+		slice_ids = Cabana::slice<1>( aosoa );
+
+		for (int i = 0; i < niterations ; i++)
+		{
+			Cabana::gather( halo, aosoa );
+		}
+
+
+	}else if(halo_type == EXPORT){
+
+		Cabana::Halo<MemorySpace> halo( MPI_COMM_WORLD, num_tuple, export_ids,
+										export_ranks );
+		aosoa.resize( halo.numLocal() + halo.numGhost() );
+		slice_ranks = Cabana::slice<0>( aosoa );
+		slice_ids = Cabana::slice<1>( aosoa );
+
+		for (int i = 0; i < niterations ; i++)
+		{
+			Cabana::gather( halo, aosoa );
+		}
+
 	}
+
+
+
 
     if ( comm_rank == 0 )
     {
@@ -559,6 +574,43 @@ void run_benchmark()
                   << std::endl
                   << std::endl;
     }
+	int data_size =5
+	double local_vals[data_size] = {
+		haloTime,
+		resizeTime,
+		gatherTime,
+		nneighborsV,
+		inum
+	};
+
+	double min_vals[data_size];
+	double max_vals[data_size];
+	double sum_vals[data_size];
+
+	// Perform reductions
+	MPI_Reduce(local_vals, min_vals, data_size, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+	MPI_Reduce(local_vals, max_vals, data_size, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+	MPI_Reduce(local_vals, sum_vals, data_size, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+	if(comm_rank ==0){
+		const char* labels[data_size] = {
+			"haloTime",
+			"resizeTime",
+			"gatherTime",
+			"nneighbors",
+			"data sent"
+		};
+
+		printf("%-20s %-12s %-12s %-12s\n", "Metric", "Min", "Max", "Average");
+		printf("------------------------------------------------------------\n");
+
+		for (int i = 0; i < data_size; ++i) {
+			double avg = sum_vals[i] / comm_size;
+			printf("%-20s %-.6f     %-.6f     %-.6f\n", labels[i], min_vals[i], max_vals[i], avg);
+		}
+		printf("------------------------------------------------------------\n");
+		fflush(stdout);
+	}
 
 
 }
