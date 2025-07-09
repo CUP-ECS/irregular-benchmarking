@@ -417,6 +417,7 @@ void run_benchmark()
 	std::list<int> neighbors_data;
 	std::list<int> neighbors;
 	std::set<int> seen_neighbors;
+	int total_data=0;
 
 	if (distribution_type == GAUSSIAN)
 	{
