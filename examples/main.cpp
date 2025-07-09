@@ -536,7 +536,11 @@ void run_benchmark()
     aosoa.resize( halo.numLocal() + halo.numGhost() );
     slice_ranks = Cabana::slice<0>( aosoa );
     slice_ids = Cabana::slice<1>( aosoa );
-    Cabana::gather( halo, aosoa );
+
+	for (int i = 0; i < niterations ; i++)
+	{
+		Cabana::gather( halo, aosoa );
+	}
 
     if ( comm_rank == 0 )
     {
