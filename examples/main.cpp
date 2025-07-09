@@ -527,7 +527,7 @@ void run_benchmark()
 
 	if(halo_type == IMPORT||true){
 
-		Cabana::Halo<MemorySpace,Cabana::Import> halo( MPI_COMM_WORLD, num_tuple, export_ids,export_ranks );
+		Cabana::Halo<MemorySpace> halo( MPI_COMM_WORLD, num_tuple, export_ids,export_ranks );
 
 		aosoa.resize( halo.numLocal() + halo.numGhost() );
 		slice_ranks = Cabana::slice<0>( aosoa );
