@@ -574,6 +574,7 @@ void run_benchmark()
                   << std::endl
                   << std::endl;
     }
+/*
 	int data_size =5
 	double local_vals[data_size] = {
 		haloTime,
@@ -612,7 +613,7 @@ void run_benchmark()
 		fflush(stdout);
 	}
 
-
+*/
 }
 
 
