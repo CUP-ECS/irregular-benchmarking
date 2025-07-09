@@ -328,17 +328,19 @@ void run_benchmark()
 			++it_data;
 			++it_neighbors;
 		}
-
+		printf("line number: %d\n", __LINE__);
+		fflush(stdout);
 
 		double haloTime;
 		double resizeTime;
 		double gatherTime;
 
 
-		if(halo_type == IMPORT){
+		if(halo_type == IMPORT||true){
 			TIME_START = std::chrono::high_resolution_clock::now();
 
-
+			printf("line number: %d\n", __LINE__);
+			fflush(stdout);
 			Cabana::Halo<MemorySpace,Cabana::Import> halo( MPI_COMM_WORLD, num_tuple, export_ids,export_ranks );
 			TIME_END = std::chrono::high_resolution_clock::now();
 			duration = TIME_END - TIME_START;
@@ -361,7 +363,11 @@ void run_benchmark()
 			TIME_START = std::chrono::high_resolution_clock::now();
 			for (int i = 0; i < niterations ; i++)
 			{
-			Cabana::gather( halo, aosoa );
+				printf("line number: %d\n", __LINE__);
+				fflush(stdout);
+				Cabana::gather( halo, aosoa );
+				printf("line number: %d\n", __LINE__);
+				fflush(stdout);
 			}
 
 			TIME_END = std::chrono::high_resolution_clock::now();
@@ -403,7 +409,8 @@ void run_benchmark()
 		}
 
 
-
+		printf("line number: %d\n", __LINE__);
+		fflush(stdout);
 
 
 		int data_size =6;
