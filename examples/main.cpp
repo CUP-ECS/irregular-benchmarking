@@ -116,7 +116,7 @@ static int delay_max = -1;
 static int unit_div = 1;
 static prefix unit_symbol = A;
 static std::string filepath = "";
-static distribution_t distribution_type = GAUSSIAN;
+static distribution_t distribution_type = EMPIRICAL;
 static halo_t halo_type = EXPORT;
 
 static bool report_params = 0;
@@ -181,7 +181,7 @@ int gauss_dist(double mean, double stdev,double min,double max)
 	do {
 		generated= gauss_dist(mean , stdev);
 
-	} while (generated<= (min-0.5) || generated >=(max+0.5));
+	} while (generated<= (min-0.9999) || generated >=(max+0.99999));
 	return generated;
 }
 
