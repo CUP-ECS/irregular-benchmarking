@@ -34,16 +34,16 @@
     {
       "name": "data_sent",
       "bin_count": 1,
-      "min": 4.0,
-      "max": 4.0,
-      "mean": 4.0,
+      "min": 1.0,
+      "max": 1.0,
+      "mean": 1.0,
       "stdev": 0.0,
       "bins": [
         {
-          "bin_min": 4.0,
-          "bin_max": 4.0,
+          "bin_min": 1.0,
+          "bin_max": 1.0,
           "bin_prop": 1.0,
-          "bin_mean": 4.0,
+          "bin_mean": 1.0,
           "bin_stdev": 0.0
         }
       ]
