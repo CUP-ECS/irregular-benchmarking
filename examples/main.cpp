@@ -86,7 +86,7 @@ typedef enum prefix prefix_t;
 static int typesize = 8;
 static int numpes = 0;
 static int nsamples = 25;
-static int niterations = 1;
+static int niterations = 0;
 
 
 static std::map<int, std::map<int, double>> distToNeighbors;
