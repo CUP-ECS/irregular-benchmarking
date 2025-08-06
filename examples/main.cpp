@@ -86,7 +86,7 @@ typedef enum prefix prefix_t;
 static int typesize = 8;
 static int numpes = 0;
 static int nsamples = 25;
-static int niterations = 100;
+static int niterations = 1;
 
 
 static std::map<int, std::map<int, double>> distToNeighbors;
@@ -365,9 +365,11 @@ void run_benchmark()
 
 
 		TIME_START = std::chrono::high_resolution_clock::now();
-		for (int i = 0; i < 1 ; i++)
+		auto gather = createGather( *halo, data, 3.0 );
+
+		for (int i = 0; i < niterations ; i++)
 		{
-			Cabana::gather( halo, aosoa );
+			gather.apply();
 		}
 
 		TIME_END = std::chrono::high_resolution_clock::now();
@@ -394,9 +396,11 @@ void run_benchmark()
 
 
 		TIME_START = std::chrono::high_resolution_clock::now();
-		for (int i = 0; i < 1 ; i++)
+		auto gather = createGather( *halo, data, 3.0 );
+
+		for (int i = 0; i < niterations ; i++)
 		{
-			Cabana::gather( halo, aosoa );
+			gather.apply();
 		}
 
 		TIME_END = std::chrono::high_resolution_clock::now();
@@ -408,10 +412,11 @@ void run_benchmark()
 		aosoa.resize( halo.numLocal() + halo.numGhost() );
 		slice_ranks = Cabana::slice<0>( aosoa );
 		slice_ids = Cabana::slice<1>( aosoa );
+		auto gather = createGather( *halo, data, 3.0 );
 
 		for (int i = 0; i < niterations ; i++)
 		{
-			Cabana::gather( halo, aosoa );
+			gather.apply();
 		}
 	}
 
