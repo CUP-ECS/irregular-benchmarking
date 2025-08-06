@@ -42,6 +42,7 @@
 
 #include <limits>
 
+#include <cxxabi.h>
 
 using json = nlohmann::json;
 
@@ -117,7 +118,7 @@ static int unit_div = 1;
 static prefix unit_symbol = A;
 static std::string filepath = "";
 static distribution_t distribution_type = EMPIRICAL;
-static halo_t halo_type = EXPORT;
+static halo_t halo_type = IMPORT;
 
 static bool report_params = 0;
 static int seed = -1;
@@ -392,10 +393,8 @@ void run_benchmark()
 		resizeTime  = duration.count() * 1e6;
 
 
-
-
 		TIME_START = std::chrono::high_resolution_clock::now();
-		for (int i = 0; i < niterations ; i++)
+		for (int i = 0; i < 1 ; i++)
 		{
 			Cabana::gather( halo, aosoa );
 		}
