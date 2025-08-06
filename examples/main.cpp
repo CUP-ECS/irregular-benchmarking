@@ -118,7 +118,7 @@ static int unit_div = 1;
 static prefix unit_symbol = A;
 static std::string filepath = "";
 static distribution_t distribution_type = EMPIRICAL;
-static halo_t halo_type = IMPORT;
+static halo_t halo_type = EXPORT;
 
 static bool report_params = 0;
 static int seed = -1;
