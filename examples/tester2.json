@@ -2,7 +2,7 @@
   "parameters": [
     {
       "name": "comm_partners",
-      "bin_count": 2,
+      "bin_count": 1,
       "min": 1.0,
       "max": 3.0,
       "mean": 2.296296296296297,
