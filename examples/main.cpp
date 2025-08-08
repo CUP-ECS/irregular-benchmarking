@@ -44,6 +44,12 @@
 
 #include <cxxabi.h>
 
+#define PRINT_DEBUG \
+    do { \
+        printf("DEBUG: File: %s, Line: %d\n", __FILE__, __LINE__); \
+        fflush(stdout); \
+    } while (0);
+
 using json = nlohmann::json;
 
 struct Bin {
@@ -365,12 +371,15 @@ void run_benchmark()
 
 
 		TIME_START = std::chrono::high_resolution_clock::now();
+PRINT_DEBUG
 		auto gather = Cabana::createGather( halo, aosoa, 3.0 );
-
+PRINT_DEBUG
 		for (int i = 0; i < niterations ; i++)
 		{
+PRINT_DEBUG
 			gather.apply();
 		}
+PRINT_DEBUG
 
 		TIME_END = std::chrono::high_resolution_clock::now();
 		duration = TIME_END - TIME_START;
@@ -396,12 +405,15 @@ void run_benchmark()
 
 
 		TIME_START = std::chrono::high_resolution_clock::now();
+PRINT_DEBUG
 		auto gather = Cabana::createGather( halo, aosoa, 3.0 );
-
+PRINT_DEBUG
 		for (int i = 0; i < niterations ; i++)
 		{
+PRINT_DEBUG
 			gather.apply();
 		}
+PRINT_DEBUG
 
 		TIME_END = std::chrono::high_resolution_clock::now();
 		duration = TIME_END - TIME_START;
@@ -412,11 +424,12 @@ void run_benchmark()
 		aosoa.resize( halo.numLocal() + halo.numGhost() );
 		slice_ranks = Cabana::slice<0>( aosoa );
 		slice_ids = Cabana::slice<1>( aosoa );
-		auto gather = Cabana::createGather( halo, aosoa, 3.0 );
+		auto gather = Cabana::createGather( halo, aosoa, 1.0 );
 
-
+PRINT_DEBUG
 		for (int i = 0; i < niterations ; i++)
 		{
+PRINT_DEBUG
 			gather.apply();
 		}
 	}
@@ -425,6 +438,7 @@ void run_benchmark()
 
     if ( comm_rank == -1 )
     {
+PRINT_DEBUG
         std::cout << "AFTER gather" << std::endl
                   << "(Rank " << comm_rank << ") ";
         for ( std::size_t i = 0; i < slice_ranks.size(); ++i )
