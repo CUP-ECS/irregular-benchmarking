@@ -92,7 +92,7 @@ typedef enum prefix prefix_t;
 static int typesize = 8;
 static int numpes = 0;
 static int nsamples = 25;
-static int niterations = 0;
+static int niterations = 1;
 
 
 static std::map<int, std::map<int, double>> distToNeighbors;
@@ -359,6 +359,8 @@ void run_benchmark()
 
 		TIME_START = std::chrono::high_resolution_clock::now();
 		aosoa.resize( halo.numLocal() + halo.numGhost() );
+		printf("num Ghost %i \n",halo.numGhost());
+		fflush(stdout);
 		slice_ranks = Cabana::slice<0>( aosoa );
 		slice_ids = Cabana::slice<1>( aosoa );
 
@@ -648,7 +650,7 @@ void parseArgs(int argc, char **argv)
 
 		TCLAP::ValueArg<int> samplesArg("I", "samples", "Number of random samples to generate", false, 25, "int");
 
-		TCLAP::ValueArg<int> iterationsArg("i", "iterations", "Number of updates each sample performs", false, 1, "int");
+		TCLAP::ValueArg<int> iterationsArg("i", "iterations", "Number of updates each sample performs", false, niterations, "int");
 		TCLAP::ValueArg<int> seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
 		TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", true);
 		TCLAP::SwitchArg reportParamsArg("", "report-params", "Enables parameter reporting for use with analysis scripts", false);
