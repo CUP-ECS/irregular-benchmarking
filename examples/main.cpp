@@ -720,6 +720,7 @@ void parseArgs(int argc, char ** argv) {
       srand(seed);
     }
 
+
 	if(comm_rank == 0){
 		if(reportParamsArg.getValue()) {
 	        printf("------------------------------------------------------------\n");
