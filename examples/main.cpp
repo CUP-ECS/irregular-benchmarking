@@ -74,18 +74,9 @@ enum comm {
 typedef enum halo halo_t;
 typedef enum comm comm_t;
 
-enum prefix {
-  A,
-  B,
-  K,
-  M,
-  G
-};
 
-typedef enum prefix prefix_t;
 
-static int typesize = 8;
-static int numpes = 0;
+
 static int nsamples = 25;
 static int niterations = 1;
 
@@ -119,7 +110,6 @@ static comm_t comm_type = MPIADVANCE;
 static bool report_params = 0;
 static int seed = -1;
 static bool unique_seed = 0;
-static int neighbor_discovery_algo = 0;
 
 int getDistToNeighbors(int neighbors) {
   int sample = neighbors;
@@ -654,7 +644,7 @@ void parseArgs(int argc, char ** argv) {
     cmd.parse(argc, argv);
 
     filepath = filepathArg.getValue();
-    bool config_file_used = false; // todo
+
 
     if (filepath != "NOFILE") {
 
@@ -722,10 +712,11 @@ void parseArgs(int argc, char ** argv) {
     if (seed != -1 && seedholder == -1) {
       seed = time(NULL);
     }
+    int comm_rank = -1;
+    MPI_Comm_rank(MPI_COMM_WORLD, & comm_rank);
 
     if (unique_seed) {
-      int comm_rank = -1;
-      MPI_Comm_rank(MPI_COMM_WORLD, & comm_rank);
+
       srand(seed + comm_rank);
     } else {
       srand(seed);
