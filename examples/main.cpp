@@ -720,18 +720,18 @@ void parseArgs(int argc, char ** argv) {
       srand(seed);
     }
 
-
-	if(reportParamsArg.getValue()&&comm_rank == 0) {
-	  printf("------------------------------------------------------------\n");
-	  printf("-MPI: %s\n",comm.c_str());
-	  printf("-File: %s\n",filepath.c_str());
-	  printf("-samples: %i\n",nsamples);
-	  printf("-iterations: %i\n",niterations);
-      printf("------------------------------------------------------------\n");
-	}else{
-      printf("------------------------------------------------------------\n");
+	if(comm_rank == 0){
+		if(reportParamsArg.getValue()) {
+	        printf("------------------------------------------------------------\n");
+	        printf("-MPI: %s\n",comm.c_str());
+	        printf("-File: %s\n",filepath.c_str());
+	        printf("-samples: %i\n",nsamples);
+	    	printf("-iterations: %i\n",niterations);
+      		printf("------------------------------------------------------------\n");
+		}else{
+      		printf("------------------------------------------------------------\n");
+		}
 	}
-
 
 
 
