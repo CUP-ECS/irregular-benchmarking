@@ -100,14 +100,13 @@ static std::vector < Bin > delay_bins;
 static int delay_min = -1;
 static int delay_max = -1;
 
-static int unit_div = 1;
+
 static prefix unit_symbol = A;
 static std::string filepath = "";
 static distribution_t distribution_type = EMPIRICAL;
 static halo_t halo_type = EXPORT;
 static comm_t comm_type = MPIADVANCE;
 
-static bool report_params = 0;
 static int seed = -1;
 static bool unique_seed = 0;
 
@@ -695,12 +694,12 @@ void parseArgs(int argc, char ** argv) {
 				comm == "a" ||
      			comm == "MPIA") {
     	comm_type = MPIADVANCE;
-		comm="MPIADVANCE"
+		comm="MPIADVANCE";
     } else if (comm == "M" ||
 				comm == "m" ||
      			comm == "MPI") {
     	comm_type = MPI;
-		comm="MPI"
+		comm="MPI";
 
     } else {
        exitError("ERROR: Invalid distribution choice [MPIA,MPIA]]\n");
