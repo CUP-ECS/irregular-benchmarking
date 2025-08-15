@@ -101,7 +101,6 @@ static int delay_min = -1;
 static int delay_max = -1;
 
 
-static prefix unit_symbol = A;
 static std::string filepath = "";
 static distribution_t distribution_type = EMPIRICAL;
 static halo_t halo_type = EXPORT;
@@ -124,9 +123,9 @@ int getDistToNeighbors(int neighbors) {
     sum += weight;
     if (sum >= threshold) {
       return innerKey;
-      break;
     }
   }
+   return -1;
 }
 
 int gauss_dist(double mean, double stdev) {
