@@ -728,6 +728,8 @@ void parseArgs(int argc, char ** argv) {
 	  printf("-samples: %i\n",nsamples);
 	  printf("-iterations: %i\n",niterations);
       printf("------------------------------------------------------------\n");
+	}else{
+      printf("------------------------------------------------------------\n");
 	}
 
 
