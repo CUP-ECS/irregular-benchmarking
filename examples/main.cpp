@@ -636,12 +636,12 @@ void parseArgs(int argc, char ** argv) {
     TCLAP::ValueArg < std::string > filepathArg("f", "filepath", "Path to the BENCHMARK_CONFIG file", false, "NOFILE", "string");
 
     TCLAP::ValueArg < int > samplesArg("I", "samples", "Number of random samples to generate", false, 25, "int");
-
     TCLAP::ValueArg < int > iterationsArg("i", "iterations", "Number of updates each sample performs", false, niterations, "int");
     TCLAP::ValueArg < int > seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
     TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", true);
     TCLAP::SwitchArg reportParamsArg("", "report-params", "Enables parameter reporting for use with analysis scripts", false);
-    TCLAP::ValueArg < std::string > distributionArg("d", "distribution", "Choose from: gaussian (default), empirical", false, "gaussian", "string");
+    TCLAP::ValueArg < std::string > distributionArg("d", "distribution", "Choose from: gaussian (default), empirical or static", false, "gaussian", "string");
+    TCLAP::ValueArg < std::string > commArg("c", "comm", "Choose from: MPIA|A|a (default) or MPI|M|m", false, "MPIA", "string");
 
     cmd.add(filepathArg);
     cmd.add(samplesArg);
@@ -650,7 +650,7 @@ void parseArgs(int argc, char ** argv) {
     cmd.add(useedArg);
     cmd.add(distributionArg);
     cmd.add(reportParamsArg);
-
+    cmd.add(commArg);
     cmd.parse(argc, argv);
 
     filepath = filepathArg.getValue();
@@ -698,6 +698,26 @@ void parseArgs(int argc, char ** argv) {
       exitError("ERROR: Invalid distribution choice [empirical,gaussian]\n");
     }
 
+
+
+    std::string comm = commArg.getValue();
+    if (comm == "A" ||
+				comm == "a" ||
+     			comm == "MPIA") {
+    	comm_type = MPIADVANCE;
+		comm="MPIADVANCE"
+    } else if (comm == "M" ||
+				comm == "m" ||
+     			comm == "MPI") {
+    	comm_type = MPI;
+		comm="MPI"
+
+    } else {
+       exitError("ERROR: Invalid distribution choice [MPIA,MPIA]]\n");
+    }
+
+
+
     int seedholder = seedArg.getValue();
     if (seed != -1 && seedholder == -1) {
       seed = time(NULL);
@@ -710,6 +730,19 @@ void parseArgs(int argc, char ** argv) {
     } else {
       srand(seed);
     }
+
+
+	if(reportParamsArg.getValue()&&omm_rank == 0)) {
+	  printf("------------------------------------------------------------\n");
+	  printf("-MPI: %s\n",comm.c_str());
+	  printf("-File: %s\n",filepath.c_str());
+	  printf("-samples: %i\n",nsamples);
+	  printf("-iterations: %i\n",niterations);
+      printf("------------------------------------------------------------\n");
+	}
+
+
+
 
   } catch (TCLAP::ArgException & e) {
     std::cerr << "Error: " << e.error() << " for argument " << e.argId() << std::endl;
