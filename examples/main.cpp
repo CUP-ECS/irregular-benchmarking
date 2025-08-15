@@ -732,7 +732,7 @@ void parseArgs(int argc, char ** argv) {
     }
 
 
-	if(reportParamsArg.getValue()&&omm_rank == 0)) {
+	if(reportParamsArg.getValue()&&comm_rank == 0) {
 	  printf("------------------------------------------------------------\n");
 	  printf("-MPI: %s\n",comm.c_str());
 	  printf("-File: %s\n",filepath.c_str());
