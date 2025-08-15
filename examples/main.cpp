@@ -627,7 +627,7 @@ void parseArgs(int argc, char ** argv) {
     TCLAP::ValueArg < int > iterationsArg("i", "iterations", "Number of updates each sample performs", false, niterations, "int");
     TCLAP::ValueArg < int > seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
     TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", true);
-    TCLAP::SwitchArg reportParamsArg("", "report-params", "Enables parameter reporting for use with analysis scripts", false);
+    TCLAP::SwitchArg reportParamsArg("r", "report-params", "Enables parameter reporting for use with analysis scripts", false);
     TCLAP::ValueArg < std::string > distributionArg("d", "distribution", "Choose from: gaussian (default), empirical or static", false, "gaussian", "string");
     TCLAP::ValueArg < std::string > commArg("c", "comm", "Choose from: MPIA|A|a (default) or MPI|M|m", false, "MPIA", "string");
 
