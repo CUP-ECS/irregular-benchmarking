@@ -642,6 +642,8 @@ void parseArgs(int argc, char ** argv) {
     cmd.add(reportParamsArg);
     cmd.add(commArg);
     cmd.add(INorOUTArg);
+    cmd.add(ALLTOALLV);
+
     cmd.parse(argc, argv);
 
     filepath = filepathArg.getValue();
