@@ -731,7 +731,7 @@ void parseArgs(int argc, char ** argv) {
 
 
 
-	std::string alltoallv = INorOUTArg.getValue();
+	std::string alltoallv = ALLTOALLV.getValue();
     if (alltoallv == "S" ||
 				alltoallv == "s" ||
      			alltoallv == "STANDARD") {
