@@ -630,6 +630,8 @@ void parseArgs(int argc, char ** argv) {
     TCLAP::SwitchArg reportParamsArg("r", "report-params", "Enables parameter reporting for use with analysis scripts", false);
     TCLAP::ValueArg < std::string > distributionArg("d", "distribution", "Choose from: gaussian (default), empirical or static", false, "gaussian", "string");
     TCLAP::ValueArg < std::string > commArg("c", "comm", "Choose from: MPIA|A|a (default) or MPI|M|m", false, "MPIA", "string");
+    TCLAP::ValueArg < std::string > INorOUTArg("x", "type", "Choose from: EXPORT|E|e (default) or IMPORT|I|i", false, "EXPORT", "string");
+    TCLAP::ValueArg < std::string > ALLTOALLV("a", "alltoallv", "Choose from: STANDARD|S|s (default) or LOCALITY|L|l", false, "STANDARD", "string");
 
     cmd.add(filepathArg);
     cmd.add(samplesArg);
@@ -639,6 +641,7 @@ void parseArgs(int argc, char ** argv) {
     cmd.add(distributionArg);
     cmd.add(reportParamsArg);
     cmd.add(commArg);
+    cmd.add(INorOUTArg);
     cmd.parse(argc, argv);
 
     filepath = filepathArg.getValue();
@@ -701,7 +704,44 @@ void parseArgs(int argc, char ** argv) {
 		comm="MPI";
 
     } else {
-       exitError("ERROR: Invalid distribution choice [MPIA,MPIA]]\n");
+       exitError("ERROR: Invalid Backend choice [MPIA,MPIA]\n");
+    }
+
+
+
+
+  std::string type = INorOUTArg.getValue();
+    if (type == "E" ||
+				type == "e" ||
+     			type == "EXPORT") {
+    	halo_type = EXPORT;
+		type="EXPORT";
+    } else if (type == "I" ||
+				type == "i" ||
+     			type == "IMPORT") {
+    	halo_type = IMPORT;
+		type="IMPORT";
+    } else {
+       exitError("ERROR: Invalid Patern choice [EXPORT,IMPORT]\n");
+    }
+
+
+
+
+
+	std::string alltoallv = INorOUTArg.getValue();
+    if (alltoallv == "S" ||
+				alltoallv == "s" ||
+     			alltoallv == "STANDARD") {
+    	mpix_neighbor_alltoallv_init_implementation = NEIGHBOR_ALLTOALLV_INIT_STANDARD;
+		alltoallv="NEIGHBOR_ALLTOALLV_INIT_STANDARD";
+    } else if (alltoallv == "L" ||
+				alltoallv == "l" ||
+     			alltoallv == "LOCALITY") {
+    	mpix_neighbor_alltoallv_init_implementation = NEIGHBOR_ALLTOALLV_INIT_LOCALITY;
+		alltoallv="NEIGHBOR_ALLTOALLV_INIT_LOCALITY";
+    } else {
+       exitError("ERROR: Invalid alltoallv choice [LOCALITY,STANDARD]\n");
     }
 
 
@@ -728,6 +768,8 @@ void parseArgs(int argc, char ** argv) {
 	        printf("-File: %s\n",filepath.c_str());
 	        printf("-samples: %i\n",nsamples);
 	    	printf("-iterations: %i\n",niterations);
+			printf("-halotype: %i\n",type);
+			printf("-alltoallv: %i\n",alltoallv);
       		printf("------------------------------------------------------------\n");
 		}else{
       		printf("------------------------------------------------------------\n");
@@ -750,7 +792,6 @@ int main(int argc, char ** argv) {
     parseArgs(argc, argv);
 
     Kokkos::ScopeGuard scope_guard(argc, argv);
-    mpix_neighbor_alltoallv_init_implementation = NEIGHBOR_ALLTOALLV_INIT_STANDARD;
     // Run the benchmark
     run_benchmark();
   }
