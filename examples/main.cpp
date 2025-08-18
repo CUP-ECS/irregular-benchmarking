@@ -768,8 +768,8 @@ void parseArgs(int argc, char ** argv) {
 	        printf("-File: %s\n",filepath.c_str());
 	        printf("-samples: %i\n",nsamples);
 	    	printf("-iterations: %i\n",niterations);
-			printf("-halotype: %i\n",type);
-			printf("-alltoallv: %i\n",alltoallv);
+			printf("-halotype: %s\n",type.c_str());
+			printf("-alltoallv: %s\n",alltoallv.c_str());
       		printf("------------------------------------------------------------\n");
 		}else{
       		printf("------------------------------------------------------------\n");
