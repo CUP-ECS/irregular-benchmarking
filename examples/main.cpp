@@ -43,6 +43,13 @@
 
 #include <cxxabi.h>
 
+#define DEBUG \
+    do { \
+        printf("At %s:%d\n", __FILE__, __LINE__); \
+		fflush(stdout); \
+    } while(0);
+
+
 
 using json = nlohmann::json;
 
@@ -110,6 +117,7 @@ static int seed = -1;
 static bool unique_seed = 0;
 
 int getDistToNeighbors(int neighbors) {
+DEBUG
   int sample = neighbors;
 
   if (distToNeighbors.find(neighbors) == distToNeighbors.end()) {
@@ -125,11 +133,12 @@ int getDistToNeighbors(int neighbors) {
       return innerKey;
     }
   }
+DEBUG
    return -1;
 }
 
 int gauss_dist(double mean, double stdev) {
-
+DEBUG
   // Generates a Gaussian (normal) distribution with only positive values.
   // generates two random numbers that form the seeds
   // of the transform
@@ -148,11 +157,12 @@ int gauss_dist(double mean, double stdev) {
   // ((r*sin(theta)) * stdev) + mean
 
   generated = round(((r * cos(theta)) * stdev) + mean);
-
+DEBUG
   return generated;
 }
 
 int gauss_dist(double mean, double stdev, double min, double max) {
+DEBUG
   if (min == max) {
     return min;
   }
@@ -162,12 +172,13 @@ int gauss_dist(double mean, double stdev, double min, double max) {
     generated = gauss_dist(mean, stdev);
 
   } while (generated <= (min - 0.9999) || generated >= (max + 0.99999));
+DEBUG
   return generated;
 }
 
 // Function to calculate an empirical distribution value based on Bin objects.
 int empirical_dist(std::vector < Bin > bins) {
-
+DEBUG
   double rand = static_cast < double > (std::rand()) / RAND_MAX;
   double prob = 0.0;
 
@@ -187,6 +198,7 @@ int empirical_dist(std::vector < Bin > bins) {
   }
   // If the loop has finished, it means the random number corresponds to the last bin.
   Bin & lastBin = bins.back();
+DEBUG
   return gauss_dist(lastBin.bin_mean, lastBin.bin_stdev, lastBin.bin_min, lastBin.bin_max);
 }
 
@@ -196,77 +208,77 @@ int empirical_dist(std::vector < Bin > bins) {
 // https://github.com/ECP-copa/Cabana/wiki/2-Programming-Guide
 void run_benchmark() {
 
-  auto TIME_START = std::chrono::high_resolution_clock::now();
-  auto TIME_END = std::chrono::high_resolution_clock::now();
-  std::chrono::duration < double > duration = TIME_END - TIME_START;
+  auto TIME_START = std::chrono::high_resolution_clock::now();DEBUG
+  auto TIME_END = std::chrono::high_resolution_clock::now();DEBUG
+  std::chrono::duration < double > duration = TIME_END - TIME_START;DEBUG
   for (int sample_iter = 0; sample_iter < nsamples; sample_iter++) {
-    std::list < int > neighbors_data;
-    std::list < int > neighbors;
-    std::set < int > seen_neighbors;
-    int total_data = 0;
-    int nneighborsV = -1;
+    std::list < int > neighbors_data;DEBUG
+    std::list < int > neighbors;DEBUG
+    std::set < int > seen_neighbors;DEBUG
+    int total_data = 0;DEBUG
+    int nneighborsV = -1;DEBUG
 
     if (distribution_type == GAUSSIAN) {
-      nneighborsV = gauss_dist(nneighbors, nneighbors_stdv, nneighbors_min, nneighbors_max);
+      nneighborsV = gauss_dist(nneighbors, nneighbors_stdv, nneighbors_min, nneighbors_max);DEBUG
 
-      for (int i = 0; i < nneighborsV; ++i) {
-        int data_sentV = gauss_dist(data_sent, data_sent_stdv, data_sent_min, data_sent_max);
-        total_data += data_sentV;
+      for (int i = 0; i < nneighborsV; ++i) {DEBUG
+        int data_sentV = gauss_dist(data_sent, data_sent_stdv, data_sent_min, data_sent_max);DEBUG
+        total_data += data_sentV;DEBUG
         while (true) {
-
-          int distanceToN = getDistToNeighbors(nneighborsV);
+DEBUG
+          int distanceToN = getDistToNeighbors(nneighborsV);DEBUG
           // todo int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
           if (distanceToN != 0 && seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
-            seen_neighbors.insert(distanceToN);
-            neighbors.push_back(distanceToN);
-            neighbors_data.push_back(data_sentV);
+            seen_neighbors.insert(distanceToN);DEBUG
+            neighbors.push_back(distanceToN);DEBUG
+            neighbors_data.push_back(data_sentV);DEBUG
             break;
           }
         }
       }
     } else if (distribution_type == EMPIRICAL) {
 
-      int nneighborsV = empirical_dist(nneighbors_bins);
-      for (int i = 0; i < nneighborsV; ++i) {
+      int nneighborsV = empirical_dist(nneighbors_bins);DEBUG
+      for (int i = 0; i < nneighborsV; ++i) {DEBUG
 
-        int data_sentV = gauss_dist(data_sent, data_sent_stdv, data_sent_min, data_sent_max);
-        total_data += data_sentV;
-        while (true) {
+        int data_sentV = gauss_dist(data_sent, data_sent_stdv, data_sent_min, data_sent_max);DEBUG
+        total_data += data_sentV;DEBUG
+        while (true) {DEBUG
 
-          int distanceToN = getDistToNeighbors(nneighborsV);
-          if (distanceToN != 0 && seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
-            seen_neighbors.insert(distanceToN);
-            neighbors.push_back(distanceToN);
-            neighbors_data.push_back(data_sentV);
+          int distanceToN = getDistToNeighbors(nneighborsV);DEBUG
+          if (distanceToN != 0 && seen_neighbors.find(distanceToN) == seen_neighbors.end()) {DEBUG
+            seen_neighbors.insert(distanceToN);DEBUG
+            neighbors.push_back(distanceToN);DEBUG
+            neighbors_data.push_back(data_sentV);DEBUG
             break;
           }
         }
       }
     }
 
-    int comm_rank = -1;
-    MPI_Comm_rank(MPI_COMM_WORLD, & comm_rank);
-    int comm_size = -1;
-    MPI_Comm_size(MPI_COMM_WORLD, & comm_size);
-    double haloTime;
-    double resizeTime;
-    double gatherTime;
+    int comm_rank = -1;DEBUG
+    MPI_Comm_rank(MPI_COMM_WORLD, & comm_rank);DEBUG
+    int comm_size = -1;DEBUG
+    MPI_Comm_size(MPI_COMM_WORLD, & comm_size);DEBUG
+    double haloTime;DEBUG
+    double resizeTime;DEBUG
+    double gatherTime;DEBUG
 
     using DataTypes = Cabana::MemberTypes < double, double > ;
     const int VectorLength = 8;
     using MemorySpace = Kokkos::HostSpace;
 
-    int num_tuple = data_sent_max * nneighbors_max;
+    int num_tuple = data_sent_max * nneighbors_max;DEBUG
     Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("my_aosoa",
-      num_tuple);
-    auto slice_ranks = Cabana::slice < 0 > (aosoa);
-    auto slice_ids = Cabana::slice < 1 > (aosoa);
-    for (int i = 0; i < num_tuple; ++i) {
-      slice_ranks(i) = comm_rank;
-      slice_ids(i) = i;
-    }
+      num_tuple);DEBUG
+    auto slice_ranks = Cabana::slice < 0 > (aosoa);DEBUG
+    auto slice_ids = Cabana::slice < 1 > (aosoa);DEBUG
+    for (int i = 0; i < num_tuple; ++i) {DEBUG
+      slice_ranks(i) = comm_rank;DEBUG
+      slice_ids(i) = i;DEBUG
+    }DEBUG
 
-    if (comm_rank == -1) {
+    if (comm_rank == -1) {DEBUG
       std::cout << "BEFORE exchange" << std::endl <<
         "(Rank " << comm_rank << ") ";
       for (std::size_t i = 0; i < slice_ranks.size(); ++i)
@@ -274,36 +286,36 @@ void run_benchmark() {
       std::cout << std::endl <<
         "(" << slice_ranks.size() << " ranks before exchange)" <<
         std::endl <<
-        "(Rank " << comm_rank << ") ";
+        "(Rank " << comm_rank << ") ";DEBUG
       for (std::size_t i = 0; i < slice_ids.size(); ++i)
-        std::cout << slice_ids(i) << " ";
+        std::cout << slice_ids(i) << " "
       std::cout << std::endl <<
         "(" << slice_ids.size() << " IDs before exchange)" <<
         std::endl <<
-        std::endl;
+        std::endl;DEBUG
     }
 
-    int local_num_send = total_data;
+    int local_num_send = total_data;DEBUG
     Kokkos::View < int * , MemorySpace > export_ranks("export_ranks",
       local_num_send);
     Kokkos::View < int * , MemorySpace > export_ids("export_ids", local_num_send);
 
     int inum = 0;
-    auto it_data = neighbors_data.begin();
-    auto it_neighbors = neighbors.begin();
+    auto it_data = neighbors_data.begin();DEBUG
+    auto it_neighbors = neighbors.begin();DEBUG
 
     while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
 
-      for (int i = 0; i < * it_data; ++i) {
+      for (int i = 0; i < * it_data; ++i) {DEBUG
         export_ids(inum) = inum;
         export_ranks(inum++) = ( * it_neighbors + comm_rank + comm_size) % comm_size;
       }
-      ++it_data;
-      ++it_neighbors;
+      ++it_data;DEBUG
+      ++it_neighbors;DEBUG
     }
 
-    if (comm_type == MPIADVANCE) {
-      if (halo_type == EXPORT) {
+    if (comm_type == MPIADVANCE) {DEBUG
+      if (halo_type == EXPORT) {DEBUG
 
         TIME_START = std::chrono::high_resolution_clock::now();
         Cabana::Halo < MemorySpace, Cabana::Export, Cabana::CommSpace::MpiAdvance > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
@@ -313,92 +325,84 @@ void run_benchmark() {
 
         TIME_START = std::chrono::high_resolution_clock::now();
         aosoa.resize(halo.numLocal() + halo.numGhost());
-        fflush(stdout);
+        fflush(stdout);DEBUG
         slice_ranks = Cabana::slice < 0 > (aosoa);
-        slice_ids = Cabana::slice < 1 > (aosoa);
+        slice_ids = Cabana::slice < 1 > (aosoa);DEBUG
 
         TIME_END = std::chrono::high_resolution_clock::now();
-        duration = TIME_END - TIME_START;
-        resizeTime = duration.count() * 1e6;
+        duration = TIME_END - TIME_START;DEBUG
+        resizeTime = duration.count() * 1e6;DEBUG
 
-        TIME_START = std::chrono::high_resolution_clock::now();
-
+        TIME_START = std::chrono::high_resolution_clock::now();DEBUG
+DEBUG
         auto gather = Cabana::createGather(halo, aosoa, 3.0);
-
+DEBUG
         for (int i = 0; i < niterations; i++) {
-          gather.apply();
+        DEBUG
+ gather.apply();
+DEBUG
         }
 
-        TIME_END = std::chrono::high_resolution_clock::now();
+        TIME_END = std::chrono::high_resolution_clock::now();DEBUG
         duration = TIME_END - TIME_START;
-        gatherTime = duration.count() * 1e6;
+        gatherTime = duration.count() * 1e6;DEBUG
 
       } else if (halo_type == IMPORT) {
-        TIME_START = std::chrono::high_resolution_clock::now();
+        TIME_START = std::chrono::high_resolution_clock::now();DEBUG
         Cabana::Halo < MemorySpace, Cabana::Import, Cabana::CommSpace::MpiAdvance > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
-        TIME_END = std::chrono::high_resolution_clock::now();
-        duration = TIME_END - TIME_START;
-        haloTime = duration.count() * 1e6;
+        TIME_END = std::chrono::high_resolution_clock::now();DEBUG
+        duration = TIME_END - TIME_START;DEBUG
+        haloTime = duration.count() * 1e6;DEBUG
 
-        TIME_START = std::chrono::high_resolution_clock::now();
-        aosoa.resize(halo.numLocal() + halo.numGhost());
-        slice_ranks = Cabana::slice < 0 > (aosoa);
+        TIME_START = std::chrono::high_resolution_clock::now();DEBUG
+        aosoa.resize(halo.numLocal() + halo.numGhost());DEBUG
+        slice_ranks = Cabana::slice < 0 > (aosoa);DEBUG
         slice_ids = Cabana::slice < 1 > (aosoa);
 
-        TIME_END = std::chrono::high_resolution_clock::now();
-        duration = TIME_END - TIME_START;
-        resizeTime = duration.count() * 1e6;
+        TIME_END = std::chrono::high_resolution_clock::now();DEBUG
+        duration = TIME_END - TIME_START;DEBUG
+        resizeTime = duration.count() * 1e6;DEBUG
 
         TIME_START = std::chrono::high_resolution_clock::now();
 
         auto gather = Cabana::createGather(halo, aosoa, 3.0);
 
         for (int i = 0; i < niterations; i++) {
-
+DEBUG
           gather.apply();
-        }
+DEBUG
+   }
 
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
         gatherTime = duration.count() * 1e6;
       } else {
         //error
-        Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
-        aosoa.resize(halo.numLocal() + halo.numGhost());
-        slice_ranks = Cabana::slice < 0 > (aosoa);
-        slice_ids = Cabana::slice < 1 > (aosoa);
-        auto gather = Cabana::createGather(halo, aosoa, 1.0);
-
-        for (int i = 0; i < niterations; i++) {
-
-          gather.apply();
-        }
       }
     } else if (comm_type == MPI) {
       if (halo_type == EXPORT) {
 
-        TIME_START = std::chrono::high_resolution_clock::now();
+        TIME_START = std::chrono::high_resolution_clock::now();DEBUG
         Cabana::Halo < MemorySpace, Cabana::Export, Cabana::CommSpace::Mpi > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        haloTime = duration.count() * 1e6;
+        haloTime = duration.count() * 1e6;DEBUG
 
         TIME_START = std::chrono::high_resolution_clock::now();
-        aosoa.resize(halo.numLocal() + halo.numGhost());
-        fflush(stdout);
+        aosoa.resize(halo.numLocal() + halo.numGhost());DEBUG
         slice_ranks = Cabana::slice < 0 > (aosoa);
-        slice_ids = Cabana::slice < 1 > (aosoa);
+        slice_ids = Cabana::slice < 1 > (aosoa);DEBUG
 
-        TIME_END = std::chrono::high_resolution_clock::now();
-        duration = TIME_END - TIME_START;
+        TIME_END = std::chrono::high_resolution_clock::now();DEBUG
+        duration = TIME_END - TIME_START;DEBUG
         resizeTime = duration.count() * 1e6;
-
+DEBUG
         TIME_START = std::chrono::high_resolution_clock::now();
-
+DEBUG
         auto gather = Cabana::createGather(halo, aosoa, 3.0);
-
+DEBUG
         for (int i = 0; i < niterations; i++) {
-          gather.apply();
+          gather.apply();DEBUG
         }
 
         TIME_END = std::chrono::high_resolution_clock::now();
@@ -406,45 +410,36 @@ void run_benchmark() {
         gatherTime = duration.count() * 1e6;
 
       } else if (halo_type == IMPORT) {
-        TIME_START = std::chrono::high_resolution_clock::now();
+        TIME_START = std::chrono::high_resolution_clock::now();DEBUG
         Cabana::Halo < MemorySpace, Cabana::Import, Cabana::CommSpace::Mpi > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
-        TIME_END = std::chrono::high_resolution_clock::now();
-        duration = TIME_END - TIME_START;
-        haloTime = duration.count() * 1e6;
+        TIME_END = std::chrono::high_resolution_clock::now();DEBUG
+        duration = TIME_END - TIME_START;DEBUG
+        haloTime = duration.count() * 1e6;DEBUG
 
-        TIME_START = std::chrono::high_resolution_clock::now();
+        TIME_START = std::chrono::high_resolution_clock::now();DEBUG
         aosoa.resize(halo.numLocal() + halo.numGhost());
-        slice_ranks = Cabana::slice < 0 > (aosoa);
-        slice_ids = Cabana::slice < 1 > (aosoa);
+        slice_ranks = Cabana::slice < 0 > (aosoa);DEBUG
+        slice_ids = Cabana::slice < 1 > (aosoa);DEBUG
 
-        TIME_END = std::chrono::high_resolution_clock::now();
-        duration = TIME_END - TIME_START;
+        TIME_END = std::chrono::high_resolution_clock::now();DEBUG
+        duration = TIME_END - TIME_START;DEBUG
         resizeTime = duration.count() * 1e6;
 
-        TIME_START = std::chrono::high_resolution_clock::now();
+        TIME_START = std::chrono::high_resolution_clock::now();DEBUG
 
-        auto gather = Cabana::createGather(halo, aosoa, 3.0);
+        auto gather = Cabana::createGather(halo, aosoa, 3.0);DEBUG
 
         for (int i = 0; i < niterations; i++) {
-
+DEBUG
           gather.apply();
-        }
+DEBUG
+   }
 
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
         gatherTime = duration.count() * 1e6;
       } else {
-        //error
-        Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
-        aosoa.resize(halo.numLocal() + halo.numGhost());
-        slice_ranks = Cabana::slice < 0 > (aosoa);
-        slice_ids = Cabana::slice < 1 > (aosoa);
-        auto gather = Cabana::createGather(halo, aosoa, 1.0);
-
-        for (int i = 0; i < niterations; i++) {
-
-          gather.apply();
-        }
+       DEBUG
       }
 
     }

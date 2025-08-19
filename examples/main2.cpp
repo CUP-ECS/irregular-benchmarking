@@ -38,543 +38,767 @@
 
 #include <stdbool.h>
 
-#include <caliper/cali.h>
 
 #include <limits>
+
+#include <cxxabi.h>
 
 
 using json = nlohmann::json;
 
 struct Bin {
-    double bin_min;
-    double bin_max;
-    double bin_prop;
-    double bin_mean;
-    double bin_stdev;
+  double bin_min;
+  double bin_max;
+  double bin_prop;
+  double bin_mean;
+  double bin_stdev;
 };
 
-
-enum distribution
-{
-	GAUSSIAN,
-	EMPIRICAL,
-	STATIC_VALUE
+enum distribution {
+  GAUSSIAN,
+  EMPIRICAL,
+  STATIC_VALUE
 };
-
 typedef enum distribution distribution_t;
 
-enum prefix
-{
-	A,
-	B,
-	K,
-	M,
-	G
+enum halo {
+  IMPORT,
+  EXPORT
 };
 
-typedef enum prefix prefix_t;
+enum comm {
+  MPIADVANCE,
+  MPI
+};
 
-static int typesize = 8;
-static int numpes = 0;
+typedef enum halo halo_t;
+typedef enum comm comm_t;
+
+
+
+
 static int nsamples = 25;
-static int niterations = 100;
+static int niterations = 1;
 
+static std::map < int, std::map < int, double >> distToNeighbors;
 
-
-
-static double nneighbors = -1;//comm_partners
+static double nneighbors = -1; //comm_partners
 static double nneighbors_stdv = -1;
-static std::vector<Bin> nneighbors_bins;
+static std::vector < Bin > nneighbors_bins;
 static int nneighbors_min = -1;
 static int nneighbors_max = -1;
 
 static double data_sent = -1;
 static double data_sent_stdv = -1;
-static std::vector<Bin> data_sent_bins;
+static std::vector < Bin > data_sent_bins;
 static int data_sent_min = -1;
 static int data_sent_max = -1;
 
-static double dist_to_neighbors = -1;
-static double dist_to_neighbors_stdv = -1;
-static std::vector<Bin> dist_to_neighbors_bins;
-static int dist_to_neighbors_min = -1;
-static int dist_to_neighbors_max = -1;
+static double delay = -1;
+static double delay_stdv = -1;
+static std::vector < Bin > delay_bins;
+static int delay_min = -1;
+static int delay_max = -1;
 
 
-
-
-
-static int unit_div = 1;
-static prefix unit_symbol = A;
 static std::string filepath = "";
-static distribution_t distribution_type = GAUSSIAN;
+static distribution_t distribution_type = EMPIRICAL;
+static halo_t halo_type = EXPORT;
+static comm_t comm_type = MPIADVANCE;
 
-static bool report_params = 0;
 static int seed = -1;
 static bool unique_seed = 0;
-static int neighbor_discovery_algo = 0;
 
+int getDistToNeighbors(int neighbors) {
+  int sample = neighbors;
 
-
-int gauss_dist(double mean, double stdev,double min,double max)
-{
-
-	double generated=-1;
-	do {
-		generated= gauss_dist(mean , stdev);
-	} while (generated<= min || generated >=max);
-	return generated;
+  if (distToNeighbors.find(neighbors) == distToNeighbors.end()) {
+    auto it = distToNeighbors.upper_bound(neighbors);
+    sample = it -> first;
+  }
+  //	distToNeighbors[ sample ];
+  double threshold = static_cast < double > (std::rand()) / RAND_MAX;
+  double sum = 0.0;
+  for (const auto & [innerKey, weight]: distToNeighbors[sample]) {
+    sum += weight;
+    if (sum >= threshold) {
+      return innerKey;
+    }
+  }
+   return -1;
 }
 
+int gauss_dist(double mean, double stdev) {
 
-int gauss_dist(double mean, double stdev)
-{
+  // Generates a Gaussian (normal) distribution with only positive values.
+  // generates two random numbers that form the seeds
+  // of the transform
+  double u1, u2, r, theta;
+  int generated = -1;
 
-	// Generates a Gaussian (normal) distribution with only positive values.
-	// generates two random numbers that form the seeds
-	// of the transform
-	double u1, u2, r, theta;
-	int generated = -1;
+  u1 = (double) rand() / RAND_MAX;
+  u2 = (double) rand() / RAND_MAX;
+  // generates the R and Theta values from the above
+  // documentation
+  r = sqrt(-2. * log(u1));
+  theta = (2 * M_PI * u2);
 
-	u1 = (double)rand() / RAND_MAX;
-	u2 = (double)rand() / RAND_MAX;
+  // an additional number can be generated in the
+  // same distribution using the alternate form
+  // ((r*sin(theta)) * stdev) + mean
 
-		// generates the R and Theta values from the above
-		// documentation
-	r = sqrt(-2. * log(u1));
-	theta = (2 * M_PI * u2);
+  generated = round(((r * cos(theta)) * stdev) + mean);
 
-		// an additional number can be generated in the
-		// same distribution using the alternate form
-		// ((r*sin(theta)) * stdev) + mean
-
-	generated = round(((r * cos(theta)) * stdev) + mean);
-
-
-	return generated;
+  return generated;
 }
 
+int gauss_dist(double mean, double stdev, double min, double max) {
+  if (min == max) {
+    return min;
+  }
+
+  int generated = -1;
+  do {
+    generated = gauss_dist(mean, stdev);
+
+  } while (generated <= (min - 0.9999) || generated >= (max + 0.99999));
+  return generated;
+}
 
 // Function to calculate an empirical distribution value based on Bin objects.
-int empirical_dist(std::vector<Bin> bins)
-{
-  	
-	double rand = static_cast<double>(std::rand()) / RAND_MAX;
-	double prob = 0.0;
+int empirical_dist(std::vector < Bin > bins) {
 
-    // Iterate over all bins except the last one.
-	for (int i = 0; i < bins.size()-1; ++i) {
-		Bin& bin = bins[i];  
-		 // Accumulate the probability
-		prob+=bin.bin_prop;
+  double rand = static_cast < double > (std::rand()) / RAND_MAX;
+  double prob = 0.0;
 
+  // Iterate over all bins except the last one.
+  for (int i = 0; i < bins.size() - 1; ++i) {
+    Bin & bin = bins[i];
+    // Accumulate the probability
+    prob += bin.bin_prop;
 
-		// Generate  Gaussian distribution for the bin.
-        // Repeat until the value is within  minimum and maximum limits.
-		if (prob<= rand)
-		{
+    // Generate  Gaussian distribution for the bin.
+    // Repeat until the value is within  minimum and maximum limits.
+    if (prob >= rand) {
+      int random = gauss_dist(bin.bin_mean, bin.bin_stdev, bin.bin_min, bin.bin_max);
+      return random;
 
-
-			return gauss_dist(bin.bin_mean ,bin.bin_stdev,bin.bin_min,bin.bin_max);
-
-		}
-	}
-	// If the loop has finished, it means the random number corresponds to the last bin.
-	Bin& lastBin = bins.back();
-	return gauss_dist(lastBin.bin_mean ,lastBin.bin_stdev,lastBin.bin_min,lastBin.bin_max);
+    }
+  }
+  // If the loop has finished, it means the random number corresponds to the last bin.
+  Bin & lastBin = bins.back();
+  return gauss_dist(lastBin.bin_mean, lastBin.bin_stdev, lastBin.bin_min, lastBin.bin_max);
 }
 
 // Function to run a performance benchmark
 // meat and potatos of the code
 // copyed and changed form this code
 // https://github.com/ECP-copa/Cabana/wiki/2-Programming-Guide
-void run_benchmark()
-{
-	
-	double nneighbors_orig        = nneighbors;
-	double dist_to_neighbors_orig = dist_to_neighbors;
-	double data_sent_orig         = data_sent;
+void run_benchmark() {
 
-	
-	int comm_rank = -1;
-	MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
-	int comm_size = -1;
-	MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+  auto TIME_START = std::chrono::high_resolution_clock::now();
+  auto TIME_END = std::chrono::high_resolution_clock::now();
+  std::chrono::duration < double > duration = TIME_END - TIME_START;
+  for (int sample_iter = 0; sample_iter < nsamples; sample_iter++) {
+    std::list < int > neighbors_data;
+    std::list < int > neighbors;
+    std::set < int > seen_neighbors;
+    int total_data = 0;
+    int nneighborsV = -1;
 
+    if (distribution_type == GAUSSIAN) {
+      nneighborsV = gauss_dist(nneighbors, nneighbors_stdv, nneighbors_min, nneighbors_max);
 
+      for (int i = 0; i < nneighborsV; ++i) {
+        int data_sentV = gauss_dist(data_sent, data_sent_stdv, data_sent_min, data_sent_max);
+        total_data += data_sentV;
+        while (true) {
 
-	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
-	{
+          int distanceToN = getDistToNeighbors(nneighborsV);
+          // todo int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
+          if (distanceToN != 0 && seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
+            seen_neighbors.insert(distanceToN);
+            neighbors.push_back(distanceToN);
+            neighbors_data.push_back(data_sentV);
+            break;
+          }
+        }
+      }
+    } else if (distribution_type == EMPIRICAL) {
 
+      int nneighborsV = empirical_dist(nneighbors_bins);
+      for (int i = 0; i < nneighborsV; ++i) {
 
-        std::vector<double> time;
+        int data_sentV = gauss_dist(data_sent, data_sent_stdv, data_sent_min, data_sent_max);
+        total_data += data_sentV;
+        while (true) {
 
-		auto bench_mark_loop = std::chrono::high_resolution_clock::now();
-  		Kokkos::Profiling::pushRegion("Bench_mark_loop");
-		auto set_distribution = std::chrono::high_resolution_clock::now();
-		Kokkos::Profiling::pushRegion("set_distribution");
+          int distanceToN = getDistToNeighbors(nneighborsV);
+          if (distanceToN != 0 && seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
+            seen_neighbors.insert(distanceToN);
+            neighbors.push_back(distanceToN);
+            neighbors_data.push_back(data_sentV);
+            break;
+          }
+        }
+      }
+    }
 
-        // Modify parameters based on the chosen distribution type
-		std::list<int> neighbors_data;
-		std::list<int> neighbors;
-		std::set<int> seen_neighbors;
+    int comm_rank = -1;
+    MPI_Comm_rank(MPI_COMM_WORLD, & comm_rank);
+    int comm_size = -1;
+    MPI_Comm_size(MPI_COMM_WORLD, & comm_size);
+    double haloTime;
+    double resizeTime;
+    double gatherTime;
 
-		int total_data=0;
+    using DataTypes = Cabana::MemberTypes < double, double > ;
+    const int VectorLength = 8;
+    using MemorySpace = Kokkos::HostSpace;
 
-		if (distribution_type == GAUSSIAN)
-		{
-			nneighbors = gauss_dist(nneighbors_orig,nneighbors_stdv,nnneighbors_min,nneighbors_max);
-			for (int i = 0; i < nneighbors; ++i){
-				data_sent = gauss_dist(data_sent_orig, data_sent_stdv,data_sent_min,data_sent_max);
-				total_data+=data_sent;
-				while (true) {
-					int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
-					if (distanceToN!=0&&seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
-						seen_neighbors.insert(distanceToN);
-						neighbors.insert(distanceToN);
-						neighbors_data.insert(data_sent);
-						break;
-					}
-				}
-			}
-		}else if (distribution_type == EMPIRICAL){
-			nneighbors     = empirical_dist(nneighbors_bins);
-			for (int i = 0; i < nneighbors; ++i){
-				data_sent = empirical_dist(data_sent_bins);
-				total_data+=data_sent;
-				while (true) {
-					int distanceToN = empirical_dist(dist_to_neighbors_bins);
-					if (distanceToN!=0&& seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
-						seen_neighbors.insert(distanceToN);
-						neighbors.insert(distanceToN);
-						neighbors_data.insert(data_sent);
-						break;
-					}
-				}
-			}
-		}
+    int num_tuple = data_sent_max * nneighbors_max;
+    Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("my_aosoa",
+      num_tuple);
+    auto slice_ranks = Cabana::slice < 0 > (aosoa);
+    auto slice_ids = Cabana::slice < 1 > (aosoa);
+    for (int i = 0; i < num_tuple; ++i) {
+      slice_ranks(i) = comm_rank;
+      slice_ids(i) = i;
+    }
 
+    if (comm_rank == -1) {
+      std::cout << "BEFORE exchange" << std::endl <<
+        "(Rank " << comm_rank << ") ";
+      for (std::size_t i = 0; i < slice_ranks.size(); ++i)
+        std::cout << slice_ranks(i) << " ";
+      std::cout << std::endl <<
+        "(" << slice_ranks.size() << " ranks before exchange)" <<
+        std::endl <<
+        "(Rank " << comm_rank << ") ";
+      for (std::size_t i = 0; i < slice_ids.size(); ++i)
+        std::cout << slice_ids(i) << " ";
+      std::cout << std::endl <<
+        "(" << slice_ids.size() << " IDs before exchange)" <<
+        std::endl <<
+        std::endl;
+    }
 
+    int local_num_send = total_data;
+    Kokkos::View < int * , MemorySpace > export_ranks("export_ranks",
+      local_num_send);
+    Kokkos::View < int * , MemorySpace > export_ids("export_ids", local_num_send);
 
-		using DataTypes = Cabana::MemberTypes<int, int>;
-		const int VectorLength = 8;
-		using MemorySpace = Kokkos::HostSpace;
+    int inum = 0;
+    auto it_data = neighbors_data.begin();
+    auto it_neighbors = neighbors.begin();
 
-		int num_tuple = total_data+1000;//todo
-		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
-		auto slice_ranks = Cabana::slice<0>(aosoa);
-		auto slice_ids = Cabana::slice<1>(aosoa);
+    while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
 
+      for (int i = 0; i < * it_data; ++i) {
+        export_ids(inum) = inum;
+        export_ranks(inum++) = ( * it_neighbors + comm_rank + comm_size) % comm_size;
+      }
+      ++it_data;
+      ++it_neighbors;
+    }
 
-		for (int i = 0; i < num_tuple; ++i)
-		{
-			slice_ranks(i) = comm_rank;
-			slice_ids(i) = i + (num_tuple * comm_rank);
-		}
+    if (comm_type == MPIADVANCE) {
+      if (halo_type == EXPORT) {
 
+        TIME_START = std::chrono::high_resolution_clock::now();
+        Cabana::Halo < MemorySpace, Cabana::Export, Cabana::CommSpace::MpiAdvance > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
+        TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        haloTime = duration.count() * 1e6;
 
+        TIME_START = std::chrono::high_resolution_clock::now();
+        aosoa.resize(halo.numLocal() + halo.numGhost());
+        fflush(stdout);
+        slice_ranks = Cabana::slice < 0 > (aosoa);
+        slice_ids = Cabana::slice < 1 > (aosoa);
 
-		auto it_data = neighbors_data.begin();
-		auto it_neighbors = neighbors.begin();
-		int inum =0;
-		while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
+        TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        resizeTime = duration.count() * 1e6;
 
-			for (int i = 0; i < num_tuple; ++i){
-			export_ranks(inum++) = *it_neighbors;
-			}
-			++it_data;
-			++it_neighbors;
-		}
+        TIME_START = std::chrono::high_resolution_clock::now();
 
+        auto gather = Cabana::createGather(halo, aosoa, 3.0);
 
+        for (int i = 0; i < niterations; i++) {
+          gather.apply();
+        }
 
+        TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        gatherTime = duration.count() * 1e6;
 
+      } else if (halo_type == IMPORT) {
+        TIME_START = std::chrono::high_resolution_clock::now();
+        Cabana::Halo < MemorySpace, Cabana::Import, Cabana::CommSpace::MpiAdvance > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
+        TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        haloTime = duration.count() * 1e6;
 
+        TIME_START = std::chrono::high_resolution_clock::now();
+        aosoa.resize(halo.numLocal() + halo.numGhost());
+        slice_ranks = Cabana::slice < 0 > (aosoa);
+        slice_ids = Cabana::slice < 1 > (aosoa);
 
-		CALI_MARK_COMM_REGION_BEGIN("distributor");
+        TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        resizeTime = duration.count() * 1e6;
 
+        TIME_START = std::chrono::high_resolution_clock::now();
 
-		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
-		CALI_MARK_COMM_REGION_END("distributor");
-		CALI_MARK_COMM_REGION_BEGIN("migrate");
-		for (int i = 0; i < niterations ; i++)
-		{
-			//runs this distributor niterations amount of times  ^^^^
-			Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> destination(
-				"destination", distributor.totalNumImport());
+        auto gather = Cabana::createGather(halo, aosoa, 3.0);
 
-			Cabana::migrate(distributor, aosoa, destination);
-			auto slice_ranks_dst = Cabana::slice<0>(destination);
-			auto slice_ids_dst = Cabana::slice<1>(destination);
-		}
-		CALI_MARK_COMM_REGION_END("migrate");
+        for (int i = 0; i < niterations; i++) {
 
+          gather.apply();
+        }
 
-	}
+        TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        gatherTime = duration.count() * 1e6;
+      } else {
+        //error
+        Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
+        aosoa.resize(halo.numLocal() + halo.numGhost());
+        slice_ranks = Cabana::slice < 0 > (aosoa);
+        slice_ids = Cabana::slice < 1 > (aosoa);
+        auto gather = Cabana::createGather(halo, aosoa, 1.0);
 
+        for (int i = 0; i < niterations; i++) {
 
+          gather.apply();
+        }
+      }
+    } else if (comm_type == MPI) {
+      if (halo_type == EXPORT) {
 
+        TIME_START = std::chrono::high_resolution_clock::now();
+        Cabana::Halo < MemorySpace, Cabana::Export, Cabana::CommSpace::Mpi > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
+        TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        haloTime = duration.count() * 1e6;
 
+        TIME_START = std::chrono::high_resolution_clock::now();
+        aosoa.resize(halo.numLocal() + halo.numGhost());
+        fflush(stdout);
+        slice_ranks = Cabana::slice < 0 > (aosoa);
+        slice_ids = Cabana::slice < 1 > (aosoa);
 
+        TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        resizeTime = duration.count() * 1e6;
 
+        TIME_START = std::chrono::high_resolution_clock::now();
 
+        auto gather = Cabana::createGather(halo, aosoa, 3.0);
+
+        for (int i = 0; i < niterations; i++) {
+          gather.apply();
+        }
+
+        TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        gatherTime = duration.count() * 1e6;
+
+      } else if (halo_type == IMPORT) {
+        TIME_START = std::chrono::high_resolution_clock::now();
+        Cabana::Halo < MemorySpace, Cabana::Import, Cabana::CommSpace::Mpi > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
+        TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        haloTime = duration.count() * 1e6;
+
+        TIME_START = std::chrono::high_resolution_clock::now();
+        aosoa.resize(halo.numLocal() + halo.numGhost());
+        slice_ranks = Cabana::slice < 0 > (aosoa);
+        slice_ids = Cabana::slice < 1 > (aosoa);
+
+        TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        resizeTime = duration.count() * 1e6;
+
+        TIME_START = std::chrono::high_resolution_clock::now();
+
+        auto gather = Cabana::createGather(halo, aosoa, 3.0);
+
+        for (int i = 0; i < niterations; i++) {
+
+          gather.apply();
+        }
+
+        TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        gatherTime = duration.count() * 1e6;
+      } else {
+        //error
+        Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
+        aosoa.resize(halo.numLocal() + halo.numGhost());
+        slice_ranks = Cabana::slice < 0 > (aosoa);
+        slice_ids = Cabana::slice < 1 > (aosoa);
+        auto gather = Cabana::createGather(halo, aosoa, 1.0);
+
+        for (int i = 0; i < niterations; i++) {
+
+          gather.apply();
+        }
+      }
+
+    }
+
+    if (comm_rank == -1) {
+
+      std::cout << "AFTER gather" << std::endl <<
+        "(Rank " << comm_rank << ") ";
+      for (std::size_t i = 0; i < slice_ranks.size(); ++i)
+        std::cout << slice_ranks(i) << " ";
+      std::cout << std::endl <<
+        "(" << slice_ranks.size() << " ranks after gather)" <<
+        std::endl <<
+        "(Rank " << comm_rank << ") ";
+      for (std::size_t i = 0; i < slice_ids.size(); ++i)
+        std::cout << slice_ids(i) << " ";
+      std::cout << std::endl <<
+        "(" << slice_ids.size() << " IDs after gather)" <<
+        std::endl <<
+        std::endl;
+    }
+
+    int data_size = 5;
+    double local_vals[data_size] = {
+      haloTime,
+      resizeTime,
+      gatherTime,
+      nneighborsV,
+      inum
+    };
+
+    double min_vals[data_size];
+    double max_vals[data_size];
+    double sum_vals[data_size];
+
+    // Perform reductions
+    MPI_Reduce(local_vals, min_vals, data_size, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+    MPI_Reduce(local_vals, max_vals, data_size, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(local_vals, sum_vals, data_size, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    if (comm_rank == 0) {
+      const char * labels[data_size] = {
+        "haloTime",
+        "resizeTime",
+        "gatherTime",
+        "nneighbors",
+        "data sent"
+      };
+
+      printf("%-20s %-12s %-12s %-12s\n", "Metric", "Min", "Max", "Average");
+      printf("------------------------------------------------------------\n");
+
+      for (int i = 0; i < data_size; ++i) {
+        double avg = sum_vals[i] / comm_size;
+        printf("%-20s %-.6f     %-.6f     %-.6f\n", labels[i], min_vals[i], max_vals[i], avg);
+      }
+      printf("------------------------------------------------------------\n");
+      fflush(stdout);
+    }
+  }
 
 }
-
-
-
 
 // Function to parse a JSON configuration file
-void parse_config_file(std::string config_file)
-{
-	std::ifstream file(config_file);
+void parse_config_file(std::string config_file) {
+  std::ifstream file(config_file);
 
-	if (!file.is_open())
-	{
-		std::cerr << "Error: Could not open file!" << std::endl;
-	}
-	else
-	{
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		std::string input = buffer.str();
-		nlohmann::json j = nlohmann::json::parse(input);
-		//     Accessing the data
-		for (const auto &param : j["parameters"])
-		{
+  if (!file.is_open()) {
+    std::cerr << "Error: Could not open file!" << std::endl;
+  } else {
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string input = buffer.str();
+    nlohmann::json j = nlohmann::json::parse(input);
+    //     Accessing the data
+    for (const auto & param: j["parameters"]) {
 
-			std::string name = param["name"].get<std::string>();
+      std::string name = param["name"].get < std::string > ();
 
-			double mean = param["mean"].get<double>();
+      if (name == "dist_to_neighbors") {
 
-			double stddev = param["stdev"].get<double>();
+        for (auto & outer_pair: param["bins"].items()) {
+          int outer_key = std::stoi(outer_pair.key()); // Convert outer key to int
+          const json & inner_obj = outer_pair.value(); // The inner JSON object
 
+          std::map < int, double > inner_map;
 
-			int min = static_cast<int>(std::round(param["min"].get<double>()));
-			int max = static_cast<int>(std::round(param["max"].get<double>()));
+          for (auto & inner_pair: inner_obj.items()) {
+            int inner_key = std::stoi(inner_pair.key()); // Convert inner key
+            double inner_value = inner_pair.value().get < double > (); // Get value as double
+            inner_map[inner_key] = inner_value; // Store in map
+          }
 
-			std::vector<Bin> bins;
-			for (const auto& bin_json : param["bins"]) {
-					Bin bin;
-					bin.bin_min = bin_json["bin_min"];
-					bin.bin_max = bin_json["bin_max"];
-					bin.bin_prop = bin_json["bin_prop"];
-					bin.bin_mean = bin_json["bin_mean"];
-					bin.bin_stdev = bin_json["bin_stdev"];
-					bins.push_back(bin);
-			}
+          distToNeighbors[outer_key] = inner_map;
+        }
+      } else {
+        double mean = param["mean"].get < double > ();
+        double stddev = param["stdev"].get < double > ();
+        int min = static_cast < int > (std::round(param["min"].get < double > ()));
+        int max = static_cast < int > (std::round(param["max"].get < double > ()));
+        std::vector < Bin > bins;
+        for (const auto & bin_json: param["bins"]) {
+          Bin bin;
+          bin.bin_min = bin_json["bin_min"];
+          bin.bin_max = bin_json["bin_max"];
+          bin.bin_prop = bin_json["bin_prop"];
+          bin.bin_mean = bin_json["bin_mean"];
+          bin.bin_stdev = bin_json["bin_stdev"];
+          bins.push_back(bin);
+        }
 
+        std::sort(bins.begin(), bins.end(), [](const Bin & a,
+          const Bin & b) {
+          return a.bin_prop > b.bin_prop;
+        });
 
-            if (name == "comm_partners")
-			{
-				nneighbors = mean;
-				nneighbors_stdv = stddev;
-				neighbors_min = mean;
-				neighbors_max = stddev;
-				nneighbors_bins = bins;
-			}
+        if (name == "comm_partners") {
+          nneighbors = mean;
+          nneighbors_stdv = stddev;
+          nneighbors_min = min;
+          nneighbors_max = max;
+          nneighbors_bins = bins;
+        } else if (name == "delay") {
+          delay = mean;
+          delay_stdv = stddev;
+          delay_min = min;
+          delay_max = max;
 
-            else if (name == "delay")
-			{
-				delay = mean;
-				delay_stdv = stddev;
-delay_min = mean;
-delay_max = stddev;
+          delay_bins = bins;
+        } else if (name == "data_sent") {
+          data_sent = mean;
+          data_sent_stdv = stddev;
+          data_sent_min = min;
+          data_sent_max = max;
 
-				delay_bins = bins;
-			}else if (name == "data_sent")
-			{
-				data_sent = mean;
-				data_sent_stdv = stddev;
-	data_sent_min = mean;
-data_sent_max = stddev;
+          data_sent_bins = bins;
+        } else {
+          // Handle any other parameters
+          // For now, it just has a placeholder comment for future functionality
+          // mostlike an error
+        }
+      }
 
-				data_sent_bins = bins;
-			}else if (name == "dist_to_neighbors")
-			{
-				dist_to_neighbors = mean;
-				dist_to_neighbors_stdv = stddev;
-				dist_to_neighbors_bins = bins;
-				dist_to_neighbors_min = mean;
-				dist_to_neighbors_max = stddev;
-			}
-			else
-			{
-			    // Handle any other parameters
-                // For now, it just has a placeholder comment for future functionality
-                // mostlike an error
-			}
-		}
-	}
+    }
+  }
 }
-
 
 // Function to print an error message and exit the program with an error code
-void exitError(const std::string &error_message)
-{
-	std::cerr << error_message << std::flush; // Use std::cerr for error messages
+void exitError(const std::string & error_message) {
+  std::cerr << error_message << std::flush; // Use std::cerr for error messages
 
-	std::exit(-1); // Exit the program with error code
+  std::exit(-1); // Exit the program with error code
 }
-
-
-
 
 // Function to set a value based on a command-line argument and check its validity.
-void setAndCheckValue(int &value, TCLAP::ValueArg<int> &arg,
-					  const char *errorMessage, int minValue = 0, int maxValue = INT_MAX)
-{
-	int tempValue = arg.getValue();
- 	// If the value from the argument is not -1 (indicating it was set by the user),
-    // update the 'value' reference with the new value.
-	if (tempValue != -1)
-	{
-		value = tempValue;
-	}
+void setAndCheckValue(int & value, TCLAP::ValueArg < int > & arg,
+  const char * errorMessage, int minValue = 0, int maxValue = INT_MAX) {
+  int tempValue = arg.getValue();
+  // If the value from the argument is not -1 (indicating it was set by the user),
+  // update the 'value' reference with the new value.
+  if (tempValue != -1) {
+    value = tempValue;
+  }
 
-	// Check if the value is within the allowed range (between minValue and maxValue).
-	if (value < minValue || value > maxValue)
-	{
-		exitError(errorMessage);
-	}
+  // Check if the value is within the allowed range (between minValue and maxValue).
+  if (value < minValue || value > maxValue) {
+    exitError(errorMessage);
+  }
 }
 
+void parseArgs(int argc, char ** argv) {
+
+  try {
+    TCLAP::CmdLine cmd("\nNOTE: TODO",
+      ' ', "1.0");
+
+    TCLAP::ValueArg < std::string > filepathArg("f", "filepath", "Path to the BENCHMARK_CONFIG file", false, "NOFILE", "string");
+
+    TCLAP::ValueArg < int > samplesArg("I", "samples", "Number of random samples to generate", false, 25, "int");
+    TCLAP::ValueArg < int > iterationsArg("i", "iterations", "Number of updates each sample performs", false, niterations, "int");
+    TCLAP::ValueArg < int > seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
+    TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", true);
+    TCLAP::SwitchArg reportParamsArg("r", "report-params", "Enables parameter reporting for use with analysis scripts", false);
+    TCLAP::ValueArg < std::string > distributionArg("d", "distribution", "Choose from: gaussian (default), empirical or static", false, "gaussian", "string");
+    TCLAP::ValueArg < std::string > commArg("c", "comm", "Choose from: MPIA|A|a (default) or MPI|M|m", false, "MPIA", "string");
+    TCLAP::ValueArg < std::string > INorOUTArg("x", "type", "Choose from: EXPORT|E|e (default) or IMPORT|I|i", false, "EXPORT", "string");
+    TCLAP::ValueArg < std::string > ALLTOALLV("a", "alltoallv", "Choose from: STANDARD|S|s (default) or LOCALITY|L|l", false, "STANDARD", "string");
+
+    cmd.add(filepathArg);
+    cmd.add(samplesArg);
+    cmd.add(iterationsArg);
+    cmd.add(seedArg);
+    cmd.add(useedArg);
+    cmd.add(distributionArg);
+    cmd.add(reportParamsArg);
+    cmd.add(commArg);
+    cmd.add(INorOUTArg);
+    cmd.add(ALLTOALLV);
+
+    cmd.parse(argc, argv);
+
+    filepath = filepathArg.getValue();
+
+
+    if (filepath != "NOFILE") {
+
+      try {
+        if (filepath.empty()) {
+          std::cerr << "Filepath is empty!" << std::endl;
+          return;
+        }
+
+        std::filesystem::path p(filepath);
+
+        // Check if path exists and is a file
+        if (std::filesystem::exists(p)) {
+          parse_config_file(filepath);
+        } else {
+          exitError("The file does not exist.");
+        }
+      } catch (const std::exception & e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+      }
+    }
+    unique_seed = useedArg.getValue();
+
+    std::string distribution = distributionArg.getValue();
+    // For nsamples, no specific range, only non-negative check
+    setAndCheckValue(nsamples, samplesArg, "ERROR: Invalid number of samples\n", 0);
+
+    // For niterations, same non-negative check
+    setAndCheckValue(niterations, iterationsArg, "ERROR: Invalid number of iterations\n", 0);
+
+    if (distribution == "gaussian" ||
+      distribution == "g") {
+      distribution_type = GAUSSIAN;
+    } else if (distribution == "empirical" ||
+      distribution == "e") {
+      distribution_type = EMPIRICAL;
+    } else if (distribution == "static" ||
+      distribution == "s") {
+      distribution_type = STATIC_VALUE;
+    } else {
+      exitError("ERROR: Invalid distribution choice [empirical,gaussian]\n");
+    }
 
 
 
-void parseArgs(int argc, char **argv)
-{
+    std::string comm = commArg.getValue();
+    if (comm == "A" ||
+				comm == "a" ||
+     			comm == "MPIA") {
+    	comm_type = MPIADVANCE;
+		comm="MPIADVANCE";
+    } else if (comm == "M" ||
+				comm == "m" ||
+     			comm == "MPI") {
+    	comm_type = MPI;
+		comm="MPI";
 
-	try
-	{
-		TCLAP::CmdLine cmd("\nNOTE: TODO",
-						   ' ', "1.0");
-
-		TCLAP::ValueArg<std::string> filepathArg("f", "filepath", "Path to the BENCHMARK_CONFIG file", false, "NOFILE", "string");
-
-		TCLAP::ValueArg<int> samplesArg("I", "samples", "Number of random samples to generate", false, 25, "int");
-
-		TCLAP::ValueArg<int> iterationsArg("i", "iterations", "Number of updates each sample performs", false, 100, "int");
-		TCLAP::ValueArg<int> seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
-		TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", false);
-		TCLAP::SwitchArg reportParamsArg("", "report-params", "Enables parameter reporting for use with analysis scripts", false);
-		TCLAP::ValueArg<std::string> distributionArg("d", "distribution", "Choose from: gaussian (default), empirical", false, "gaussian", "string");
-
-		cmd.add(filepathArg);
-		cmd.add(samplesArg);
-		cmd.add(iterationsArg);
-		cmd.add(seedArg);
-     	cmd.add(useedArg);
-		cmd.add(distributionArg);
-		cmd.add(reportParamsArg);
+    } else {
+       exitError("ERROR: Invalid Backend choice [MPIA,MPIA]\n");
+    }
 
 
-		cmd.parse(argc, argv);
 
-		filepath = filepathArg.getValue();
-		bool config_file_used = false; // todo
 
-		if (filepath != "NOFILE")
-		{
+  std::string type = INorOUTArg.getValue();
+    if (type == "E" ||
+				type == "e" ||
+     			type == "EXPORT") {
+    	halo_type = EXPORT;
+		type="EXPORT";
+    } else if (type == "I" ||
+				type == "i" ||
+     			type == "IMPORT") {
+    	halo_type = IMPORT;
+		type="IMPORT";
+    } else {
+       exitError("ERROR: Invalid Patern choice [EXPORT,IMPORT]\n");
+    }
 
-			try
-			{
-				if (filepath.empty())
-				{
-					std::cerr << "Filepath is empty!" << std::endl;
-					return;
-				}
 
-				std::filesystem::path p(filepath);
 
-				// Check if path exists and is a file
-				if (std::filesystem::exists(p))
-				{
-					parse_config_file(filepath);
-				}
-				else
-				{
-					exitError("The file does not exist.");
-				}
-			}
-			catch (const std::exception &e)
-			{
-				std::cerr << "Error: " << e.what() << std::endl;
-			}
+
+
+	std::string alltoallv = ALLTOALLV.getValue();
+    if (alltoallv == "S" ||
+				alltoallv == "s" ||
+     			alltoallv == "STANDARD") {
+    	mpix_neighbor_alltoallv_init_implementation = NEIGHBOR_ALLTOALLV_INIT_STANDARD;
+		alltoallv="NEIGHBOR_ALLTOALLV_INIT_STANDARD";
+    } else if (alltoallv == "L" ||
+				alltoallv == "l" ||
+     			alltoallv == "LOCALITY") {
+    	mpix_neighbor_alltoallv_init_implementation = NEIGHBOR_ALLTOALLV_INIT_LOCALITY;
+		alltoallv="NEIGHBOR_ALLTOALLV_INIT_LOCALITY";
+    } else {
+       exitError("ERROR: Invalid alltoallv choice [LOCALITY,STANDARD]\n");
+    }
+
+
+
+    int seedholder = seedArg.getValue();
+    if (seed != -1 && seedholder == -1) {
+      seed = time(NULL);
+    }
+    int comm_rank = -1;
+    MPI_Comm_rank(MPI_COMM_WORLD, & comm_rank);
+
+    if (unique_seed) {
+
+      srand(seed + comm_rank);
+    } else {
+      srand(seed);
+    }
+
+
+	if(comm_rank == 0){
+		if(reportParamsArg.getValue()) {
+	        printf("------------------------------------------------------------\n");
+	        printf("-MPI: %s\n",comm.c_str());
+	        printf("-File: %s\n",filepath.c_str());
+	        printf("-samples: %i\n",nsamples);
+	    	printf("-iterations: %i\n",niterations);
+			printf("-halotype: %s\n",type.c_str());
+			printf("-alltoallv: %s\n",alltoallv.c_str());
+      		printf("------------------------------------------------------------\n");
+		}else{
+      		printf("------------------------------------------------------------\n");
 		}
-		unique_seed = useedArg.getValue();
-
-		std::string distribution = distributionArg.getValue();
-		// For nsamples, no specific range, only non-negative check
-		setAndCheckValue(nsamples, samplesArg, "ERROR: Invalid number of samples\n", 0);
-
-		// For niterations, same non-negative check
-		setAndCheckValue(niterations, iterationsArg, "ERROR: Invalid number of iterations\n", 0);
-
-		if (distribution == "gaussian" ||
-			distribution == "g")
-		{
-			distribution_type = GAUSSIAN;
-		}
-		else if (distribution == "empirical" ||
-				 distribution == "e")
-		{
-			distribution_type = EMPIRICAL;
-		}
-		 else if (distribution == "static" ||
-				 distribution == "s")
-		{
-			distribution_type = STATIC_VALUE;
-		}else
-		{
-			exitError("ERROR: Invalid distribution choice [empirical,gaussian]\n");
-		}
-
-		int seedholder = seedArg.getValue();
-		if (seed != -1 && seedholder == -1)
-		{
-			seed = time(NULL);
-		}
-
-		if (unique_seed)
-		{
-			int comm_rank = -1;
-			MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
-			srand(seed + comm_rank);
-		}
-		else
-		{
-			srand(seed);
-		}
-
-//		irregularity = disableirregularityArg.getValue();
-
-
 	}
-	catch (TCLAP::ArgException &e)
-	{
-		std::cerr << "Error: " << e.error() << " for argument " << e.argId() << std::endl;
-		exit(-1);
-	}
+
+
+
+  } catch (TCLAP::ArgException & e) {
+    std::cerr << "Error: " << e.error() << " for argument " << e.argId() << std::endl;
+    exit(-1);
+  }
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char ** argv) {
 
-	MPI_Init(&argc, &argv);
-	{
-        // Parse command-line arguments to set global static variables
-		parseArgs(argc, argv);
+  MPI_Init( & argc, & argv);
+  {
+    // Parse command-line arguments to set global static variables
+    parseArgs(argc, argv);
 
+    Kokkos::ScopeGuard scope_guard(argc, argv);
+    // Run the benchmark
+    run_benchmark();
+  }
 
-		Kokkos::ScopeGuard scope_guard(argc, argv);
+  MPI_Finalize();
 
-        // Run the benchmark
-		run_benchmark();
-	}
-
-	MPI_Finalize();
-
-	
-	return 0;
+  return 0;
 }
