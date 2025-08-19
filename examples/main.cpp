@@ -288,7 +288,7 @@ DEBUG
         std::endl <<
         "(Rank " << comm_rank << ") ";DEBUG
       for (std::size_t i = 0; i < slice_ids.size(); ++i)
-        std::cout << slice_ids(i) << " "
+        std::cout << slice_ids(i) << " ";
       std::cout << std::endl <<
         "(" << slice_ids.size() << " IDs before exchange)" <<
         std::endl <<
