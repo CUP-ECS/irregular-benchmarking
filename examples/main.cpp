@@ -791,9 +791,7 @@ int main(int argc, char ** argv) {
 
 
 
-	if (mcheck(NULL) != 0) {
-        return 1;
-    }
+
   MPI_Init( & argc, & argv);
 
   {
