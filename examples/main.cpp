@@ -43,6 +43,7 @@
 
 #include <cxxabi.h>
 
+#include <mcheck.h>
 
 using json = nlohmann::json;
 
@@ -788,7 +789,13 @@ void parseArgs(int argc, char ** argv) {
 
 int main(int argc, char ** argv) {
 
+
+
+	if (mcheck(NULL) != 0) {
+        return 1;
+    }
   MPI_Init( & argc, & argv);
+
   {
     // Parse command-line arguments to set global static variables
     parseArgs(argc, argv);
