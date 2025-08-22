@@ -69,7 +69,7 @@ enum halo {
 
 enum comm {
   MPIADVANCE,
-  MPI
+  MPIS
 };
 
 typedef enum halo halo_t;
@@ -375,7 +375,7 @@ void run_benchmark() {
           gather.apply();
         }
       }
-    } else if (comm_type == MPI) {
+    } else if (comm_type == MPIS) {
       if (halo_type == EXPORT) {
 
         TIME_START = std::chrono::high_resolution_clock::now();
@@ -703,7 +703,7 @@ void parseArgs(int argc, char ** argv) {
     } else if (comm == "M" ||
 				comm == "m" ||
      			comm == "MPI") {
-    	comm_type = MPI;
+    	comm_type = MPIS;
 		comm="MPI";
 
     } else {
