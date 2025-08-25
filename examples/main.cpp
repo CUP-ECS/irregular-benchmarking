@@ -132,7 +132,10 @@ int main() {
     // Print normalized results
     for (auto& [name, pattern] : patterns) {
         std::cout << "Pattern: " << name << "\n";
+
     std::cout << "Sampled comm_partner: " << sample_from_map(pattern.comm_partners) << "\n";
+    std::cout << "Sampled buffer_size: " << sample_from_map_double(pattern.buffer_size) << "\n";
+    std::cout << "Sampled dist_to_neighbors: " << sample_from_map(pattern.dist_to_neighbors) << "\n";
 
         std::cout << "  comm_partners:\n";
         for (auto& [k, v] : pattern.comm_partners) {
