@@ -1,8 +1,44 @@
 #include <iostream>
-#include <fstream>
 #include <map>
-#include <string>
-#include <nlohmann/json.hpp>
+#include <random>
+#include <vector>
+#include <chrono>
+
+// Random engine (seeded with current time)
+std::mt19937& global_rng() {
+    static std::mt19937 rng(static_cast<unsigned long>(
+        std::chrono::system_clock::now().time_since_epoch().count()));
+    return rng;
+}
+
+// --- Sample from normalized map<int, double> ---
+int sample_from_map(const std::map<int, double>& dist) {
+    std::vector<int> keys;
+    std::vector<double> weights;
+
+    for (auto& [k, w] : dist) {
+        keys.push_back(k);
+        weights.push_back(w);
+    }
+
+    std::discrete_distribution<> d(weights.begin(), weights.end());
+    return keys[d(global_rng())];
+}
+
+// --- Sample from normalized map<double, double> ---
+double sample_from_map_double(const std::map<double, double>& dist) {
+    std::vector<double> keys;
+    std::vector<double> weights;
+
+    for (auto& [k, w] : dist) {
+        keys.push_back(k);
+        weights.push_back(w);
+    }
+
+    std::discrete_distribution<> d(weights.begin(), weights.end());
+    return keys[d(global_rng())];
+}
+
 
 using json = nlohmann::json;
 
@@ -91,6 +127,7 @@ int main() {
     // Print normalized results
     for (auto& [name, pattern] : patterns) {
         std::cout << "Pattern: " << name << "\n";
+    std::cout << "Sampled comm_partner: " << sample_from_map(pattern.comm_partners) << "\n";
 
         std::cout << "  comm_partners:\n";
         for (auto& [k, v] : pattern.comm_partners) {
@@ -110,4 +147,6 @@ int main() {
             }
         }
     }
+
+
 }
