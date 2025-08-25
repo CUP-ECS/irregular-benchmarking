@@ -67,10 +67,27 @@ int main() {
     }
 
     // Example: print buffer_size with fill-forward applied
+
+    // Example: print one pattern’s data
     for (auto& [name, pattern] : patterns) {
         std::cout << "Pattern: " << name << "\n";
+
+        std::cout << "  comm_partners:\n";
+        for (auto& [k, v] : pattern.comm_partners) {
+            std::cout << "    " << k << " : " << v << "\n";
+        }
+
+        std::cout << "  buffer_size:\n";
         for (auto& [k, v] : pattern.buffer_size) {
-            std::cout << "  " << k << " : " << v << "\n";
+            std::cout << "    " << k << " : " << v << "\n";
+        }
+
+        std::cout << "  dist_to_neighbors:\n";
+        for (auto& [outer, inner] : pattern.dist_to_neighbors) {
+            std::cout << "    " << outer << ":\n";
+            for (auto& [ik, iv] : inner) {
+                std::cout << "      " << ik << " : " << iv << "\n";
+            }
         }
     }
 }
