@@ -8,26 +8,34 @@ using json = nlohmann::json;
 
 // Struct for one pattern
 struct Pattern {
-    std::map<int, int> comm_partners;
-    std::map<double, int> buffer_size;
-    std::map<int, std::map<int, int>> dist_to_neighbors;
+    std::map<int, double> comm_partners;                     // normalized
+    std::map<double, double> buffer_size;                    // fill-forward + normalized
+    std::map<int, std::map<int, double>> dist_to_neighbors;  // each inner map normalized
 };
 
 // Conversion from JSON → struct
 void from_json(const json& j, Pattern& p) {
-    // comm_partners
-    for (auto& [k, v] : j.at("comm_partners").items()) {
-        p.comm_partners[std::stoi(k)] = v.get<int>();
+    // --- comm_partners ---
+    {
+        std::map<int, int> temp;
+        for (auto& [k, v] : j.at("comm_partners").items()) {
+            temp[std::stoi(k)] = v.get<int>();
+        }
+        double total = 0.0;
+        for (auto& [k, v] : temp) total += v;
+        for (auto& [k, v] : temp) {
+            p.comm_partners[k] = (total > 0) ? (double)v / total : 0.0;
+        }
     }
 
-    // buffer_size
+    // --- buffer_size ---
     {
         std::map<double, int> temp;
         for (auto& [k, v] : j.at("buffer_size").items()) {
             temp[std::stod(k)] = v.get<int>();
         }
 
-        // fill-forward: replace 0 with last non-zero
+        // fill-forward
         int last_nonzero = 0;
         for (auto& [key, value] : temp) {
             if (value != 0) {
@@ -37,17 +45,31 @@ void from_json(const json& j, Pattern& p) {
             }
         }
 
-        p.buffer_size = std::move(temp);
+        // normalize
+        double total = 0.0;
+        for (auto& [k, v] : temp) total += v;
+        for (auto& [k, v] : temp) {
+            p.buffer_size[k] = (total > 0) ? (double)v / total : 0.0;
+        }
     }
 
-    // dist_to_neighbors
+    // --- dist_to_neighbors ---
     for (auto& [outer_k, inner_obj] : j.at("dist_to_neighbors").items()) {
         int outer_key = std::stoi(outer_k);
-        std::map<int, int> inner_map;
+        std::map<int, int> temp;
         for (auto& [inner_k, inner_v] : inner_obj.items()) {
-            inner_map[std::stoi(inner_k)] = inner_v.get<int>();
+            temp[std::stoi(inner_k)] = inner_v.get<int>();
         }
-        p.dist_to_neighbors[outer_key] = inner_map;
+
+        double total = 0.0;
+        for (auto& [k, v] : temp) total += v;
+
+        std::map<int, double> norm_inner;
+        for (auto& [k, v] : temp) {
+            norm_inner[k] = (total > 0) ? (double)v / total : 0.0;
+        }
+
+        p.dist_to_neighbors[outer_key] = std::move(norm_inner);
     }
 }
 
@@ -66,9 +88,7 @@ int main() {
         patterns[pattern_name] = pattern_json.get<Pattern>();
     }
 
-    // Example: print buffer_size with fill-forward applied
-
-    // Example: print one pattern’s data
+    // Print normalized results
     for (auto& [name, pattern] : patterns) {
         std::cout << "Pattern: " << name << "\n";
 
