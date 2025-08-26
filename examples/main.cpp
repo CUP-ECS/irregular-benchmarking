@@ -598,8 +598,8 @@ void parseArgs(int argc, char ** argv) {
 
 			std::ifstream file(filepath);
     		if (!file.is_open()) {
-        		std::cerr << "Error: Could not open x.json\n";
-        		return 1;
+
+   				 exitError("Error: Could not open file. ");
     		}
 
     		json j;
