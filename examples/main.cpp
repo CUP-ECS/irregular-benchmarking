@@ -50,7 +50,7 @@ using json = nlohmann::json;
 // Struct for one pattern
 struct Pattern {
     std::map<int, double> comm_partners;                     // normalized
-    std::map<double, double> buffer_size;                    // fill-forward + normalized
+    std::map<int, double> buffer_size;                    // fill-forward + normalized
     std::map<int, std::map<int, double>> dist_to_neighbors;  // each inner map normalized
 };
 
@@ -71,9 +71,9 @@ void from_json(const json& j, Pattern& p) {
 
     // --- buffer_size ---
     {
-        std::map<double, int> temp;
+        std::map<int, int> temp;
         for (auto& [k, v] : j.at("buffer_size").items()) {
-            temp[std::stod(k)] = v.get<int>();
+            temp[std::stoi(k)] = v.get<int>();
         }
 
         // fill-forward
