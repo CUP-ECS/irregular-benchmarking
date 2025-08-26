@@ -134,7 +134,7 @@ int main() {
         std::cout << "Pattern: " << name << "\n";
 	auto a = sample_from_map(pattern.comm_partners);
 	auto b= sample_from_map(pattern.buffer_size);
-	auto c = sample_from_map(sample_from_map(pattern.dist_to_neighbors[a]));
+	auto c = sample_from_map(pattern.dist_to_neighbors[a]);
 
     std::cout << "Sampled comm_partner: " <<a<< "\n";
     std::cout << "Sampled buffer_size: " << b << "\n";
