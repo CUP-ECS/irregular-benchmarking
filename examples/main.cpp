@@ -132,29 +132,14 @@ int main() {
     // Print normalized results
     for (auto& [name, pattern] : patterns) {
         std::cout << "Pattern: " << name << "\n";
+	auto a = sample_from_map(pattern.comm_partners);
+	auto b= sample_from_map(pattern.buffer_size);
+	auto c = sample_from_map(sample_from_map(pattern.dist_to_neighbors[a]));
 
-    std::cout << "Sampled comm_partner: " << sample_from_map(pattern.comm_partners) << "\n";
-    std::cout << "Sampled buffer_size: " << sample_from_map_double(pattern.buffer_size) << "\n";
+    std::cout << "Sampled comm_partner: " <<a<< "\n";
+    std::cout << "Sampled buffer_size: " << b << "\n";
+    std::cout << "Sampled dist_to_neighbors: " <<c << "\n";
 
-        std::cout << "  comm_partners:\n";
-        for (auto& [k, v] : pattern.comm_partners) {
-            std::cout << "    " << k << " : " << v << "\n";
-        }
-
-        std::cout << "  buffer_size:\n";
-        for (auto& [k, v] : pattern.buffer_size) {
-            std::cout << "    " << k << " : " << v << "\n";
-        }
-
-        std::cout << "  dist_to_neighbors:\n";
-        for (auto& [outer, inner] : pattern.dist_to_neighbors) {
-            std::cout << "    " << outer << ":\n";
-    		std::cout << "Sampled dist_to_neighbors: " << sample_from_map(inner) << "\n";
-
-            for (auto& [ik, iv] : inner) {
-                std::cout << "      " << ik << " : " << iv << "\n";
-            }
-        }
     }
 
 
