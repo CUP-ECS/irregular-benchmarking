@@ -217,7 +217,7 @@ void run_benchmark() {
     int total_data = 0;
     int nneighborsV = -1;
 
-	auto nneighborsV = sample_from_map(pattern.comm_partners);
+	 nneighborsV = sample_from_map(pattern.comm_partners);
 
       for (int i = 0; i < nneighborsV; ++i) {
         int data_sentV = sample_from_map(pattern.buffer_size);
@@ -225,7 +225,7 @@ void run_benchmark() {
         while (true) {
 
           int distanceToN = sample_from_map(pattern.dist_to_neighbors[nneighborsV]);
-          int distanceToN = ( distanceToN + comm_rank + comm_size) % comm_size
+          distanceToN = ( distanceToN + comm_rank + comm_size) % comm_size
           if (distanceToN != 0 && seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
             seen_neighbors.insert(distanceToN);
             neighbors.push_back(distanceToN);
