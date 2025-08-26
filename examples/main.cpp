@@ -65,7 +65,8 @@ static comm_t comm_type = MPIADVANCE;
 
 static int seed = -1;
 static bool unique_seed = 0;
-
+static int data_sent_max =-1;
+static int nneighbors_max=-1;
 struct Pattern {
     std::map<int, double> comm_partners;                     // normalized
     std::map<int, double> buffer_size;                    // fill-forward + normalized
@@ -111,11 +112,29 @@ void from_json(const json& j, Pattern& p) {
         for (auto& [k, v] : j.at("comm_partners").items()) {
             temp[std::stoi(k)] = v.get<int>();
         }
+
+        // fill-forward
+        int last_nonzero = 0;
+        for (auto& [key, value] : temp) {
+            if (value != 0) {
+                last_nonzero = value;
+            } else if (last_nonzero != 0) {
+                value = last_nonzero;
+            }
+        }
+
+        // normalize
         double total = 0.0;
         for (auto& [k, v] : temp) total += v;
         for (auto& [k, v] : temp) {
             p.comm_partners[k] = (total > 0) ? (double)v / total : 0.0;
         }
+
+
+
+
+        nneighbors_max = std::max(p.comm_partners.rbegin()->first, nneighbors_max);
+
     }
 
     // --- buffer_size ---
@@ -141,6 +160,8 @@ void from_json(const json& j, Pattern& p) {
         for (auto& [k, v] : temp) {
             p.buffer_size[k] = (total > 0) ? (double)v / total : 0.0;
         }
+           data_sent_max = std::max(p.buffer_size.rbegin()->first, data_sent_max);
+
     }
 
     // --- dist_to_neighbors ---
@@ -225,7 +246,7 @@ void run_benchmark() {
         while (true) {
 
           int distanceToN = sample_from_map(pattern.dist_to_neighbors[nneighborsV]);
-          distanceToN = ( distanceToN + comm_rank + comm_size) % comm_size
+          distanceToN = ( distanceToN + comm_rank + comm_size) % comm_size;
           if (distanceToN != 0 && seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
             seen_neighbors.insert(distanceToN);
             neighbors.push_back(distanceToN);
