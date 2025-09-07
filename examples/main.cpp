@@ -477,26 +477,26 @@ void run_benchmark() {
         std::endl;
     }
 
-    int data_size = 5;
-    double local_vals[data_size] = {
+#define DATA_SIZE 5
+    double local_vals[DATA_SIZE] = {
       haloTime,
       resizeTime,
       gatherTime,
-      nneighborsV,
-      inum
+      (double)nneighborsV,
+      (double)inum
     };
 
-    double min_vals[data_size];
-    double max_vals[data_size];
-    double sum_vals[data_size];
+    double min_vals[DATA_SIZE];
+    double max_vals[DATA_SIZE];
+    double sum_vals[DATA_SIZE];
 
     // Perform reductions
-    MPI_Reduce(local_vals, min_vals, data_size, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
-    MPI_Reduce(local_vals, max_vals, data_size, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Reduce(local_vals, sum_vals, data_size, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(local_vals, min_vals, DATA_SIZE, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+    MPI_Reduce(local_vals, max_vals, DATA_SIZE, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(local_vals, sum_vals, DATA_SIZE, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
     if (comm_rank == 0) {
-      const char * labels[data_size] = {
+      const char * labels[DATA_SIZE] = {
         "haloTime",
         "resizeTime",
         "gatherTime",
@@ -507,7 +507,7 @@ void run_benchmark() {
       printf("%-20s %-12s %-12s %-12s\n", "Metric", "Min", "Max", "Average");
       printf("------------------------------------------------------------\n");
 
-      for (int i = 0; i < data_size; ++i) {
+      for (int i = 0; i < DATA_SIZE; ++i) {
         double avg = sum_vals[i] / comm_size;
         printf("%-20s %-.6f     %-.6f     %-.6f\n", labels[i], min_vals[i], max_vals[i], avg);
       }
