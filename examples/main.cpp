@@ -246,10 +246,10 @@ void run_benchmark() {
         while (true) {
 
           int distanceToN = sample_from_map(pattern.dist_to_neighbors[nneighborsV]);
-          distanceToN = ( distanceToN + comm_rank + comm_size) % comm_size;
-          if (distanceToN != 0 && seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
-            seen_neighbors.insert(distanceToN);
-            neighbors.push_back(distanceToN);
+          int  node = ( distanceToN + comm_rank + comm_size) % comm_size;
+          if (distanceToN != 0 && seen_neighbors.find(node) == seen_neighbors.end()) {
+            seen_neighbors.insert(node);
+            neighbors.push_back(node);
             neighbors_data.push_back(data_sentV);
             break;
           }
