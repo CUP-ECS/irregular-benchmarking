@@ -541,7 +541,7 @@ halo_gather_time,
 
       for (int i = 0; i < DATA_SIZE; ++i) {
         double avg = sum_vals[i] / comm_size;
-        printf("%-20s %-.6f     %-.6f     %-.6f\n", name.to,labels[i], min_vals[i], max_vals[i], avg);
+        printf("(%s)  %-20s %-.6f     %-.6f     %-.6f\n", name.c_str(),labels[i], min_vals[i], max_vals[i], avg);
       }
       printf("------------------------------------------------------------\n");
       fflush(stdout);
