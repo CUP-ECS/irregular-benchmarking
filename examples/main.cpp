@@ -261,7 +261,7 @@ void run_benchmark() {
     double haloTime;
     double resizeTime;
     double gatherTime;
-	double gather;
+	double apply;
 
     using DataTypes = Cabana::MemberTypes < double, double > ;
     const int VectorLength = 8;
@@ -352,7 +352,7 @@ void run_benchmark() {
         }
    		TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        gather = duration.count() * 1e6;
+        apply = duration.count() * 1e6;
 
 
       } else if (halo_type == IMPORT) {
@@ -388,7 +388,7 @@ void run_benchmark() {
         }
    		TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        gather = duration.count() * 1e6;
+        apply = duration.count() * 1e6;
       } else {
         //error
         Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
@@ -431,7 +431,7 @@ void run_benchmark() {
 
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        gatherTime = duration.count() * 1e6;
+        apply = duration.count() * 1e6;
 
       } else if (halo_type == IMPORT) {
 
@@ -466,7 +466,7 @@ void run_benchmark() {
         }
    		TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        gather = duration.count() * 1e6;
+        apply = duration.count() * 1e6;
       } else {
         //error
         Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
@@ -509,7 +509,7 @@ void run_benchmark() {
       haloTime,
       resizeTime,
       gatherTime,
-gather,
+apply,
 halo_gather,
       (double)nneighborsV,
       (double)inum
@@ -530,7 +530,7 @@ halo_gather,
         "haloTime",
         "resizeTime",
         "gatherTime",
-		"gather",
+		"apply",
 		"halo_gather_time",
         "nneighbors",
         "data sent"
