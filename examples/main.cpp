@@ -485,7 +485,7 @@ void run_benchmark() {
   	auto TIME_END_Halo = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration < double > halo_gather_time = TIME_END_Halo - TIME_START_HALO;
-
+ double halo_gather = halo_gather_time.count() * 1e6;
     if (comm_rank == -1) {
 
       std::cout << "AFTER gather" << std::endl <<
@@ -510,7 +510,7 @@ void run_benchmark() {
       resizeTime,
       gatherTime,
 gather,
-halo_gather_time,
+halo_gather,
       (double)nneighborsV,
       (double)inum
     };
