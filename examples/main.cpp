@@ -261,6 +261,7 @@ void run_benchmark() {
     double haloTime;
     double resizeTime;
     double gatherTime;
+	double gather;
 
     using DataTypes = Cabana::MemberTypes < double, double > ;
     const int VectorLength = 8;
@@ -312,6 +313,10 @@ void run_benchmark() {
       ++it_neighbors;
     }
 
+
+  auto TIME_START_HALO = std::chrono::high_resolution_clock::now();
+
+
     if (comm_type == MPIADVANCE) {
       if (halo_type == EXPORT) {
 
@@ -333,15 +338,22 @@ void run_benchmark() {
 
         TIME_START = std::chrono::high_resolution_clock::now();
 
-        auto gather = Cabana::createGather(halo, aosoa, 3.0);
-
-        for (int i = 0; i < niterations; i++) {
-          gather.apply();
-        }
-
-        TIME_END = std::chrono::high_resolution_clock::now();
+        auto gather = Cabana::createGather(halo, aosoa, 1.0);
+   		TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
         gatherTime = duration.count() * 1e6;
+
+
+
+        TIME_START = std::chrono::high_resolution_clock::now();
+
+       	for (int i = 0; i < niterations; i++) {
+          gather.apply();
+        }
+   		TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        gather = duration.count() * 1e6;
+
 
       } else if (halo_type == IMPORT) {
         TIME_START = std::chrono::high_resolution_clock::now();
@@ -363,14 +375,20 @@ void run_benchmark() {
 
         auto gather = Cabana::createGather(halo, aosoa, 3.0);
 
-        for (int i = 0; i < niterations; i++) {
-
-          gather.apply();
-        }
-
-        TIME_END = std::chrono::high_resolution_clock::now();
+      	TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
         gatherTime = duration.count() * 1e6;
+
+
+
+        TIME_START = std::chrono::high_resolution_clock::now();
+
+       	for (int i = 0; i < niterations; i++) {
+          gather.apply();
+        }
+   		TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        gather = duration.count() * 1e6;
       } else {
         //error
         Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
@@ -416,6 +434,7 @@ void run_benchmark() {
         gatherTime = duration.count() * 1e6;
 
       } else if (halo_type == IMPORT) {
+
         TIME_START = std::chrono::high_resolution_clock::now();
         Cabana::Halo < MemorySpace, Cabana::Import, Cabana::CommSpace::Mpi > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
         TIME_END = std::chrono::high_resolution_clock::now();
@@ -434,15 +453,20 @@ void run_benchmark() {
         TIME_START = std::chrono::high_resolution_clock::now();
 
         auto gather = Cabana::createGather(halo, aosoa, 3.0);
-
-        for (int i = 0; i < niterations; i++) {
-
-          gather.apply();
-        }
-
-        TIME_END = std::chrono::high_resolution_clock::now();
+	TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
         gatherTime = duration.count() * 1e6;
+
+
+
+        TIME_START = std::chrono::high_resolution_clock::now();
+
+       	for (int i = 0; i < niterations; i++) {
+          gather.apply();
+        }
+   		TIME_END = std::chrono::high_resolution_clock::now();
+        duration = TIME_END - TIME_START;
+        gather = duration.count() * 1e6;
       } else {
         //error
         Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
@@ -458,6 +482,9 @@ void run_benchmark() {
       }
 
     }
+  	auto TIME_END_Halo = std::chrono::high_resolution_clock::now();
+
+  std::chrono::duration < double > halo_gather_time = TIME_END_Halo - TIME_START_HALO;
 
     if (comm_rank == -1) {
 
@@ -477,11 +504,13 @@ void run_benchmark() {
         std::endl;
     }
 
-#define DATA_SIZE 5
+#define DATA_SIZE 7
     double local_vals[DATA_SIZE] = {
       haloTime,
       resizeTime,
       gatherTime,
+gather,
+halo_gather_time,
       (double)nneighborsV,
       (double)inum
     };
@@ -496,10 +525,13 @@ void run_benchmark() {
     MPI_Reduce(local_vals, sum_vals, DATA_SIZE, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
     if (comm_rank == 0) {
+
       const char * labels[DATA_SIZE] = {
         "haloTime",
         "resizeTime",
         "gatherTime",
+		"gather",
+		"halo_gather_time",
         "nneighbors",
         "data sent"
       };
@@ -509,7 +541,7 @@ void run_benchmark() {
 
       for (int i = 0; i < DATA_SIZE; ++i) {
         double avg = sum_vals[i] / comm_size;
-        printf("%-20s %-.6f     %-.6f     %-.6f\n", labels[i], min_vals[i], max_vals[i], avg);
+        printf("%-20s %-.6f     %-.6f     %-.6f\n", name.to,labels[i], min_vals[i], max_vals[i], avg);
       }
       printf("------------------------------------------------------------\n");
       fflush(stdout);
