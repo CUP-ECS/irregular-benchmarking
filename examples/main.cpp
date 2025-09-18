@@ -533,7 +533,7 @@ halo_gather,
 		"apply",
 		"halo_gather_time",
         "nneighbors",
-        "data sent"
+        "data_sent"
       };
 
       printf("%-20s %-12s %-12s %-12s\n", "Metric", "Min", "Max", "Average");
