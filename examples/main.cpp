@@ -160,7 +160,7 @@ void from_json(const json& j, Pattern& p) {
         for (auto& [k, v] : temp) {
             p.buffer_size[k] = (total > 0) ? (double)v / total : 0.0;
         }
-           data_sent_max = std::max(p.buffer_size.rbegin()->first, data_sent_max);
+        data_sent_max = std::max(p.buffer_size.rbegin()->first, data_sent_max);
 
     }
 
@@ -250,7 +250,7 @@ void run_benchmark() {
           if (distanceToN != 0 && seen_neighbors.find(node) == seen_neighbors.end()) {
             seen_neighbors.insert(node);
             neighbors.push_back(node);
-            neighbors_data.push_back(data_sentV);
+            neighbors_data.push_back(data_sentV/8/2);
             break;
           }
         }
@@ -267,7 +267,7 @@ void run_benchmark() {
     const int VectorLength = 8;
     using MemorySpace = Kokkos::HostSpace;
 
-    int num_tuple = data_sent_max * nneighbors_max;
+    int num_tuple = data_sent_max ;
     Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("my_aosoa",
       num_tuple);
     auto slice_ranks = Cabana::slice < 0 > (aosoa);
@@ -306,7 +306,7 @@ void run_benchmark() {
     while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
 
       for (int i = 0; i < * it_data; ++i) {
-        export_ids(inum) = inum;
+        export_ids(inum) = i;
         export_ranks(inum++) = * it_neighbors ;
       }
       ++it_data;
