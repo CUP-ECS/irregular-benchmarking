@@ -225,7 +225,7 @@ void run_benchmark() {
   auto TIME_START = std::chrono::high_resolution_clock::now();
   auto TIME_END = std::chrono::high_resolution_clock::now();
 
-  std::chrono::duration < double > duration = TIME_END - TIME_START;
+  std::chrono::duration < double,std:milli  > duration = TIME_END - TIME_START;
     int comm_rank = -1;
     MPI_Comm_rank(MPI_COMM_WORLD, & comm_rank);
     int comm_size = -1;
@@ -324,7 +324,7 @@ void run_benchmark() {
         Cabana::Halo < MemorySpace, Cabana::Export, Cabana::CommSpace::MpiAdvance > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        haloTime = duration.count() * 1e6;
+        haloTime = duration.count();
 
         TIME_START = std::chrono::high_resolution_clock::now();
         aosoa.resize(halo.numLocal() + halo.numGhost());
@@ -334,14 +334,14 @@ void run_benchmark() {
 
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        resizeTime = duration.count() * 1e6;
+        resizeTime = duration.count();
 
         TIME_START = std::chrono::high_resolution_clock::now();
 
         auto gather = Cabana::createGather(halo, aosoa, 1.0);
    		TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        gatherTime = duration.count() * 1e6;
+        gatherTime = duration.count() ;
 
 
 
@@ -352,7 +352,7 @@ void run_benchmark() {
         }
    		TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        apply = duration.count() * 1e6;
+        apply = duration.count() ;
 
 
       } else if (halo_type == IMPORT) {
@@ -360,7 +360,7 @@ void run_benchmark() {
         Cabana::Halo < MemorySpace, Cabana::Import, Cabana::CommSpace::MpiAdvance > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        haloTime = duration.count() * 1e6;
+        haloTime = duration.count() ;
 
         TIME_START = std::chrono::high_resolution_clock::now();
         aosoa.resize(halo.numLocal() + halo.numGhost());
@@ -369,7 +369,7 @@ void run_benchmark() {
 
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        resizeTime = duration.count() * 1e6;
+        resizeTime = duration.count();
 
         TIME_START = std::chrono::high_resolution_clock::now();
 
@@ -377,7 +377,7 @@ void run_benchmark() {
 
       	TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        gatherTime = duration.count() * 1e6;
+        gatherTime = duration.count() ;
 
 
 
@@ -388,7 +388,7 @@ void run_benchmark() {
         }
    		TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        apply = duration.count() * 1e6;
+        apply = duration.count();
       } else {
         //error
         Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
@@ -409,7 +409,7 @@ void run_benchmark() {
         Cabana::Halo < MemorySpace, Cabana::Export, Cabana::CommSpace::Mpi > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        haloTime = duration.count() * 1e6;
+        haloTime = duration.count();
 
         TIME_START = std::chrono::high_resolution_clock::now();
         aosoa.resize(halo.numLocal() + halo.numGhost());
@@ -419,7 +419,7 @@ void run_benchmark() {
 
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        resizeTime = duration.count() * 1e6;
+        resizeTime = duration.count() ;
 
         TIME_START = std::chrono::high_resolution_clock::now();
 
@@ -431,7 +431,7 @@ void run_benchmark() {
 
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        apply = duration.count() * 1e6;
+        apply = duration.count() ;
 
       } else if (halo_type == IMPORT) {
 
@@ -439,7 +439,7 @@ void run_benchmark() {
         Cabana::Halo < MemorySpace, Cabana::Import, Cabana::CommSpace::Mpi > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        haloTime = duration.count() * 1e6;
+        haloTime = duration.count() ;
 
         TIME_START = std::chrono::high_resolution_clock::now();
         aosoa.resize(halo.numLocal() + halo.numGhost());
@@ -448,14 +448,14 @@ void run_benchmark() {
 
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        resizeTime = duration.count() * 1e6;
+        resizeTime = duration.count() ;
 
         TIME_START = std::chrono::high_resolution_clock::now();
 
         auto gather = Cabana::createGather(halo, aosoa, 3.0);
 	TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        gatherTime = duration.count() * 1e6;
+        gatherTime = duration.count() ;
 
 
 
@@ -466,7 +466,7 @@ void run_benchmark() {
         }
    		TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
-        apply = duration.count() * 1e6;
+        apply = duration.count();
       } else {
         //error
         Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
@@ -484,8 +484,8 @@ void run_benchmark() {
     }
   	auto TIME_END_Halo = std::chrono::high_resolution_clock::now();
 
-  std::chrono::duration < double > halo_gather_time = TIME_END_Halo - TIME_START_HALO;
- double halo_gather = halo_gather_time.count() * 1e6;
+  std::chrono::duration < double,std:milli > halo_gather_time = TIME_END_Halo - TIME_START_HALO;
+ double halo_gather = halo_gather_time.count() ;
     if (comm_rank == -1) {
 
       std::cout << "AFTER gather" << std::endl <<
