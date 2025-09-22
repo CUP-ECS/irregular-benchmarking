@@ -225,7 +225,7 @@ void run_benchmark() {
   auto TIME_START = std::chrono::high_resolution_clock::now();
   auto TIME_END = std::chrono::high_resolution_clock::now();
 
-  std::chrono::duration < double,std:milli  > duration = TIME_END - TIME_START;
+  std::chrono::duration < double,std::milli  > duration = TIME_END - TIME_START;
     int comm_rank = -1;
     MPI_Comm_rank(MPI_COMM_WORLD, & comm_rank);
     int comm_size = -1;
@@ -484,7 +484,7 @@ void run_benchmark() {
     }
   	auto TIME_END_Halo = std::chrono::high_resolution_clock::now();
 
-  std::chrono::duration < double,std:milli > halo_gather_time = TIME_END_Halo - TIME_START_HALO;
+  std::chrono::duration < double,std::milli > halo_gather_time = TIME_END_Halo - TIME_START_HALO;
  double halo_gather = halo_gather_time.count() ;
     if (comm_rank == -1) {
 
