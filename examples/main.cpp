@@ -182,38 +182,6 @@ void from_json(const json& j, Pattern& p) {
 
         p.dist_to_neighbors[outer_key] = std::move(norm_inner);
     }
-}
-/*
-int main() {
-    std::ifstream file("x.json");
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open x.json\n";
-        return 1;
-    }
-
-    json j;
-    file >> j;
-
-    for (auto& [pattern_name, pattern_json] : j.items()) {
-        patterns[pattern_name] = pattern_json.get<Pattern>();
-    }
-
-    // Print normalized results
-    for (auto& [name, pattern] : patterns) {
-        std::cout << "Pattern: " << name << "\n";
-
-
-    std::cout << "Sampled comm_partner: " <<a<< "\n";
-    std::cout << "Sampled buffer_size: " << b << "\n";
-    std::cout << "Sampled dist_to_neighbors: " <<c << "\n";
-
-    }
-
-
-}
-
-
-/*/
 
 
 // Function to run a performance benchmark
@@ -297,10 +265,6 @@ void run_benchmark() {
         export_ids(inum) = i;
         export_ranks(inum++) = * it_neighbors ;
       }
-    std::cout << "comm_rank " << comm_rank
-              << " | it_data = " << *it_data
-              << " | it_neighbors = " << *it_neighbors
-              << std::endl;
       ++it_data;
       ++it_neighbors;
     }
@@ -477,34 +441,11 @@ void run_benchmark() {
     }
   	auto TIME_END_Halo = std::chrono::high_resolution_clock::now();
 
-  	  int total_send = 0;
-  	  // Reduce send_bytes
-  	  MPI_Reduce(&total_data, &total_send, 1, MPI_INT, MPI_SUM, 1, MPI_COMM_WORLD);
 
-  	  if (comm_rank == 1) {
-  	    std::cout << "sasdfdsafd : " << total_send
-            << std::endl;
-  	  }
 
   std::chrono::duration < double,std::milli > halo_gather_time = TIME_END_Halo - TIME_START_HALO;
  double halo_gather = halo_gather_time.count() ;
-    if (comm_rank == -1) {
 
-      std::cout << "AFTER gather" << std::endl <<
-        "(Rank " << comm_rank << ") ";
-      for (std::size_t i = 0; i < slice_ranks.size(); ++i)
-        std::cout << slice_ranks(i) << " ";
-      std::cout << std::endl <<
-        "(" << slice_ranks.size() << " ranks after gather)" <<
-        std::endl <<
-        "(Rank " << comm_rank << ") ";
-      for (std::size_t i = 0; i < slice_ids.size(); ++i)
-        std::cout << slice_ids(i) << " ";
-      std::cout << std::endl <<
-        "(" << slice_ids.size() << " IDs after gather)" <<
-        std::endl <<
-        std::endl;
-    }
 
 #define DATA_SIZE 7
     double local_vals[DATA_SIZE] = {
