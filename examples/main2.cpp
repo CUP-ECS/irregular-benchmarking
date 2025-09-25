@@ -234,6 +234,7 @@ void run_benchmark() {
         while (true) {
 
           int distanceToN = getDistToNeighbors(nneighborsV);
+
           if (distanceToN != 0 && seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
             seen_neighbors.insert(distanceToN);
             neighbors.push_back(distanceToN);

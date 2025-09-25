@@ -277,22 +277,6 @@ void run_benchmark() {
       slice_ids(i) = i;
     }
 
-    if (comm_rank == -1) {
-      std::cout << "BEFORE exchange" << std::endl <<
-        "(Rank " << comm_rank << ") ";
-      for (std::size_t i = 0; i < slice_ranks.size(); ++i)
-        std::cout << slice_ranks(i) << " ";
-      std::cout << std::endl <<
-        "(" << slice_ranks.size() << " ranks before exchange)" <<
-        std::endl <<
-        "(Rank " << comm_rank << ") ";
-      for (std::size_t i = 0; i < slice_ids.size(); ++i)
-        std::cout << slice_ids(i) << " ";
-      std::cout << std::endl <<
-        "(" << slice_ids.size() << " IDs before exchange)" <<
-        std::endl <<
-        std::endl;
-    }
 
     int local_num_send = total_data;
     Kokkos::View < int * , MemorySpace > export_ranks("export_ranks",
@@ -309,6 +293,10 @@ void run_benchmark() {
         export_ids(inum) = i;
         export_ranks(inum++) = * it_neighbors ;
       }
+    std::cout << "comm_rank " << comm_rank
+              << " | it_data = " << *it_data
+              << " | it_neighbors = " << *it_neighbors
+              << std::endl;
       ++it_data;
       ++it_neighbors;
     }
