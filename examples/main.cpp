@@ -283,6 +283,10 @@ void run_benchmark() {
       local_num_send);
     Kokkos::View < int * , MemorySpace > export_ids("export_ids", local_num_send);
 
+  for (int i = 0; i < total_data; ++i) {
+        export_ids(inum) = 0;
+        export_ranks(inum++) = -1 ;
+  }
     int inum = 0;
     auto it_data = neighbors_data.begin();
     auto it_neighbors = neighbors.begin();
@@ -361,7 +365,7 @@ void run_benchmark() {
 
         TIME_START = std::chrono::high_resolution_clock::now();
 
-        auto gather = Cabana::createGather(halo, aosoa, 3.0);
+        auto gather = Cabana::createGather(halo, aosoa, 1.0);
 
       	TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
@@ -411,7 +415,7 @@ void run_benchmark() {
 
         TIME_START = std::chrono::high_resolution_clock::now();
 
-        auto gather = Cabana::createGather(halo, aosoa, 3.0);
+        auto gather = Cabana::createGather(halo, aosoa, 1.0);
 
         for (int i = 0; i < niterations; i++) {
           gather.apply();
@@ -440,7 +444,7 @@ void run_benchmark() {
 
         TIME_START = std::chrono::high_resolution_clock::now();
 
-        auto gather = Cabana::createGather(halo, aosoa, 3.0);
+        auto gather = Cabana::createGather(halo, aosoa, 1.0);
 	TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
         gatherTime = duration.count() ;
