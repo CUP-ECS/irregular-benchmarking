@@ -308,6 +308,7 @@ void run_benchmark() {
 
   auto TIME_START_HALO = std::chrono::high_resolution_clock::now();
 
+    MPI_Barrier(MPI_COMM_WORLD);
 
     if (comm_type == MPIADVANCE) {
       if (halo_type == EXPORT) {
