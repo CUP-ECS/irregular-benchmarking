@@ -284,7 +284,7 @@ void run_benchmark() {
     Kokkos::View < int * , MemorySpace > export_ids("export_ids", local_num_send);
 
   for (int i = 0; i < total_data; ++i) {
-        export_ids(inum) = 0;
+        export_ids(inum) = -1;
         export_ranks(inum++) = -1 ;
   }
     int inum = 0;
