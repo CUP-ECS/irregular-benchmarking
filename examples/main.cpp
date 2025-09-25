@@ -481,7 +481,7 @@ void run_benchmark() {
   	  // Reduce send_bytes
   	  MPI_Reduce(&total_data, &total_send, 1, MPI_INT, MPI_SUM, 1, MPI_COMM_WORLD);
 
-  	  if (rank == 1) {
+  	  if (comm_rank == 1) {
   	    std::cout << "sasdfdsafd : " << total_send
             << std::endl;
   	  }
