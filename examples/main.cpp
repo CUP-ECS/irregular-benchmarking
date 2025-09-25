@@ -479,7 +479,7 @@ void run_benchmark() {
 
   	  int total_send = 0;
   	  // Reduce send_bytes
-  	  MPI_Reduce(&send_bytes, &total_send, 1, MPI_INT, MPI_SUM, 1, MPI_COMM_WORLD);
+  	  MPI_Reduce(&total_data, &total_send, 1, MPI_INT, MPI_SUM, 1, MPI_COMM_WORLD);
 
 
 
