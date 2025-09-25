@@ -182,8 +182,7 @@ void from_json(const json& j, Pattern& p) {
 
         p.dist_to_neighbors[outer_key] = std::move(norm_inner);
     }
-
-
+}
 // Function to run a performance benchmark
 // meat and potatos of the code
 // copyed and changed form this code
