@@ -188,6 +188,10 @@ void from_json(const json& j, Pattern& p) {
 // copyed and changed form this code
 // https://github.com/ECP-copa/Cabana/wiki/2-Programming-Guide
 void run_benchmark() {
+      		printf("------------------------------------------------------------\n");
+      		printf("Started Benchmark\n");
+
+      		printf("------------------------------------------------------------\n");
 
   auto TIME_START = std::chrono::high_resolution_clock::now();
   auto TIME_END = std::chrono::high_resolution_clock::now();
