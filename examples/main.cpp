@@ -481,7 +481,10 @@ void run_benchmark() {
   	  // Reduce send_bytes
   	  MPI_Reduce(&total_data, &total_send, 1, MPI_INT, MPI_SUM, 1, MPI_COMM_WORLD);
 
-
+  	  if (rank == 1) {
+  	    std::cout << "sasdfdsafd : " << total_send
+            << std::endl;
+  	  }
 
   std::chrono::duration < double,std::milli > halo_gather_time = TIME_END_Halo - TIME_START_HALO;
  double halo_gather = halo_gather_time.count() ;
