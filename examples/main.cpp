@@ -278,10 +278,10 @@ void run_benchmark() {
     }
 
 
-    int local_num_send = total_data;
+
     Kokkos::View < int * , MemorySpace > export_ranks("export_ranks",
-      local_num_send);
-    Kokkos::View < int * , MemorySpace > export_ids("export_ids", local_num_send);
+      total_data);
+    Kokkos::View < int * , MemorySpace > export_ids("export_ids", total_data);
 
   for (int i = 0; i < total_data; ++i) {
         export_ids(i) = -1;
@@ -476,6 +476,12 @@ void run_benchmark() {
 
     }
   	auto TIME_END_Halo = std::chrono::high_resolution_clock::now();
+
+  	  int total_send = 0;
+  	  // Reduce send_bytes
+  	  MPI_Reduce(&send_bytes, &total_send, 1, MPI_INT, MPI_SUM, 1, MPI_COMM_WORLD);
+
+
 
   std::chrono::duration < double,std::milli > halo_gather_time = TIME_END_Halo - TIME_START_HALO;
  double halo_gather = halo_gather_time.count() ;
