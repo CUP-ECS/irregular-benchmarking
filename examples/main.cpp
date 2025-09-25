@@ -247,7 +247,7 @@ void run_benchmark() {
 
           int distanceToN = sample_from_map(pattern.dist_to_neighbors[nneighborsV]);
           int  node = ( distanceToN + comm_rank + comm_size) % comm_size;
-          if (distanceToN != 0 && seen_neighbors.find(node) == seen_neighbors.end()) {
+          if (seen_neighbors.find(node) == seen_neighbors.end()) {
             seen_neighbors.insert(node);
             neighbors.push_back(node);
             neighbors_data.push_back(data_sentV/8/2);
