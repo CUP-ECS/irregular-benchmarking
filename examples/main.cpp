@@ -71,7 +71,7 @@ struct Pattern {
     std::map<int, double> comm_partners;                     // normalized
     std::map<int, double> buffer_size;                    // fill-forward + normalized
     std::map<int, std::map<int, double>> dist_to_neighbors;  // each inner map normalized
-};f
+};
 
 static std::map<std::string, Pattern> patterns;
 
