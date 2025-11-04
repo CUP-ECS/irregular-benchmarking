@@ -283,7 +283,7 @@ void run_benchmark() {
         haloTime = duration.count();
 
         TIME_START = std::chrono::high_resolution_clock::now();
-        aosoa.resize(halo.numLocal() + halo.numGhost());
+        aosoa.resize(halo->numLocal() + halo->numGhost());
         fflush(stdout);
         slice_ranks = Cabana::slice < 0 > (aosoa);
         slice_ids = Cabana::slice < 1 > (aosoa);
@@ -319,7 +319,7 @@ void run_benchmark() {
         haloTime = duration.count() ;
 
         TIME_START = std::chrono::high_resolution_clock::now();
-        aosoa.resize(halo.numLocal() + halo.numGhost());
+        aosoa.resize(halo->numLocal() + halo->numGhost());
         slice_ranks = Cabana::slice < 0 > (aosoa);
         slice_ids = Cabana::slice < 1 > (aosoa);
 
@@ -348,7 +348,7 @@ void run_benchmark() {
       } else {
         //error
         Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
-        aosoa.resize(halo.numLocal() + halo.numGhost());
+        aosoa.resize(halo->numLocal() + halo->numGhost());
         slice_ranks = Cabana::slice < 0 > (aosoa);
         slice_ids = Cabana::slice < 1 > (aosoa);
         auto gather = Cabana::createGather(halo, aosoa, 1.0);
@@ -368,7 +368,7 @@ void run_benchmark() {
         haloTime = duration.count();
 
         TIME_START = std::chrono::high_resolution_clock::now();
-        aosoa.resize(halo.numLocal() + halo.numGhost());
+        aosoa.resize(halo->numLocal() + halo->numGhost());
         fflush(stdout);
         slice_ranks = Cabana::slice < 0 > (aosoa);
         slice_ids = Cabana::slice < 1 > (aosoa);
@@ -398,7 +398,7 @@ void run_benchmark() {
         haloTime = duration.count() ;
 
         TIME_START = std::chrono::high_resolution_clock::now();
-        aosoa.resize(halo.numLocal() + halo.numGhost());
+        aosoa.resize(halo->numLocal() + halo->numGhost());
         slice_ranks = Cabana::slice < 0 > (aosoa);
         slice_ids = Cabana::slice < 1 > (aosoa);
 
@@ -426,7 +426,7 @@ void run_benchmark() {
       } else {
         //error
         Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
-        aosoa.resize(halo.numLocal() + halo.numGhost());
+        aosoa.resize(halo->numLocal() + halo->numGhost());
         slice_ranks = Cabana::slice < 0 > (aosoa);
         slice_ids = Cabana::slice < 1 > (aosoa);
         auto gather = Cabana::createGather(halo, aosoa, 1.0);
