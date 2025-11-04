@@ -188,10 +188,6 @@ void from_json(const json& j, Pattern& p) {
 // copyed and changed form this code
 // https://github.com/ECP-copa/Cabana/wiki/2-Programming-Guide
 void run_benchmark() {
-      		printf("------------------------------------------------------------\n");
-      		printf("Started Benchmark\n");
-
-      		printf("------------------------------------------------------------\n");
 
   auto TIME_START = std::chrono::high_resolution_clock::now();
   auto TIME_END = std::chrono::high_resolution_clock::now();
@@ -281,7 +277,7 @@ void run_benchmark() {
       if (halo_type == EXPORT) {
 
         TIME_START = std::chrono::high_resolution_clock::now();
-        Cabana::Halo < MemorySpace, Cabana::Export, Cabana::CommSpace::MpiAdvance > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
+        Cabana::Halo < MemorySpace, Cabana::Export, Cabana::CommSpace::LocalityAware > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
         haloTime = duration.count();
@@ -317,7 +313,7 @@ void run_benchmark() {
 
       } else if (halo_type == IMPORT) {
         TIME_START = std::chrono::high_resolution_clock::now();
-        Cabana::Halo < MemorySpace, Cabana::Import, Cabana::CommSpace::MpiAdvance > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
+        Cabana::Halo < MemorySpace, Cabana::Import, Cabana::CommSpace::LocalityAware > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
         haloTime = duration.count() ;
@@ -660,12 +656,12 @@ void parseArgs(int argc, char ** argv) {
     if (alltoallv == "S" ||
 				alltoallv == "s" ||
      			alltoallv == "STANDARD") {
-    	mpix_neighbor_alltoallv_init_implementation = NEIGHBOR_ALLTOALLV_INIT_STANDARD;
+    	mpil_neighbor_alltoallv_init_implementation = NEIGHBOR_ALLTOALLV_INIT_STANDARD;
 		alltoallv="NEIGHBOR_ALLTOALLV_INIT_STANDARD";
     } else if (alltoallv == "L" ||
 				alltoallv == "l" ||
      			alltoallv == "LOCALITY") {
-    	mpix_neighbor_alltoallv_init_implementation = NEIGHBOR_ALLTOALLV_INIT_LOCALITY;
+    	mpil_neighbor_alltoallv_init_implementation = NEIGHBOR_ALLTOALLV_INIT_LOCALITY;
 		alltoallv="NEIGHBOR_ALLTOALLV_INIT_LOCALITY";
     } else {
        exitError("ERROR: Invalid alltoallv choice [LOCALITY,STANDARD]\n");
