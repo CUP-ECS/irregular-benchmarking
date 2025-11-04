@@ -71,7 +71,7 @@ struct Pattern {
     std::map<int, double> comm_partners;                     // normalized
     std::map<int, double> buffer_size;                    // fill-forward + normalized
     std::map<int, std::map<int, double>> dist_to_neighbors;  // each inner map normalized
-};
+};f
 
 static std::map<std::string, Pattern> patterns;
 
@@ -277,7 +277,7 @@ void run_benchmark() {
       if (halo_type == EXPORT) {
 
         TIME_START = std::chrono::high_resolution_clock::now();
-        Cabana::Halo < MemorySpace, Cabana::Export, Cabana::CommSpace::LocalityAware > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
+        Cabana::Halo < MemorySpace, Cabana::Export, Cabana::LocalityAware > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
         haloTime = duration.count();
@@ -313,7 +313,7 @@ void run_benchmark() {
 
       } else if (halo_type == IMPORT) {
         TIME_START = std::chrono::high_resolution_clock::now();
-        Cabana::Halo < MemorySpace, Cabana::Import, Cabana::CommSpace::LocalityAware > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
+        Cabana::Halo < MemorySpace, Cabana::Import, Cabana::LocalityAware > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
         haloTime = duration.count() ;
@@ -362,7 +362,7 @@ void run_benchmark() {
       if (halo_type == EXPORT) {
 
         TIME_START = std::chrono::high_resolution_clock::now();
-        Cabana::Halo < MemorySpace, Cabana::Export, Cabana::CommSpace::Mpi > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
+        Cabana::Halo < MemorySpace, Cabana::Export, Cabana::Mpi > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
         haloTime = duration.count();
@@ -392,7 +392,7 @@ void run_benchmark() {
       } else if (halo_type == IMPORT) {
 
         TIME_START = std::chrono::high_resolution_clock::now();
-        Cabana::Halo < MemorySpace, Cabana::Import, Cabana::CommSpace::Mpi > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
+        Cabana::Halo < MemorySpace, Cabana::Import, Cabana::Mpi > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
         TIME_END = std::chrono::high_resolution_clock::now();
         duration = TIME_END - TIME_START;
         haloTime = duration.count() ;
