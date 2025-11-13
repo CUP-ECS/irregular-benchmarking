@@ -62,6 +62,7 @@ static std::string filepath = "";
 static distribution_t distribution_type = EMPIRICAL;
 static halo_t halo_type = EXPORT;
 static comm_t comm_type = MPIADVANCE;
+static String crs = "DEFAULT";
 
 static int seed = -1;
 static bool unique_seed = 0;
@@ -531,6 +532,14 @@ void parseArgs(int argc, char ** argv) {
     TCLAP::ValueArg < std::string > commArg("c", "comm", "Choose from: MPIA|A|a (default) or MPI|M|m", false, "MPIA", "string");
     TCLAP::ValueArg < std::string > INorOUTArg("x", "type", "Choose from: EXPORT|E|e (default) or IMPORT|I|i", false, "EXPORT", "string");
     TCLAP::ValueArg < std::string > ALLTOALLV("a", "alltoallv", "Choose from: STANDARD|S|s (default) or LOCALITY|L|l", false, "STANDARD", "string");
+	TCLAP::ValueArg<std::string> CRS(
+    "c",
+    "crs",
+    "Choose CRS method: default| nonblocking | personalized | personalized_loc | nonblocking_loc",
+    false,
+    "default",
+    "string"
+);
 
     cmd.add(filepathArg);
     cmd.add(samplesArg);
@@ -542,6 +551,7 @@ void parseArgs(int argc, char ** argv) {
     cmd.add(commArg);
     cmd.add(INorOUTArg);
     cmd.add(ALLTOALLV);
+    cmd.add(CRS);
 
     cmd.parse(argc, argv);
 
@@ -630,6 +640,38 @@ void parseArgs(int argc, char ** argv) {
        exitError("ERROR: Invalid Backend choice [MPIA,MPIA]\n");
     }
 
+
+
+
+
+
+
+std::string discovery = CRS.getValue();
+if (distribution == "default"){
+
+}else
+if (discovery == "nonblocking") {
+
+    mpix_alltoall_crs_implementation = MPIL_ALLTOALLV_CRS_NONBLOCKING;
+
+} else if (discovery == "personalized") {
+
+    mpix_alltoall_crs_implementation = MPIL_ALLTOALLV_CRS_PERSONALIZED;
+
+} else if (discovery == "personalized_loc") {
+
+    mpix_alltoall_crs_implementation = MPIL_ALLTOALLV_CRS_PERSONALIZED_LOC;
+
+} else if (discovery == "nonblocking_loc") {
+
+    mpix_alltoall_crs_implementation = MPIL_ALLTOALLV_CRS_NONBLOCKING_LOC;
+
+} else {
+
+    exitError("ERROR: Invalid pattern choice [default,nonblocking, personalized, personalized_loc, nonblocking_loc]\n");
+}
+
+crs = discovery;
 
 
 
