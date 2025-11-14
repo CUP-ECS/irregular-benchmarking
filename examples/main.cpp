@@ -647,25 +647,26 @@ void parseArgs(int argc, char ** argv) {
 
 
 std::string discovery = CRS.getValue();
+if (distribution == "rma"){
+    MPIL_Set_alltoall_crs(ALLTOALL_CRS_RMA);
+
+}else
 if (distribution == "default"){
 
 }else
 if (discovery == "nonblocking") {
-
-    mpix_alltoall_crs_implementation = MPIL_ALLTOALLV_CRS_NONBLOCKING;
+    MPIL_Set_alltoall_crs(ALLTOALL_CRS_NONBLOCKING);
 
 } else if (discovery == "personalized") {
 
-    mpix_alltoall_crs_implementation = MPIL_ALLTOALLV_CRS_PERSONALIZED;
+    MPIL_Set_alltoall_crs(ALLTOALL_CRS_PERSONALIZED);
 
 } else if (discovery == "personalized_loc") {
 
-    mpix_alltoall_crs_implementation = MPIL_ALLTOALLV_CRS_PERSONALIZED_LOC;
-
+    MPIL_Set_alltoall_crs(ALLTOALL_CRS_PERSONALIZED_LOC);
 } else if (discovery == "nonblocking_loc") {
 
-    mpix_alltoall_crs_implementation = MPIL_ALLTOALLV_CRS_NONBLOCKING_LOC;
-
+    MPIL_Set_alltoall_crs(ALLTOALL_CRS_NONBLOCKING_LOC);
 } else {
 
     exitError("ERROR: Invalid pattern choice [default,nonblocking, personalized, personalized_loc, nonblocking_loc]\n");
@@ -730,6 +731,7 @@ crs = discovery;
 		if(reportParamsArg.getValue()) {
 	        printf("------------------------------------------------------------\n");
 	        printf("-MPI: %s\n",comm.c_str());
+			printf("-CRS: %s\n",crs.c_str());
 	        printf("-File: %s\n",filepath.c_str());
 	        printf("-samples: %i\n",nsamples);
 	    	printf("-iterations: %i\n",niterations);
