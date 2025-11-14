@@ -62,7 +62,7 @@ static std::string filepath = "";
 static distribution_t distribution_type = EMPIRICAL;
 static halo_t halo_type = EXPORT;
 static comm_t comm_type = MPIADVANCE;
-static String crs = "DEFAULT";
+static std::string  crs = "DEFAULT";
 
 static int seed = -1;
 static bool unique_seed = 0;
