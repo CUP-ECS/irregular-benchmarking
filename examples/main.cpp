@@ -533,9 +533,9 @@ void parseArgs(int argc, char ** argv) {
     TCLAP::ValueArg < std::string > INorOUTArg("x", "type", "Choose from: EXPORT|E|e (default) or IMPORT|I|i", false, "EXPORT", "string");
     TCLAP::ValueArg < std::string > ALLTOALLV("a", "alltoallv", "Choose from: STANDARD|S|s (default) or LOCALITY|L|l", false, "STANDARD", "string");
 	TCLAP::ValueArg<std::string> CRS(
-    "c",
+    "C",
     "crs",
-    "Choose CRS method: default| nonblocking | personalized | personalized_loc | nonblocking_loc",
+    "Choose CRS method: default| nonblocking | personalized | personalized_loc | nonblocking_loc |rma",
     false,
     "default",
     "string"
