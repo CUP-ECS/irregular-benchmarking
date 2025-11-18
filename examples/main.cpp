@@ -647,11 +647,11 @@ void parseArgs(int argc, char ** argv) {
 
 
 std::string discovery = CRS.getValue();
-if (distribution == "rma"){
+if (discovery == "rma"){
     MPIL_Set_alltoall_crs(ALLTOALL_CRS_RMA);
 
 }else
-if (distribution == "default"){
+if (discovery == "default"){
 
 }else
 if (discovery == "nonblocking") {
