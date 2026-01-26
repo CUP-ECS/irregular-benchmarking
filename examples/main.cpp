@@ -658,6 +658,7 @@ void parseArgs(int argc, char ** argv) {
                 comm == "n" ||
                 comm == "NODE") {
 
+
             split = "NODE";
             MPIL_Set_split(NUMA);
 
