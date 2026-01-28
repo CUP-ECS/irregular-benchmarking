@@ -654,17 +654,17 @@ void parseArgs(int argc, char ** argv) {
             split == "NUMA") {
             MPIL_Set_split(NUMA);
             split = "NUMA";
-        } else if (comm == "N" ||
-                comm == "n" ||
-                comm == "NODE") {
+        } else if (split == "N" ||
+                split == "n" ||
+                split == "NODE") {
 
 
             split = "NODE";
             MPIL_Set_split(NUMA);
 
-        }  else if (comm == "S" ||
-                        comm == "s" ||
-                        comm == "SOCKET") {
+        }  else if (split == "S" ||
+                        split == "s" ||
+                        split == "SOCKET") {
 
             split = "SOCKET";
             MPIL_Set_split(SOCKET);
