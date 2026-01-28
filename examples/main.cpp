@@ -237,7 +237,6 @@ void run_benchmark() {
 
             nneighborsV = sample_from_map(pattern.comm_partners);
 
-            printf("\n nneighborsV %i\n", nneighborsV);
             for (int i = 0; i < nneighborsV; ++i) {
                 int data_sentV = sample_from_map(pattern.buffer_size);
                 total_data += data_sentV;
