@@ -545,7 +545,7 @@ void parseArgs(int argc, char ** argv) {
         TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", true);
         TCLAP::SwitchArg reportParamsArg("r", "report-params", "Enables parameter reporting for use with analysis scripts", false);
         TCLAP::ValueArg < std::string > distributionArg("d", "distribution", "Choose from: gaussian (default), empirical or static", false, "gaussian", "string");
-        TCLAP::ValueArg < std::string > splitArg("s", "split type", "Choose from: SOCKET|S|s (default), NUMA|U|u or NODE|N|n", false, "SOCKET", "string");
+        TCLAP::ValueArg < std::string > splitArg("s", "split-type", "Choose from: SOCKET|S|s (default), NUMA|U|u or NODE|N|n", false, "SOCKET", "string");
         TCLAP::ValueArg < std::string > commArg("c", "comm", "Choose from: MPIA|A|a (default) or MPI|M|m", false, "MPIA", "string");
         TCLAP::ValueArg < std::string > INorOUTArg("x", "type", "Choose from: EXPORT|E|e (default) or IMPORT|I|i", false, "EXPORT", "string");
         TCLAP::ValueArg < std::string > ALLTOALLV("a", "alltoallv", "Choose from: STANDARD|S|s (default) or LOCALITY|L|l", false, "STANDARD", "string");
