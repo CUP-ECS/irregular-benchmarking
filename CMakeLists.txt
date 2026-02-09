@@ -1,4 +1,3 @@
-# project settings
 cmake_minimum_required(VERSION 3.18)
 
 project(MyProject LANGUAGES C CXX VERSION 0.1.0)
@@ -8,6 +7,15 @@ project(MyProject LANGUAGES C CXX VERSION 0.1.0)
 if (NOT BLT_CXX_STD)
     set(BLT_CXX_STD "c++17" CACHE STRING "")
 endif()
+find_library(NUMA_LIBRARY numa)
+
+if (NUMA_LIBRARY AND NOT TARGET NUMA::numa)
+    add_library(NUMA::numa UNKNOWN IMPORTED)
+    set_target_properties(NUMA::numa PROPERTIES
+            IMPORTED_LOCATION "${NUMA_LIBRARY}"
+    )
+endif()
+
 
 include(GNUInstallDirs)
 
@@ -16,8 +24,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 ##---------------------------------------------------------------------------##
 ## Bring up the BLT tools
-## We use LLNL BLT to help with building, linking, and testing on various HPC 
-## systems. Before bringing in BLT, we set a variety of flags whch tell it the 
+## We use LLNL BLT to help with building, linking, and testing on various HPC
+## systems. Before bringing in BLT, we set a variety of flags whch tell it the
 ## featurs we're interested in.
 ##---------------------------------------------------------------------------##
 set(ENABLE_TESTS ON)
@@ -31,15 +39,15 @@ else()
     set(BLT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/blt" CACHE PATH "")
     if (NOT EXISTS ${BLT_SOURCE_DIR}/SetupBLT.cmake)
         message(FATAL_ERROR
-            "The BLT git submodule is not present. "
-            "Either run the following two commands in your git repository: \n"
-            "    git submodule init\n"
-            "    git submodule update\n"
-            "Or add -DBLT_SOURCE_DIR=/path/to/blt to your CMake command." )
+                "The BLT git submodule is not present. "
+                "Either run the following two commands in your git repository: \n"
+                "    git submodule init\n"
+                "    git submodule update\n"
+                "Or add -DBLT_SOURCE_DIR=/path/to/blt to your CMake command." )
     endif()
 endif()
 
-# Disable google test pthreads in BLT to support to ensure we compile in 
+# Disable google test pthreads in BLT to support to ensure we compile in
 # some environments, as some compilers (e.g. craycc) and BLT aren't communicating
 # on linking against pthreads.
 set(gtest_disable_pthreads ON CACHE BOOL "")
@@ -64,10 +72,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 ##---------------------------------------------------------------------------##
 find_package(Cabana REQUIRED COMPONENTS Cabana::Cajita Cabana::cabanacore)
 if( NOT Cabana_ENABLE_MPI )
-  message( FATAL_ERROR "Cabana must be compiled with MPI" )
+    message( FATAL_ERROR "Cabana must be compiled with MPI" )
 endif()
 if( NOT Cabana_ENABLE_GRID )
-  message( FATAL_ERROR "Cabana must be compiled with Grid support" )
+    message( FATAL_ERROR "Cabana must be compiled with Grid support" )
 endif()
 
 # Get Clang Format to use for making sure the resulting code is
@@ -85,8 +93,8 @@ add_subdirectory(tests)
 
 # Add a target for formatting the code using Clang
 if(CLANG_FORMAT_FOUND)
-  file(GLOB_RECURSE FORMAT_SOURCES src/*.cpp src/*.hpp tests/*.hpp tests/*.cpp examples/*.cpp examples/*.hpp)
-  add_custom_target(format
-    COMMAND ${CLANG_FORMAT_EXECUTABLE} -i -style=file ${FORMAT_SOURCES}
-    DEPENDS ${FORMAT_SOURCES})
+    file(GLOB_RECURSE FORMAT_SOURCES src/*.cpp src/*.hpp tests/*.hpp tests/*.cpp examples/*.cpp examples/*.hpp)
+    add_custom_target(format
+            COMMAND ${CLANG_FORMAT_EXECUTABLE} -i -style=file ${FORMAT_SOURCES}
+            DEPENDS ${FORMAT_SOURCES})
 endif()
