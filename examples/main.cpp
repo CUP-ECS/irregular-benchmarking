@@ -143,7 +143,8 @@ void from_json(const json & j, Pattern & p) {
     {
         std::map < int, int > temp;
         for (auto & [k, v]: j.at("comm_partners").items()) {
-            temp[v.get < int > () ] = std::stoi(k);
+     		temp[std::stoi(k) ] =v.get < int > ();
+       //     temp[v.get < int > () ] = std::stoi(k);
         }
 
         // fill-forward
