@@ -399,9 +399,15 @@ void run_benchmark() {
                     duration = TIME_END - TIME_START;
                     resizeTime = duration.count();
 
-                    TIME_START = std::chrono::high_resolution_clock::now();
+      			    TIME_START = std::chrono::high_resolution_clock::now();
 
                     auto gather = Cabana::createGather(halo, aosoa, 1.0);
+                    TIME_END = std::chrono::high_resolution_clock::now();
+                    duration = TIME_END - TIME_START;
+                    gatherTime = duration.count();
+
+                    TIME_START = std::chrono::high_resolution_clock::now();
+
 
                     for (int i = 0; i < niterations; i++) {
                         gather.apply();
@@ -428,7 +434,7 @@ void run_benchmark() {
                     duration = TIME_END - TIME_START;
                     resizeTime = duration.count();
 
-                    TIME_START = std::chrono::high_resolution_clock::now();
+                                       TIME_START = std::chrono::high_resolution_clock::now();
 
                     auto gather = Cabana::createGather(halo, aosoa, 1.0);
                     TIME_END = std::chrono::high_resolution_clock::now();
