@@ -24,8 +24,9 @@ void test_matrix(const char* filename)
     ParMat<int> A;
     int idx;
     readParMatrix(filename, A);
-    form_comm(A);
-
+    begin_pattern("form_comm");
+    	form_comm(A);
+    end_pattern();
     std::vector<int> pmpi_recv_vals, mpix_recv_vals;
     std::vector<int> send_vals, alltoallv_send_vals;
     std::vector<long> send_indices;
@@ -57,8 +58,9 @@ void test_matrix(const char* filename)
             send_indices[i]        = A.send_comm.idx[i] + A.first_col;
         }
     }
-
-    communicate(A, send_vals, mpix_recv_vals, MPI_INT);
+ 	begin_pattern("communicate");
+    	communicate(A, send_vals, mpix_recv_vals, MPI_INT);
+    end_pattern();
 
 
 }
@@ -66,9 +68,9 @@ void test_matrix(const char* filename)
 int main(int argc, char** argv)
 {
     MPI_Init(&argc, &argv);
-    begin_pattern("benchmark");
+
     test_matrix("/g/g20/bacon4/spackenvs/spackUNM26/localityaware/test_data/dwt_162.pm");
-    end_pattern();
+
     flush();
     MPI_Barrier(MPI_COMM_WORLD);
     std::this_thread::sleep_for(std::chrono::seconds(1000));
