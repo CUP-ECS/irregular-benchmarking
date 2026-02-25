@@ -80,10 +80,10 @@ include_directories(${NLOHMANN_JSON_INCLUDE_DIR})
 #find_package(MPI REQUIRED)
 #target_link_libraries(main PRIVATE MPI::MPI_CXX)
 #find_package(vernier REQUIRED)
-
-
 #target_link_libraries( main vernier::vernier myproject )
-target_link_libraries( main  myproject )
+
+
+target_link_libraries( main  myproject /g/g20/bacon4/benchmark25/lib/lib/libvernier.so)
 
 #target_link_libraries( main PRIVATE ${CALIPER_LIBRARY} )
 
