@@ -14,7 +14,7 @@
 #include "vernier.h"
 #include <unistd.h>
 
-void test_matrix(const char* filename)
+void test_matrix(const char* filename,const char* name)
 {
     int rank, num_procs;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -24,7 +24,11 @@ void test_matrix(const char* filename)
     ParMat<int> A;
     int idx;
     readParMatrix(filename, A);
-    begin_pattern("form_comm");
+
+    std::string formCommString = std::string(name) + "_form_comm";
+
+
+    begin_pattern(formCommString.c_str());
     	form_comm(A);
     end_pattern();
     std::vector<int> pmpi_recv_vals, mpix_recv_vals;
@@ -58,7 +62,8 @@ void test_matrix(const char* filename)
             send_indices[i]        = A.send_comm.idx[i] + A.first_col;
         }
     }
- 	begin_pattern("communicate");
+  std::string communicateString = std::string(name) + "_communicate";
+ 	begin_pattern(communicateString.c_str());
     	communicate(A, send_vals, mpix_recv_vals, MPI_INT);
     end_pattern();
 
@@ -69,13 +74,24 @@ int main(int argc, char** argv)
 {
     MPI_Init(&argc, &argv);
 
-    test_matrix("/g/g20/bacon4/spackenvs/spackUNM26/localityaware/test_data/dwt_162.pm");
+
+
+
+
+
+    test_matrix("/g/g20/bacon4/spackenvs/spackUNM26/localityaware/test_data/dwt_162.pm","dwt_162.pm");
+    test_matrix("/g/g20/bacon4/sparse/pm/cage15.pm","cage15.pm");
+    test_matrix("/g/g20/bacon4/sparse/pm/dielFilterV2real.pm","dielFilterV2real.pm");
+    test_matrix("/g/g20/bacon4/sparse/pm/dielFilterV3real.pm","dielFilterV3real.pm");
+    test_matrix("/g/g20/bacon4/sparse/pm/Flan_1565.pm","Flan_1565.pm");
+    test_matrix("/g/g20/bacon4/sparse/pm/Geo_1438.pm","Geo_1438.pm");
+    test_matrix("/g/g20/bacon4/sparse/pm/Hook_1498.pm","Hook_1498.pm");
 
     flush();
     MPI_Barrier(MPI_COMM_WORLD);
-    std::this_thread::sleep_for(std::chrono::seconds(1000));
+    std::this_thread::sleep_for(std::chrono::seconds(100));
     flush();
-    std::this_thread::sleep_for(std::chrono::seconds(1000));
+    std::this_thread::sleep_for(std::chrono::seconds(10));
     MPI_Barrier(MPI_COMM_WORLD);
     sleep(400);
 
