@@ -249,7 +249,7 @@ void run_benchmark() {
                     if (seen_neighbors.find(node) == seen_neighbors.end()) {
                         seen_neighbors.insert(node);
                         neighbors.push_back(node);
-                        neighbors_data.push_back(data_sentV / 8 / 2);
+                        neighbors_data.push_back(data_sentV / 8 );
                         break;
                     }
                 }
@@ -260,8 +260,8 @@ void run_benchmark() {
             double gatherTime;
             double apply;
 
-            using DataTypes = Cabana::MemberTypes < double, double > ;
-            const int VectorLength = 8;
+            using DataTypes = Cabana::MemberTypes <double> ;
+            const int VectorLength = 2;
             using MemorySpace = Kokkos::HostSpace;
 
             int num_tuple = data_sent_max;
@@ -269,10 +269,10 @@ void run_benchmark() {
                 num_tuple);
 
             auto slice_ranks = Cabana::slice < 0 > (aosoa);
-            auto slice_ids = Cabana::slice < 1 > (aosoa);
+         //   auto slice_ids = Cabana::slice < 1 > (aosoa);
             for (int i = 0; i < num_tuple; ++i) {
-                slice_ranks(i) = comm_rank;
-                slice_ids(i) = i;
+                slice_ranks(i) = i;
+           //     slice_ids(i) = i;
             }
 
             Kokkos::View < int * , MemorySpace > export_ranks("export_ranks",
