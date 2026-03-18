@@ -835,6 +835,7 @@ void run_benchmark_single_mutiple_file() {
                 (double) inum
             };
 
+
             double min_vals[DATA_SIZE];
             double max_vals[DATA_SIZE];
             double sum_vals[DATA_SIZE];
