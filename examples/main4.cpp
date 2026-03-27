@@ -313,6 +313,7 @@ PRINT_LINE();
 PRINT_LINE();
   auto gather = Cabana::createGather(halo, aosoa, 1.0);
 PRINT_LINE();
+
   auto TIME_START = std::chrono::high_resolution_clock::now();
   gather.apply();
   auto TIME_END_1 = std::chrono::high_resolution_clock::now();
