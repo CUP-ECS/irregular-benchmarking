@@ -1,697 +1,420 @@
+#include <assert.h>
+
+#include <math.h>
+
+#include <mpi.h>
+
+#include <stdlib.h>
+
+#include <thread>
+
+#include <chrono>
+
 #include <iostream>
 
-#include <memory>
+#include <numeric>
 
 #include <set>
 
-#include <type_traits>
+#include <vector>
 
-#include <cstdlib>
+#include "locality_aware.h"
+
+#include "/g/g20/bacon4/spackenvs/spackUNM26/localityaware/library/tests/tests/par_binary_IO.hpp"
+
+#include "/g/g20/bacon4/spackenvs/spackUNM26/localityaware/library/tests/tests/sparse_mat.hpp"
+ //#include "vernier.h"
+#include <unistd.h>
+
+#include <iostream>
+
+#include <chrono>
 
 #include <Cabana_Core.hpp>
 
 #include <Kokkos_Core.hpp>
 
-#include <fstream>
 
-#include <string>
-
-#include <algorithm>
-
-#include <tclap/CmdLine.h>
-
-#include <nlohmann/json.hpp>
-
-#include <cstdlib>
-
-#include <cmath>
-
-#include <filesystem>
-
-#include <stdio.h>
-
-#include <time.h>
-
-#include <string.h>
-
-#include <unistd.h>
-
-#include <stdbool.h>
-
-
-
-#include <limits>
-
-
-using json = nlohmann::json;
-
-struct Bin {
-    double bin_min;
-    double bin_max;
-    double bin_prop;
-    double bin_mean;
-    double bin_stdev;
-};
-
-
-enum distribution
-{
-	GAUSSIAN,
-	EMPIRICAL,
-	STATIC_VALUE
-};
-
-typedef enum distribution distribution_t;
-
-enum prefix
-{
-	A,
-	B,
-	K,
-	M,
-	G
-};
-
-typedef enum prefix prefix_t;
-
-static int typesize = 8;
-static int numpes = 0;
-static int nsamples = 25;
-static int niterations = 100;
-
-
-static std::map<int, std::map<int, double>> distToNeighbors;
-
-
-static double nneighbors = -1;//comm_partners
-static double nneighbors_stdv = -1;
-static std::vector<Bin> nneighbors_bins;
-static int nneighbors_min = -1;
-static int nneighbors_max = -1;
-
-static double data_sent = -1;
-static double data_sent_stdv = -1;
-static std::vector<Bin> data_sent_bins;
-static int data_sent_min = -1;
-static int data_sent_max = -1;
-
-
-
-static double delay = -1;
-static double delay_stdv = -1;
-static std::vector<Bin> delay_bins;
-static int delay_min = -1;
-static int delay_max = -1;
-
-
-
-static int unit_div = 1;
-static prefix unit_symbol = A;
-static std::string filepath = "";
-static distribution_t distribution_type = GAUSSIAN;
-
-static bool report_params = 0;
-static int seed = -1;
-static bool unique_seed = 0;
-static int neighbor_discovery_algo = 0;
-
-int getDistToNeighbors(int neighbors){
-	int sample = neighbors;
-
-	if (distToNeighbors.find(neighbors) == distToNeighbors.end()) {
-		auto it = distToNeighbors.upper_bound(neighbors);
-		sample = it->first;
-	}
-//	distToNeighbors[ sample ];
-	double threshold = static_cast<double>(std::rand()) / RAND_MAX;
-	double sum = 0.0;
-	for (const auto& [innerKey, weight] : distToNeighbors[sample]) {
-		sum += weight;
-		if (sum >= threshold) {
-			return innerKey;
-			break;
-		}
-	}
-}
-
-
-
-int gauss_dist(double mean, double stdev)
-{
-
-	// Generates a Gaussian (normal) distribution with only positive values.
-	// generates two random numbers that form the seeds
-	// of the transform
-	double u1, u2, r, theta;
-	int generated = -1;
-
-	u1 = (double)rand() / RAND_MAX;
-	u2 = (double)rand() / RAND_MAX;
-	// generates the R and Theta values from the above
-	// documentation
-	r = sqrt(-2. * log(u1));
-	theta = (2 * M_PI * u2);
-
-	// an additional number can be generated in the
-	// same distribution using the alternate form
-	// ((r*sin(theta)) * stdev) + mean
-
-	generated = round(((r * cos(theta)) * stdev) + mean);
-
-
-	return generated;
-}
-
-int gauss_dist(double mean, double stdev,double min,double max)
-{
-	if (min == max) {
-		return min;
-	}
-
-	int generated=-1;
-	do {
-		generated= gauss_dist(mean , stdev);
-
-	} while (generated<= (min-0.5) || generated >=(max+0.5));
-	return generated;
-}
-
-
-
-
-// Function to calculate an empirical distribution value based on Bin objects.
-int empirical_dist(std::vector<Bin> bins)
-{
-
-	double rand = static_cast<double>(std::rand()) / RAND_MAX;
-	double prob = 0.0;
-
-    // Iterate over all bins except the last one.
-	for (int i = 0; i < bins.size()-1; ++i) {
-		Bin& bin = bins[i];
-		 // Accumulate the probability
-		prob+=bin.bin_prop;
-
-
-		// Generate  Gaussian distribution for the bin.
-        // Repeat until the value is within  minimum and maximum limits.
-		if (prob >= rand)
-		{
-			int random = gauss_dist(bin.bin_mean ,bin.bin_stdev,bin.bin_min,bin.bin_max);
-			return random;
-
-		}
-	}
-	// If the loop has finished, it means the random number corresponds to the last bin.
-	Bin& lastBin = bins.back();
-	return gauss_dist(lastBin.bin_mean ,lastBin.bin_stdev,lastBin.bin_min,lastBin.bin_max);
-}
-
-// Function to run a performance benchmark
-// meat and potatos of the code
-// copyed and changed form this code
-// https://github.com/ECP-copa/Cabana/wiki/2-Programming-Guide
-void run_benchmark()
-{
-
-
-
-
-	int comm_rank = -1;
-	MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
-	int comm_size = -1;
-	MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-
-
-	auto TIME_START = std::chrono::high_resolution_clock::now();
-	auto TIME_END = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> duration = TIME_END - TIME_START;
-
-	for (int sample_iter = 0; sample_iter < nsamples ; sample_iter++)
-	{
-		int nneighborsV =-1;
-
-        std::vector<double> time;
-
-        // Modify parameters based on the chosen distribution type
-		std::list<int> neighbors_data;
-		std::list<int> neighbors;
-		std::set<int> seen_neighbors;
-
-		int total_data=0;
-		TIME_START = std::chrono::high_resolution_clock::now();
-
-		if (distribution_type == GAUSSIAN)
-		{
-		    nneighborsV = gauss_dist(nneighbors, nneighbors_stdv,nneighbors_min,nneighbors_max);
-
-			for (int i = 0; i < nneighborsV; ++i){
-				int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max)/4;
-				total_data+=data_sentV;
-				while (true) {
-
-					int distanceToN = getDistToNeighbors(nneighborsV);
-					// todo int distanceToN = gauss_dist(dist_to_neighbors_orig, dist_to_neighbors_stdv,dist_to_neighbors_min,dist_to_neighbors_max);
-					if (distanceToN!=0&&seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
-						seen_neighbors.insert(distanceToN);
-						neighbors.push_back(distanceToN);
-						neighbors_data.push_back(data_sentV);
-						break;
-					}
-				}
-			}
-		}else if (distribution_type == EMPIRICAL){
-
-			int nneighborsV     = empirical_dist(nneighbors_bins);
-			for (int i = 0; i < nneighborsV; ++i){
-
-				int data_sentV = gauss_dist(data_sent, data_sent_stdv,data_sent_min,data_sent_max);
-				total_data+=data_sentV;
-				while (true) {
-
-					int distanceToN = getDistToNeighbors(nneighborsV);
-					if (distanceToN!=0&& seen_neighbors.find(distanceToN) == seen_neighbors.end()) {
-						seen_neighbors.insert(distanceToN);
-						neighbors.push_back(distanceToN);
-						neighbors_data.push_back(data_sentV);
-						break;
-					}
-				}
-			}
-		}
-
-		TIME_END = std::chrono::high_resolution_clock::now();
-		duration = TIME_END - TIME_START;
-		MPI_Barrier(MPI_COMM_WORLD);
-
-		double distribution_time = duration.count() * 1e6;
-
-		TIME_START = std::chrono::high_resolution_clock::now();
-		using DataTypes = Cabana::MemberTypes<int, int>;
-		const int VectorLength = 8;
-		using MemorySpace = Kokkos::HostSpace;
-
-		int num_tuple = total_data;//todo
-
-		Cabana::AoSoA<DataTypes, MemorySpace, VectorLength> aosoa("A", num_tuple);
-		auto slice_ranks = Cabana::slice<0>(aosoa);
-		auto slice_ids = Cabana::slice<1>(aosoa);
-
-		Kokkos::View<int *, MemorySpace> export_ranks("export_ranks", num_tuple);
-
-		for (int i = 0; i < num_tuple; ++i)
-		{
-			slice_ranks(i) = comm_rank;
-			slice_ids(i) = i + (num_tuple * comm_rank);
-			export_ranks(i)= -1;
-		}
-
-
-
-
-		auto it_data = neighbors_data.begin();
-		auto it_neighbors = neighbors.begin();
-		int inum =0;
-		TIME_START = std::chrono::high_resolution_clock::now();
-
-		while (it_data != neighbors_data.end() && it_neighbors != neighbors.end()) {
-
-			for (int i = 0; i < *it_data; ++i){
-			export_ranks(inum++) = (*it_neighbors+comm_rank+comm_size)%comm_size;
-			}
-			++it_data;
-			++it_neighbors;
-		}
-
-		TIME_END = std::chrono::high_resolution_clock::now();
-		duration = TIME_END - TIME_START;
-		double fill_space_time = duration.count() * 1e6;
-
-		TIME_START = std::chrono::high_resolution_clock::now();
-
-//		Cabana::Distributor<MemorySpace> distributor(MPI_COMM_WORLD, export_ranks);
-		Cabana::Halo<MemorySpace> halo( MPI_COMM_WORLD, num_tuple, export_ids,
-										  export_ranks );
-
-
-//import halo
-// https://github.com/CUP-ECS/Cabana/blob/add-MPI_Advance/core/src/Cabana_Halo.hpp --constructor
+#define PRINT_LINE()                         \
+do {                                    \
+} while (0)
+//printf("Line: start %d\n", __LINE__);     \
+//fflush(stdout);                     \
+//MPI_Barrier(MPI_COMM_WORLD);        \
+//printf("Line: passed %d\n", __LINE__);     \
+//fflush(stdout);                     \
+} while (0)
+//void test_matrix(const char* filename,const char* name)
+//{
+//    int rank, num_procs;
+//    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 //
-////spack develop cabana@master
+//    // Read suitesparse matrix
+//    ParMat<int> A;
+//    int idx;
+//    readParMatrix(filename, A);
 //
+//    std::string formCommString = std::string(name) + "_form_comm";
+//
+//
+//    begin_pattern(formCommString.c_str());
+//    	form_comm(A);
+//    end_pattern();
+//    std::vector<int> pmpi_recv_vals, mpix_recv_vals;
+//    std::vector<int> send_vals, alltoallv_send_vals;
+//    std::vector<long> send_indices;
+//
+//    if (A.on_proc.n_cols)
+//    {
+//        send_vals.resize(A.on_proc.n_cols);
+//        std::iota(send_vals.begin(), send_vals.end(), 0);
+//        for (int i = 0; i < A.on_proc.n_cols; i++)
+//        {
+//            send_vals[i] += (rank * 1000);
+//        }
+//    }
+//
+//    if (A.recv_comm.size_msgs)
+//    {
+//        pmpi_recv_vals.resize(A.recv_comm.size_msgs);
+//        mpix_recv_vals.resize(A.recv_comm.size_msgs);
+//    }
+//
+//    if (A.send_comm.size_msgs)
+//    {
+//        alltoallv_send_vals.resize(A.send_comm.size_msgs);
+//        send_indices.resize(A.send_comm.size_msgs);
+//        for (int i = 0; i < A.send_comm.size_msgs; i++)
+//        {
+//            idx                    = A.send_comm.idx[i];
+//            alltoallv_send_vals[i] = send_vals[idx];
+//            send_indices[i]        = A.send_comm.idx[i] + A.first_col;
+//        }
+//    }
+//  std::string communicateString = std::string(name) + "_communicate";
+// 	begin_pattern(communicateString.c_str());
+//    	communicate(A, send_vals, mpix_recv_vals, MPI_INT);
+//    end_pattern();
+//
+//
+//}
 
-		TIME_END = std::chrono::high_resolution_clock::now();
-		duration = TIME_END - TIME_START;
-		double distributor_time = duration.count() * 1e6;
+void time_matrix(const char * filename, const char * name) {
+  int rank, num_procs;
+  MPI_Comm_rank(MPI_COMM_WORLD, & rank);
+  MPI_Comm_size(MPI_COMM_WORLD, & num_procs);
 
-		TIME_START = std::chrono::high_resolution_clock::now();
-//		for (int i = 0; i < niterations ; i++)
+  // Read suitesparse matrix
+  ParMat < int > A;
+  int idx;
+  readParMatrix(filename, A);
 
-		for (int i = 0; i < niterations ; i++)
-		{
-			aosoa.resize( halo.numLocal() + halo.numGhost() );
+  form_comm(A);
+
+  std::vector < int > pmpi_recv_vals, mpix_recv_vals;
+  std::vector < int > send_vals, alltoallv_send_vals;
+  std::vector < long > send_indices;
+
+  if (A.on_proc.n_cols) {
+    send_vals.resize(A.on_proc.n_cols);
+    std::iota(send_vals.begin(), send_vals.end(), 0);
+    for (int i = 0; i < A.on_proc.n_cols; i++) {
+      send_vals[i] += (rank * 1000);
+    }
+  }
+
+  if (A.recv_comm.size_msgs) {
+    pmpi_recv_vals.resize(A.recv_comm.size_msgs);
+    mpix_recv_vals.resize(A.recv_comm.size_msgs);
+  }
+
+  if (A.send_comm.size_msgs) {
+    alltoallv_send_vals.resize(A.send_comm.size_msgs);
+    send_indices.resize(A.send_comm.size_msgs);
+    for (int i = 0; i < A.send_comm.size_msgs; i++) {
+      idx = A.send_comm.idx[i];
+      alltoallv_send_vals[i] = send_vals[idx];
+      send_indices[i] = A.send_comm.idx[i] + A.first_col;
+    }
+  }
+
+  auto TIME_START = std::chrono::high_resolution_clock::now();
+  communicate(A, send_vals, mpix_recv_vals, MPI_INT);
+  auto TIME_END_1 = std::chrono::high_resolution_clock::now();
+  for (int i = 1; i < 10; i++) {
+    communicate(A, send_vals, mpix_recv_vals, MPI_INT);
+  }
+  auto TIME_END_10 = std::chrono::high_resolution_clock::now();
+  for (int i = 10; i < 25; i++) {
+    communicate(A, send_vals, mpix_recv_vals, MPI_INT);
+  }
+  auto TIME_END_25 = std::chrono::high_resolution_clock::now();
+  for (int i = 25; i < 100; i++) {
+    communicate(A, send_vals, mpix_recv_vals, MPI_INT);
+  }
+  auto TIME_END_100 = std::chrono::high_resolution_clock::now();
+  for (int i = 100; i < 1000; i++) {
+    communicate(A, send_vals, mpix_recv_vals, MPI_INT);
+  }
+  auto TIME_END_1000 = std::chrono::high_resolution_clock::now();
+
+  // Convert to milliseconds
+  double t1 = std::chrono::duration < double, std::milli > (TIME_END_1 - TIME_START).count();
+  double t10 = std::chrono::duration < double, std::milli > (TIME_END_10 - TIME_START).count();
+  double t25 = std::chrono::duration < double, std::milli > (TIME_END_25 - TIME_START).count();
+  double t100 = std::chrono::duration < double, std::milli > (TIME_END_100 - TIME_START).count();
+  double t1000 = std::chrono::duration < double, std::milli > (TIME_END_1000 - TIME_START).count();
+
+  double local_times[5] = {
+    t1,
+    t10,
+    t25,
+    t100,
+    t1000
+  };
+  double min_times[5];
+  double max_times[5];
+  double sum_times[5];
+
+  int size;
+  MPI_Comm_rank(MPI_COMM_WORLD, & rank);
+  MPI_Comm_size(MPI_COMM_WORLD, & size);
+
+  // Compute MIN
+  MPI_Reduce(local_times, min_times, 5, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+
+  // Compute MAX
+  MPI_Reduce(local_times, max_times, 5, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
+  // Compute SUM (for average)
+  MPI_Reduce(local_times, sum_times, 5, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  if (rank == 0) {
+
+    const char * labels[5] = {
+      "1",
+      "10",
+      "25",
+      "100",
+      "1000"
+    };
+    printf("MPI file %s -  ranks: %d  \n", name, size);
+    for (int i = 0; i < 5; i++) {
+      double avg = sum_times[i] / size;
+
+      printf("Iterations %s: ", labels[i]);
+      printf("   Min: %.6f ms", min_times[i]);
+      printf("   Max: %.6f ms ", max_times[i]);
+      printf("   Avg: %.6f ms \n", avg);
+    }
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+}
+
+void cabana_matrix(const char * filename, const char * name) {
+        Kokkos::Profiling::ScopedRegion region( "cabana_matrix" );
+
+  int rank, num_procs;
+  MPI_Comm_rank(MPI_COMM_WORLD, & rank);
+  MPI_Comm_size(MPI_COMM_WORLD, & num_procs);
+
+  // Read suitesparse matrix
+  ParMat < int > A;
+  int idx;
+  readParMatrix(filename, A);
+
+  form_comm(A);
+
+  std::vector < int > pmpi_recv_vals, mpix_recv_vals;
+  std::vector < int > send_vals, alltoallv_send_vals;
+  std::vector < long > send_indices;
+
+  if (A.on_proc.n_cols) {
+    send_vals.resize(A.on_proc.n_cols);
+    std::iota(send_vals.begin(), send_vals.end(), 0);
+    for (int i = 0; i < A.on_proc.n_cols; i++) {
+      send_vals[i] += (rank * 1000);
+    }
+  }
+
+  if (A.recv_comm.size_msgs) {
+    pmpi_recv_vals.resize(A.recv_comm.size_msgs);
+    mpix_recv_vals.resize(A.recv_comm.size_msgs);
+  }
+ using DataTypes = Cabana::MemberTypes <int> ;
+ const int VectorLength = 2;
+ using MemorySpace = Kokkos::HostSpace;
+PRINT_LINE();
+
+  int num_tuple = A.on_proc.n_cols*6;
+  Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("my_aosoa", num_tuple);
+  auto slice_ranks = Cabana::slice < 0 > (aosoa);
+  //   auto slice_ids = Cabana::slice < 1 > (aosoa);
+  for (int i = 0; i < num_tuple; ++i) {
+    slice_ranks(i) = i;
+  }
 
 
-			slice_ranks = Cabana::slice<0>( aosoa );
-			slice_ids = Cabana::slice<1>( aosoa );
-			Cabana::gather( halo, aosoa );
-		}
+int sendamount =0;
+  for (int i = 0; i < A.send_comm.n_msgs; i++) {
+    int proc = A.send_comm.procs[i]; // The destination rank for this chunk
+    int start = A.send_comm.ptr[i]; // Start index in the 'idx' array
+    int end = A.send_comm.ptr[i + 1]; // End index (exclusive)
+
+    // Iterate through the elements belonging to this specific processor
+    for (int j = start; j < end; j++) {
 
 
+      sendamount++;
+    }
+  }
 
+PRINT_LINE();
+  Kokkos::View < int * , MemorySpace > export_ranks("export_ranks", sendamount);
+  Kokkos::View < int * , MemorySpace > export_ids("export_ids", sendamount);
+PRINT_LINE();
+  for (int i = 0; i < sendamount; ++i) {
+    export_ids(i) = -1;
+    export_ranks(i) = -1;
+  }
+PRINT_LINE();
+  if (A.send_comm.size_msgs) {
 
+    alltoallv_send_vals.resize(A.send_comm.size_msgs);
+    send_indices.resize(A.send_comm.size_msgs);
+    for (int i = 0; i < A.send_comm.size_msgs; i++) {
+      idx = A.send_comm.idx[i];
+      alltoallv_send_vals[i] = send_vals[idx];
+      send_indices[i] = A.send_comm.idx[i] + A.first_col;
+    }
+  }
+PRINT_LINE();
+  int q = 0;
+  for (int i = 0; i < A.send_comm.n_msgs; i++) {
+    int proc = A.send_comm.procs[i]; // The destination rank for this chunk
+    int start = A.send_comm.ptr[i]; // Start index in the 'idx' array
+    int end = A.send_comm.ptr[i + 1]; // End index (exclusive)
 
+    // Iterate through the elements belonging to this specific processor
+    for (int j = start; j < end; j++) {
 
+      export_ids(q) = j;
+      export_ranks(q) = proc;
+      q++;
+    }
+  }
+PRINT_LINE();
+  Cabana::Halo < MemorySpace, Cabana::Export, Cabana::Mpi > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
+PRINT_LINE();
+  aosoa.resize(halo.numLocal() + halo.numGhost());
+PRINT_LINE();
+  slice_ranks = Cabana::slice < 0 > (aosoa);
+PRINT_LINE();
+  auto gather = Cabana::createGather(halo, aosoa, 1.0);
+PRINT_LINE();
+  auto TIME_START = std::chrono::high_resolution_clock::now();
+  gather.apply();
+  auto TIME_END_1 = std::chrono::high_resolution_clock::now();
+  for (int i = 1; i < 10; i++) {
+    gather.apply();
+  }
+  auto TIME_END_10 = std::chrono::high_resolution_clock::now();
+  for (int i = 10; i < 25; i++) {
+    gather.apply();
+  }
+  auto TIME_END_25 = std::chrono::high_resolution_clock::now();
+  for (int i = 25; i < 100; i++) {
+    gather.apply();
+  }
+  auto TIME_END_100 = std::chrono::high_resolution_clock::now();
+  for (int i = 100; i < 1000; i++) {
+    gather.apply();
+  }
+  auto TIME_END_1000 = std::chrono::high_resolution_clock::now();
 
+  // Convert to milliseconds
+  double t1 = std::chrono::duration < double, std::milli > (TIME_END_1 - TIME_START).count();
+  double t10 = std::chrono::duration < double, std::milli > (TIME_END_10 - TIME_START).count();
+  double t25 = std::chrono::duration < double, std::milli > (TIME_END_25 - TIME_START).count();
+  double t100 = std::chrono::duration < double, std::milli > (TIME_END_100 - TIME_START).count();
+  double t1000 = std::chrono::duration < double, std::milli > (TIME_END_1000 - TIME_START).count();
 
-		TIME_END = std::chrono::high_resolution_clock::now();
-		duration = TIME_END - TIME_START;
-		double iterations_time = duration.count() * 1e6;
+  double local_times[5] = {
+    t1,
+    t10,
+    t25,
+    t100,
+    t1000
+  };
+  double min_times[5];
+  double max_times[5];
+  double sum_times[5];
 
+  int size;
+  MPI_Comm_rank(MPI_COMM_WORLD, & rank);
+  MPI_Comm_size(MPI_COMM_WORLD, & size);
 
-		int data_size =6;
+  // Compute MIN
+  MPI_Reduce(local_times, min_times, 5, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
 
-		double local_vals[data_size] = {
-			iterations_time,
-			distributor_time,
-			fill_space_time,
-			distribution_time,
-			nneighborsV,
-			inum
-		};
+  // Compute MAX
+  MPI_Reduce(local_times, max_times, 5, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
-		double min_vals[data_size];
-		double max_vals[data_size];
-		double sum_vals[data_size];
+  // Compute SUM (for average)
+  MPI_Reduce(local_times, sum_times, 5, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-		// Perform reductions
-		MPI_Reduce(local_vals, min_vals, data_size, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
-		MPI_Reduce(local_vals, max_vals, data_size, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-		MPI_Reduce(local_vals, sum_vals, data_size, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+  if (rank == 0) {
 
-		if(comm_rank ==0){
-			const char* labels[data_size] = {
-				"iterations_time",
-				"distributor_time",
-				"fill_space_time",
-				"distribution_time",
-				"neighbors",
-				"data sent"
-			};
+    const char * labels[5] = {
+      "1",
+      "10",
+      "25",
+      "100",
+      "1000"
+    };
+    printf("C file %s -  ranks: %d  \n", name, size);
+    for (int i = 0; i < 5; i++) {
+      double avg = sum_times[i] / size;
 
-			printf("%-20s %-12s %-12s %-12s\n", "Metric", "Min", "Max", "Average");
-			printf("------------------------------------------------------------\n");
-
-			for (int i = 0; i < data_size; ++i) {
-				double avg = sum_vals[i] / comm_size;
-				printf("%-20s %-.6f     %-.6f     %-.6f\n", labels[i], min_vals[i], max_vals[i], avg);
-			}
-			printf("------------------------------------------------------------\n");
-			fflush(stdout);
-		}
-
-
-
-	}
-
-
-
-
-
-
-
-
+      printf("Iterations %s: ", labels[i]);
+      printf("   Min: %.6f ms", min_times[i]);
+      printf("   Max: %.6f ms ", max_times[i]);
+      printf("   Avg: %.6f ms \n", avg);
+    }
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
 }
 
 
 
-
-// Function to parse a JSON configuration file
-void parse_config_file(std::string config_file)
-{
-	std::ifstream file(config_file);
-
-	if (!file.is_open())
-	{
-		std::cerr << "Error: Could not open file!" << std::endl;
-	}
-	else
-	{
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		std::string input = buffer.str();
-		nlohmann::json j = nlohmann::json::parse(input);
-		//     Accessing the data
-		for (const auto &param : j["parameters"])
-		{
-
-
-			std::string name = param["name"].get<std::string>();
-
-			if (name == "dist_to_neighbors")
-			{
-
-
-				for (auto& outer_pair : param["bins"].items()) {
-					int outer_key = std::stoi(outer_pair.key()); // Convert outer key to int
-					const json& inner_obj = outer_pair.value();  // The inner JSON object
-
-					std::map<int, double> inner_map;
-
-					for (auto& inner_pair : inner_obj.items()) {
-						int inner_key = std::stoi(inner_pair.key());       // Convert inner key
-						double inner_value = inner_pair.value().get<double>(); // Get value as double
-						inner_map[inner_key] = inner_value;                // Store in map
-					}
-
-					distToNeighbors[outer_key] = inner_map;
-				}
-			}else{
-				double mean = param["mean"].get<double>();
-				double stddev = param["stdev"].get<double>();
-				int min = static_cast<int>(std::round(param["min"].get<double>()));
-				int max = static_cast<int>(std::round(param["max"].get<double>()));
-				std::vector<Bin> bins;
-				for (const auto& bin_json : param["bins"]) {
-					Bin bin;
-					bin.bin_min = bin_json["bin_min"];
-					bin.bin_max = bin_json["bin_max"];
-					bin.bin_prop = bin_json["bin_prop"];
-					bin.bin_mean = bin_json["bin_mean"];
-					bin.bin_stdev = bin_json["bin_stdev"];
-					bins.push_back(bin);
-				}
-
-				std::sort(bins.begin(), bins.end(), [](const Bin& a, const Bin& b) {
-					return a.bin_prop > b.bin_prop;
-				});
-
-				if (name == "comm_partners")
-				{
-					nneighbors = mean;
-					nneighbors_stdv = stddev;
-					nneighbors_min = min;
-					nneighbors_max = max;
-					nneighbors_bins = bins;
-				}
-
-				else if (name == "delay")
-				{
-					delay = mean;
-					delay_stdv = stddev;
-					delay_min = min;
-					delay_max = max;
-
-					delay_bins = bins;
-				}else if (name == "data_sent")
-				{
-					data_sent = mean;
-					data_sent_stdv = stddev;
-					data_sent_min = min;
-					data_sent_max = max;
-
-					data_sent_bins = bins;
-				}
-				else
-				{
-					// Handle any other parameters
-					// For now, it just has a placeholder comment for future functionality
-					// mostlike an error
-				}
-			}
-
-
-		}
-	}
+void runBoth(const char * filename, const char * name){
+cabana_matrix( filename, name);
+time_matrix( filename, name);
 }
 
 
-// Function to print an error message and exit the program with an error code
-void exitError(const std::string &error_message)
-{
-	std::cerr << error_message << std::flush; // Use std::cerr for error messages
-
-	std::exit(-1); // Exit the program with error code
-}
+int main(int argc, char ** argv) {
+  MPI_Init( & argc, & argv);
+  Kokkos::ScopeGuard scope_guard(argc, argv);
 
 
+  runBoth("/g/g20/bacon4/spackenvs/spackUNM26/localityaware/test_data/dwt_162.pm", "dwt_162.pm");
+  runBoth("/g/g20/bacon4/sparse/pm/cage15.pm", "cage15.pm");
+  runBoth("/g/g20/bacon4/sparse/pm/dielFilterV2real.pm", "dielFilterV2real.pm");
+  runBoth("/g/g20/bacon4/sparse/pm/dielFilterV3real.pm", "dielFilterV3real.pm");
+  runBoth("/g/g20/bacon4/sparse/pm/Flan_1565.pm", "Flan_1565.pm");
+  runBoth("/g/g20/bacon4/sparse/pm/Geo_1438.pm", "Geo_1438.pm");
+  runBoth("/g/g20/bacon4/sparse/pm/Hook_1498.pm", "Hook_1498.pm");
 
+  //  flush();
+  MPI_Barrier(MPI_COMM_WORLD);
+  //std::this_thread::sleep_for(std::chrono::seconds(100));
+  //flush();
+  //std::this_thread::sleep_for(std::chrono::seconds(10));
+  MPI_Barrier(MPI_COMM_WORLD);
+  //sleep(400);
 
-// Function to set a value based on a command-line argument and check its validity.
-void setAndCheckValue(int &value, TCLAP::ValueArg<int> &arg,
-					  const char *errorMessage, int minValue = 0, int maxValue = INT_MAX)
-{
-	int tempValue = arg.getValue();
- 	// If the value from the argument is not -1 (indicating it was set by the user),
-    // update the 'value' reference with the new value.
-	if (tempValue != -1)
-	{
-		value = tempValue;
-	}
-
-	// Check if the value is within the allowed range (between minValue and maxValue).
-	if (value < minValue || value > maxValue)
-	{
-		exitError(errorMessage);
-	}
-}
-
-
-
-
-void parseArgs(int argc, char **argv)
-{
-
-	try
-	{
-		TCLAP::CmdLine cmd("\nNOTE: TODO",
-						   ' ', "1.0");
-
-		TCLAP::ValueArg<std::string> filepathArg("f", "filepath", "Path to the BENCHMARK_CONFIG file", false, "NOFILE", "string");
-
-		TCLAP::ValueArg<int> samplesArg("I", "samples", "Number of random samples to generate", false, 25, "int");
-
-		TCLAP::ValueArg<int> iterationsArg("i", "iterations", "Number of updates each sample performs", false, 100, "int");
-		TCLAP::ValueArg<int> seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
-		TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", true);
-		TCLAP::SwitchArg reportParamsArg("", "report-params", "Enables parameter reporting for use with analysis scripts", false);
-		TCLAP::ValueArg<std::string> distributionArg("d", "distribution", "Choose from: gaussian (default), empirical", false, "gaussian", "string");
-
-		cmd.add(filepathArg);
-		cmd.add(samplesArg);
-		cmd.add(iterationsArg);
-		cmd.add(seedArg);
-     	cmd.add(useedArg);
-		cmd.add(distributionArg);
-		cmd.add(reportParamsArg);
-
-
-		cmd.parse(argc, argv);
-
-		filepath = filepathArg.getValue();
-		bool config_file_used = false; // todo
-
-		if (filepath != "NOFILE")
-		{
-
-			try
-			{
-				if (filepath.empty())
-				{
-					std::cerr << "Filepath is empty!" << std::endl;
-					return;
-				}
-
-				std::filesystem::path p(filepath);
-
-				// Check if path exists and is a file
-				if (std::filesystem::exists(p))
-				{
-					parse_config_file(filepath);
-				}
-				else
-				{
-					exitError("The file does not exist.");
-				}
-			}
-			catch (const std::exception &e)
-			{
-				std::cerr << "Error: " << e.what() << std::endl;
-			}
-		}
-		unique_seed = useedArg.getValue();
-
-		std::string distribution = distributionArg.getValue();
-		// For nsamples, no specific range, only non-negative check
-		setAndCheckValue(nsamples, samplesArg, "ERROR: Invalid number of samples\n", 0);
-
-		// For niterations, same non-negative check
-		setAndCheckValue(niterations, iterationsArg, "ERROR: Invalid number of iterations\n", 0);
-
-		if (distribution == "gaussian" ||
-			distribution == "g")
-		{
-			distribution_type = GAUSSIAN;
-		}
-		else if (distribution == "empirical" ||
-				 distribution == "e")
-		{
-			distribution_type = EMPIRICAL;
-		}
-		 else if (distribution == "static" ||
-				 distribution == "s")
-		{
-			distribution_type = STATIC_VALUE;
-		}else
-		{
-			exitError("ERROR: Invalid distribution choice [empirical,gaussian]\n");
-		}
-
-		int seedholder = seedArg.getValue();
-		if (seed != -1 && seedholder == -1)
-		{
-			seed = time(NULL);
-		}
-
-		if (unique_seed)
-		{
-			int comm_rank = -1;
-			MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
-			srand(seed + comm_rank);
-		}
-		else
-		{
-			srand(seed);
-		}
-
-
-
-
-	}
-	catch (TCLAP::ArgException &e)
-	{
-		std::cerr << "Error: " << e.error() << " for argument " << e.argId() << std::endl;
-		exit(-1);
-	}
-}
-
-int main(int argc, char **argv)
-{
-
-	MPI_Init(&argc, &argv);
-	{
-        // Parse command-line arguments to set global static variables
-		parseArgs(argc, argv);
-
-
-		Kokkos::ScopeGuard scope_guard(argc, argv);
-
-        // Run the benchmark
-		run_benchmark();
-	}
-
-	MPI_Finalize();
-
-	
-	return 0;
+  MPI_Finalize();
+  return 0;
 }
