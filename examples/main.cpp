@@ -110,6 +110,9 @@ static bool unique_seed = 0;
 static int data_sent_max = -1;
 static int nneighbors_max = -1;
 struct Pattern {
+   	int pattern_count;
+    int message_count;
+    double comm_partners_count;
     std::map < int, double > comm_partners; // normalized
     std::map < int, double > buffer_size; // fill-forward + normalized
     std::map < int, std::map < int, double >> dist_to_neighbors; // each inner map normalized
@@ -142,6 +145,9 @@ using json = nlohmann::json;
 
 // Conversion from JSON → struct
 void from_json(const json & j, Pattern & p) {
+   	j.at("pattern_count").get_to(m.pattern_count);
+    j.at("message_count").get_to(m.message_count);
+
     // --- comm_partners ---
     {
         std::map < int, int > temp;
@@ -166,7 +172,7 @@ void from_json(const json & j, Pattern & p) {
         for (auto & [k, v]: temp) {
             p.comm_partners[k] = (total > 0) ? (double) v / total : 0.0;
         }
-
+		p.comm_partners_count =total;
         nneighbors_max = std::max(p.comm_partners.rbegin() -> first, nneighbors_max);
 
     }
@@ -251,22 +257,25 @@ void run_benchmark() {
 
             neighbors_data.reserve(nneighborsV);
             neighbors.reserve(nneighborsV);
+			double numberOfmessages = pattern.comm_partners[nneighborsV]*pattern.message_count/(pattern_count*1.0);
 
-            for (int i = 0; i < nneighborsV; ++i) {
+            for (int i = 0; i < numberOfmessages; ++i) {
+
                 int data_sentV = sample_from_map(pattern.buffer_size);
                 int n_export = bytes_to_elems(data_sentV);
                 total_export += n_export;
-                while (true) {
+               // while (true) {
 
                     int distanceToN = sample_from_map(pattern.dist_to_neighbors[nneighborsV]);
                     int node = (distanceToN + comm_rank + comm_size) % comm_size;
-                    if (seen_neighbors.find(node) == seen_neighbors.end()) {
+
+                    //if (seen_neighbors.find(node) == seen_neighbors.end()) {
                         seen_neighbors.insert(node);
                         neighbors.push_back(node);
                         neighbors_data.push_back(n_export);
-                        break;
-                    }
-                }
+                       // break;
+                    //}
+                //}
             }
 
             double haloTime = -1.0;
