@@ -64,6 +64,8 @@
 
 #include <mcheck.h>
 
+#include <cmath>
+
 
 #define PRINT_LINE()                         \
 do {                                    \
@@ -108,6 +110,9 @@ static bool unique_seed = 0;
 static int data_sent_max = -1;
 static int nneighbors_max = -1;
 struct Pattern {
+   	int pattern_count;
+    int message_count;
+    double comm_partners_count;
     std::map < int, double > comm_partners; // normalized
     std::map < int, double > buffer_size; // fill-forward + normalized
     std::map < int, std::map < int, double >> dist_to_neighbors; // each inner map normalized
@@ -140,6 +145,9 @@ using json = nlohmann::json;
 
 // Conversion from JSON → struct
 void from_json(const json & j, Pattern & p) {
+   	j.at("pattern_count").get_to(m.pattern_count);
+    j.at("message_count").get_to(m.message_count);
+
     // --- comm_partners ---
     {
         std::map < int, int > temp;
@@ -164,7 +172,7 @@ void from_json(const json & j, Pattern & p) {
         for (auto & [k, v]: temp) {
             p.comm_partners[k] = (total > 0) ? (double) v / total : 0.0;
         }
-
+		p.comm_partners_count =total;
         nneighbors_max = std::max(p.comm_partners.rbegin() -> first, nneighbors_max);
 
     }
@@ -229,57 +237,62 @@ void run_benchmark() {
     MPI_Comm_rank(MPI_COMM_WORLD, & comm_rank);
     int comm_size = -1;
     MPI_Comm_size(MPI_COMM_WORLD, & comm_size);
+
+    using cabana_datatype = double;
+
+    // for cases where buffer sizes are not divisible by sizeof(cabana_datatype)
+    auto bytes_to_elems = [](int bytes) {
+        return (bytes + sizeof(cabana_datatype) - 1) / sizeof(cabana_datatype);
+    };
+
     for (auto & [name, pattern]: patterns) {
         for (int sample_iter = 0; sample_iter < nsamples; sample_iter++) {
-            std::list < int > neighbors_data;
-            std::list < int > neighbors;
+            std::vector < int > neighbors_data;
+            std::vector < int > neighbors;
             std::set < int > seen_neighbors;
-            int total_data = 0;
+            int total_export = 0;
             int nneighborsV = -1;
 
             nneighborsV = sample_from_map(pattern.comm_partners);
 
-            for (int i = 0; i < nneighborsV; ++i) {
+            neighbors_data.reserve(nneighborsV);
+            neighbors.reserve(nneighborsV);
+			double numberOfmessages = pattern.comm_partners[nneighborsV]*pattern.message_count/(pattern_count*1.0);
+
+            for (int i = 0; i < numberOfmessages; ++i) {
+
                 int data_sentV = sample_from_map(pattern.buffer_size);
-                total_data += data_sentV;
-                while (true) {
+                int n_export = bytes_to_elems(data_sentV);
+                total_export += n_export;
+               // while (true) {
 
                     int distanceToN = sample_from_map(pattern.dist_to_neighbors[nneighborsV]);
                     int node = (distanceToN + comm_rank + comm_size) % comm_size;
-                    if (seen_neighbors.find(node) == seen_neighbors.end()) {
+
+                    //if (seen_neighbors.find(node) == seen_neighbors.end()) {
                         seen_neighbors.insert(node);
                         neighbors.push_back(node);
-                        neighbors_data.push_back(data_sentV / 8 );
-                        break;
-                    }
-                }
+                        neighbors_data.push_back(n_export);
+                       // break;
+                    //}
+                //}
             }
 
-            double haloTime;
-            double resizeTime;
-            double gatherTime;
-            double apply;
+            double haloTime = -1.0;
+            double resizeTime = -1.0;
+            double gatherTime = -1.0;
+            double apply = -1.0;
 
-            using DataTypes = Cabana::MemberTypes <double> ;
+            using DataTypes = Cabana::MemberTypes <cabana_datatype> ;
             const int VectorLength = 2;
             using MemorySpace = Kokkos::HostSpace;
 
-            int num_tuple = data_sent_max;
-            Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("my_aosoa",
-                num_tuple);
+            int num_tuple = bytes_to_elems(data_sent_max);
 
-            auto slice_ranks = Cabana::slice < 0 > (aosoa);
-         //   auto slice_ids = Cabana::slice < 1 > (aosoa);
-            for (int i = 0; i < num_tuple; ++i) {
-                slice_ranks(i) = i;
-           //     slice_ids(i) = i;
-            }
+            Kokkos::View < int * , MemorySpace > export_ranks("export_ranks", total_export);
+            Kokkos::View < int * , MemorySpace > export_ids("export_ids", total_export);
 
-            Kokkos::View < int * , MemorySpace > export_ranks("export_ranks",
-                total_data);
-            Kokkos::View < int * , MemorySpace > export_ids("export_ids", total_data);
-
-            for (int i = 0; i < total_data; ++i) {
+            for (int i = 0; i < total_export; ++i) {
                 export_ids(i) = -1;
                 export_ranks(i) = -1;
             }
@@ -298,6 +311,8 @@ void run_benchmark() {
                 ++it_neighbors;
             }
 
+            assert(inum == total_export);
+
             auto TIME_START_HALO = std::chrono::high_resolution_clock::now();
 
             MPI_Barrier(MPI_COMM_WORLD);
@@ -311,10 +326,12 @@ void run_benchmark() {
                     haloTime = duration.count();
 
                     TIME_START = std::chrono::high_resolution_clock::now();
-                    aosoa.resize(halo.numLocal() + halo.numGhost());
+                    Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("my_aosoa", halo.numLocal() + halo.numGhost());
+                    auto slice_ranks = Cabana::slice < 0 > (aosoa);
+                    for (int i = 0; i < num_tuple; ++i) {
+                        slice_ranks(i) = i;
+                    }
                     fflush(stdout);
-                    slice_ranks = Cabana::slice < 0 > (aosoa);
-                    slice_ids = Cabana::slice < 1 > (aosoa);
 
                     TIME_END = std::chrono::high_resolution_clock::now();
                     duration = TIME_END - TIME_START;
@@ -344,10 +361,11 @@ void run_benchmark() {
                     haloTime = duration.count();
 
                     TIME_START = std::chrono::high_resolution_clock::now();
-                    aosoa.resize(halo.numLocal() + halo.numGhost());
-                    slice_ranks = Cabana::slice < 0 > (aosoa);
-                    slice_ids = Cabana::slice < 1 > (aosoa);
-
+                    Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("my_aosoa", halo.numLocal() + halo.numGhost());
+                    auto slice_ranks = Cabana::slice < 0 > (aosoa);
+                    for (int i = 0; i < num_tuple; ++i) {
+                        slice_ranks(i) = i;
+                    }
                     TIME_END = std::chrono::high_resolution_clock::now();
                     duration = TIME_END - TIME_START;
                     resizeTime = duration.count();
@@ -371,9 +389,11 @@ void run_benchmark() {
                 } else {
                     //error
                     Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
-                    aosoa.resize(halo.numLocal() + halo.numGhost());
-                    slice_ranks = Cabana::slice < 0 > (aosoa);
-                    slice_ids = Cabana::slice < 1 > (aosoa);
+                    Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("my_aosoa", halo.numLocal() + halo.numGhost());
+                    auto slice_ranks = Cabana::slice < 0 > (aosoa);
+                    for (int i = 0; i < num_tuple; ++i) {
+                        slice_ranks(i) = i;
+                    }
                     auto gather = Cabana::createGather(halo, aosoa, 1.0);
 
                     for (int i = 0; i < niterations; i++) {
@@ -391,10 +411,12 @@ void run_benchmark() {
                     haloTime = duration.count();
 
                     TIME_START = std::chrono::high_resolution_clock::now();
-                    aosoa.resize(halo.numLocal() + halo.numGhost());
+                    Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("my_aosoa", halo.numLocal() + halo.numGhost());
+                    auto slice_ranks = Cabana::slice < 0 > (aosoa);
+                    for (int i = 0; i < num_tuple; ++i) {
+                        slice_ranks(i) = i;
+                    }
                     fflush(stdout);
-                    slice_ranks = Cabana::slice < 0 > (aosoa);
-                    slice_ids = Cabana::slice < 1 > (aosoa);
 
                     TIME_END = std::chrono::high_resolution_clock::now();
                     duration = TIME_END - TIME_START;
@@ -427,9 +449,11 @@ void run_benchmark() {
                     haloTime = duration.count();
 
                     TIME_START = std::chrono::high_resolution_clock::now();
-                    aosoa.resize(halo.numLocal() + halo.numGhost());
-                    slice_ranks = Cabana::slice < 0 > (aosoa);
-                    slice_ids = Cabana::slice < 1 > (aosoa);
+                    Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("my_aosoa", halo.numLocal() + halo.numGhost());
+                    auto slice_ranks = Cabana::slice < 0 > (aosoa);
+                    for (int i = 0; i < num_tuple; ++i) {
+                        slice_ranks(i) = i;
+                    }
 
                     TIME_END = std::chrono::high_resolution_clock::now();
                     duration = TIME_END - TIME_START;
@@ -453,9 +477,11 @@ void run_benchmark() {
                 } else {
                     //error
                     Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
-                    aosoa.resize(halo.numLocal() + halo.numGhost());
-                    slice_ranks = Cabana::slice < 0 > (aosoa);
-                    slice_ids = Cabana::slice < 1 > (aosoa);
+                    Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("my_aosoa", halo.numLocal() + halo.numGhost());
+                    auto slice_ranks = Cabana::slice < 0 > (aosoa);
+                    for (int i = 0; i < num_tuple; ++i) {
+                        slice_ranks(i) = i;
+                    }
                     auto gather = Cabana::createGather(halo, aosoa, 1.0);
 
                     for (int i = 0; i < niterations; i++) {
@@ -478,7 +504,7 @@ void run_benchmark() {
                 apply,
                 halo_gather,
                 (double) nneighborsV,
-                (double) inum
+                (double)(inum * sizeof(cabana_datatype))
             };
 
             double min_vals[DATA_SIZE];
