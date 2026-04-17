@@ -145,8 +145,8 @@ using json = nlohmann::json;
 
 // Conversion from JSON → struct
 void from_json(const json & j, Pattern & p) {
-   	j.at("pattern_count").get_to(m.pattern_count);
-    j.at("message_count").get_to(m.message_count);
+   	j.at("pattern_count").get_to(p.pattern_count);
+    j.at("message_count").get_to(p.message_count);
 
     // --- comm_partners ---
     {
