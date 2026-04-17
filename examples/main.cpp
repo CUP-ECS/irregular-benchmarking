@@ -257,7 +257,7 @@ void run_benchmark() {
 
             neighbors_data.reserve(nneighborsV);
             neighbors.reserve(nneighborsV);
-			double numberOfmessages = pattern.comm_partners[nneighborsV]*pattern.message_count/(pattern_count*1.0);
+			double numberOfmessages = pattern.comm_partners[nneighborsV]*pattern.message_count/(pattern.pattern_count*1.0);
 
             for (int i = 0; i < numberOfmessages; ++i) {
 
