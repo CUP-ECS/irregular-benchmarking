@@ -151,8 +151,8 @@ void from_json(const json & j, Pattern & p) {
     {
         std::map < int, int > temp;
         for (auto & [k, v]: j.at("comm_partners").items()) {
-            int amount =v.get < int > ();
-     		temp[std::stoi(k) ] =amount;
+
+     		temp[std::stoi(k) ] =v.get < int > ();
 
        //     temp[v.get < int > () ] = std::stoi(k);
         }
@@ -211,7 +211,7 @@ void from_json(const json & j, Pattern & p) {
         int outer_key = std::stoi(outer_k);
         std::map < int, int > temp;
         for (auto & [inner_k, inner_v]: inner_obj.items()) {
-            int amount == inner_v.get < int > ();
+            int amount = inner_v.get < int > ();
             temp[std::stoi(inner_k) ] =amount;
             totalmessages+=amount/2;
         }
