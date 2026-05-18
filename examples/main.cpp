@@ -566,6 +566,9 @@ void setAndCheckValue(int & value, TCLAP::ValueArg < int > & arg,
 }
 
 void parseArgs(int argc, char ** argv) {
+    MPIL_Comm* mpil_comm;
+    MPIL_Comm_init(&mpil_comm, MPI_COMM_WORLD);
+    MPIL_Comm_topo_init(mpil_comm);
     int ppn;
     MPIL_Comm_local_size(mpil_comm, &ppn);
     MPIL_Comm_update_locality(mpil_comm, ppn / 8);
