@@ -104,7 +104,7 @@ static distribution_t distribution_type = EMPIRICAL;
 static halo_t halo_type = EXPORT;
 static comm_t comm_type = MPIADVANCE;
 static std::string crs = "DEFAULT";
-
+static bool barrier = false;
 static int seed = -1;
 static bool unique_seed = 0;
 static int data_sent_max = -1;
@@ -566,6 +566,9 @@ void setAndCheckValue(int & value, TCLAP::ValueArg < int > & arg,
 }
 
 void parseArgs(int argc, char ** argv) {
+    int ppn;
+    MPIL_Comm_local_size(mpil_comm, &ppn);
+    MPIL_Comm_update_locality(mpil_comm, ppn / 8);
 
     try {
         TCLAP::CmdLine cmd("\nNOTE: TODO",
@@ -576,6 +579,9 @@ void parseArgs(int argc, char ** argv) {
         TCLAP::ValueArg < int > iterationsArg("i", "iterations", "Number of updates each sample performs", false, niterations, "int");
         TCLAP::ValueArg < int > seedArg("S", "seed", "Positive integer to be used as seed for random number generation", false, -1, "int");
         TCLAP::SwitchArg useedArg("q", "unique-seed", "unique seed per rank", true);
+        TCLAP::SwitchArg persistentArg("p", "persistent", "will use the persistent mpi-advance", false);
+        TCLAP::SwitchArg barrierArg("b", "barrier", "uses MPI barrier between runs only measures times of MPI not the barrier itself", false);
+
         TCLAP::SwitchArg reportParamsArg("r", "report-params", "Enables parameter reporting for use with analysis scripts", false);
         TCLAP::ValueArg < std::string > distributionArg("d", "distribution", "Choose from: gaussian (default), empirical or static", false, "gaussian", "string");
         TCLAP::ValueArg < std::string > splitArg("s", "split-type", "Choose from: SOCKET|S|s (default), NUMA|U|u or NODE|N|n", false, "SOCKET", "string");
@@ -603,11 +609,14 @@ void parseArgs(int argc, char ** argv) {
         cmd.add(ALLTOALLV);
         cmd.add(splitArg);
         cmd.add(CRS);
+        cmd.add(persistentArg);
+        cmd.add(barrierArg);
 
         cmd.parse(argc, argv);
 
         filepath = filepathArg.getValue();
-
+        bool   persistent = persistentArg.getValue();
+        barrier = barrierArg.getValue();
         if (filepath != "NOFILE") {
 
             try {
@@ -751,17 +760,31 @@ void parseArgs(int argc, char ** argv) {
             exitError("ERROR: Invalid Patern choice [EXPORT,IMPORT]\n");
         }
 
+
         std::string alltoallv = ALLTOALLV.getValue();
         if (alltoallv == "S" ||
             alltoallv == "s" ||
             alltoallv == "STANDARD") {
-            mpil_neighbor_alltoallv_init_implementation = NEIGHBOR_ALLTOALLV_INIT_STANDARD;
             alltoallv = "NEIGHBOR_ALLTOALLV_INIT_STANDARD";
+            if(persistent){
+                MPIL_Set_alltoallv_neighbor_init_algorithm(NEIGHBOR_ALLTOALLV_INIT_STANDARD);
+            }else{
+                MPIL_Set_alltoallv_neighbor_algorithm(NEIGHBOR_ALLTOALLV_STANDARD);
+            }
         } else if (alltoallv == "L" ||
             alltoallv == "l" ||
             alltoallv == "LOCALITY") {
-            mpil_neighbor_alltoallv_init_implementation = NEIGHBOR_ALLTOALLV_INIT_LOCALITY;
+            if(persistent){
+                 MPIL_Set_alltoallv_neighbor_init_algorithm(NEIGHBOR_ALLTOALLV_INIT_LOCALITY);
+            }else{
+              MPIL_Set_alltoallv_neighbor_algorithm(NEIGHBOR_ALLTOALLV_LOCALITY);
+            }
+
+
+
             alltoallv = "NEIGHBOR_ALLTOALLV_INIT_LOCALITY";
+
+
         } else {
             exitError("ERROR: Invalid alltoallv choice [LOCALITY,STANDARD]\n");
         }
@@ -785,13 +808,14 @@ void parseArgs(int argc, char ** argv) {
                 printf("------------------------------------------------------------\n");
                 printf("-MPI: %s\n", comm.c_str());
                 printf("-halotype: %s\n", type.c_str());
-
                 printf("-File: %s\n", filepath.c_str());
                 printf("-samples: %i\n", nsamples);
                 printf("-iterations: %i\n", niterations);
                 printf("-CRS: %s\n", crs.c_str());
                 printf("-alltoallv: %s\n", alltoallv.c_str());
                 printf("-split: %s\n", split.c_str());
+                printf("-persistent: %s\n", persistent? "true" : "false");
+                printf("-barrier: %s\n", barrier? "true" : "false");
                 printf("------------------------------------------------------------\n");
             } else {
                 printf("------------------------------------------------------------\n");
