@@ -697,7 +697,7 @@ void parseArgs(int argc, char ** argv) {
         if (split == "U" ||
             split == "u" ||
             split == "NUMA") {
-            MPIL_Set_split(NUMA);
+          //  MPIL_Set_split(NUMA);
             split = "NUMA";
         } else if (split == "N" ||
                 split == "n" ||
@@ -705,14 +705,14 @@ void parseArgs(int argc, char ** argv) {
 
 
             split = "NODE";
-            MPIL_Set_split(NUMA);
+            //MPIL_Set_split(NODE);
 
         }  else if (split == "S" ||
                         split == "s" ||
                         split == "SOCKET") {
 
             split = "SOCKET";
-            MPIL_Set_split(SOCKET);
+            //MPIL_Set_split(SOCKET);
         }else {
                     exitError("ERROR: Invalid split choice [SOCKET,NODE,NUMA]\n");
         }
