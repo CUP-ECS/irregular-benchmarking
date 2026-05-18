@@ -500,7 +500,7 @@ void run_benchmark() {
             std::chrono::duration < double, std::milli > halo_gather_time = TIME_END_Halo - TIME_START_HALO;
             double halo_gather = halo_gather_time.count();
 
-            #define DATA_SIZE 7
+            #define DATA_SIZE 8
             double local_vals[DATA_SIZE] = {
                 haloTime,
                 resizeTime,
@@ -508,7 +508,8 @@ void run_benchmark() {
                 apply,
                 halo_gather,
                 (double) nneighborsV,
-                (double)(inum * sizeof(cabana_datatype))
+                (double)(inum * sizeof(cabana_datatype)),
+                numberOfmessages
             };
 
             double min_vals[DATA_SIZE];
@@ -529,7 +530,8 @@ void run_benchmark() {
                     "apply",
                     "halo_gather_time",
                     "nneighbors",
-                    "data_sent"
+                    "data_sent",
+                    "numberOfmessages",
                 };
 
                 printf("%-20s %-12s %-12s %-12s\n", "Metric", "Min", "Max", "Average");
