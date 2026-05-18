@@ -146,7 +146,7 @@ using json = nlohmann::json;
 // Conversion from JSON → struct
 void from_json(const json & j, Pattern & p) {
 
-    int totalmessages =0
+    int totalmessages =0;
     // --- comm_partners ---
     {
         std::map < int, int > temp;
