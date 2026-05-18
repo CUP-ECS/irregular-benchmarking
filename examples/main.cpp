@@ -350,18 +350,16 @@ void run_benchmark() {
                     gatherTime = duration.count();
 
                     apply = 0;
-                    TIME_START = std::chrono::high_resolution_clock::now();
-
                     for (int i = 0; i < niterations; i++) {
+                        TIME_START = std::chrono::high_resolution_clock::now();
                         gather.apply();
                         if  (barrier){
-                            MPI_Barrier(MPI_COMM_WORLD);
+                             MPI_Barrier(MPI_COMM_WORLD);
                         }
-
+                        TIME_END = std::chrono::high_resolution_clock::now();
+                        duration = TIME_END - TIME_START;
+                        apply = apply+duration.count();
                     }
-                    TIME_END = std::chrono::high_resolution_clock::now();
-                    duration = TIME_END - TIME_START;
-                    apply = apply+duration.count();
 
 
 
@@ -391,18 +389,16 @@ void run_benchmark() {
                     gatherTime = duration.count();
 
                     apply = 0;
-                        TIME_START = std::chrono::high_resolution_clock::now();
-
                     for (int i = 0; i < niterations; i++) {
+                        TIME_START = std::chrono::high_resolution_clock::now();
                         gather.apply();
                         if  (barrier){
                             MPI_Barrier(MPI_COMM_WORLD);
                         }
-
-                    }
- TIME_END = std::chrono::high_resolution_clock::now();
+                        TIME_END = std::chrono::high_resolution_clock::now();
                         duration = TIME_END - TIME_START;
                         apply = apply+duration.count();
+                    }
 
                 } else {
                     //error
@@ -436,18 +432,16 @@ void run_benchmark() {
                     gatherTime = duration.count();
 
                     apply = 0;
-                    TIME_START = std::chrono::high_resolution_clock::now();
-
                     for (int i = 0; i < niterations; i++) {
+                        TIME_START = std::chrono::high_resolution_clock::now();
                         gather.apply();
                         if  (barrier){
                             MPI_Barrier(MPI_COMM_WORLD);
                         }
-
+                        TIME_END = std::chrono::high_resolution_clock::now();
+                        duration = TIME_END - TIME_START;
+                        apply = apply+duration.count();
                     }
-                    TIME_END = std::chrono::high_resolution_clock::now();
-                    duration = TIME_END - TIME_START;
-                    apply = apply+duration.count();
 
 
 
@@ -479,18 +473,16 @@ void run_benchmark() {
                     gatherTime = duration.count();
 
                     apply = 0;
-                    TIME_START = std::chrono::high_resolution_clock::now();
-
                     for (int i = 0; i < niterations; i++) {
+                        TIME_START = std::chrono::high_resolution_clock::now();
                         gather.apply();
                         if  (barrier){
                             MPI_Barrier(MPI_COMM_WORLD);
                         }
-
+                        TIME_END = std::chrono::high_resolution_clock::now();
+                        duration = TIME_END - TIME_START;
+                        apply = apply+duration.count();
                     }
-                    TIME_END = std::chrono::high_resolution_clock::now();
-                    duration = TIME_END - TIME_START;
-                    apply = apply+duration.count();
 
 
 
