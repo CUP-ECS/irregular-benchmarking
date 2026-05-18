@@ -349,14 +349,19 @@ void run_benchmark() {
                     duration = TIME_END - TIME_START;
                     gatherTime = duration.count();
 
-                    TIME_START = std::chrono::high_resolution_clock::now();
-
+                    apply = 0;
                     for (int i = 0; i < niterations; i++) {
+                        TIME_START = std::chrono::high_resolution_clock::now();
                         gather.apply();
+                        if  (barrier){
+                             MPI_Barrier(MPI_COMM_WORLD);
+                        }
+                        TIME_END = std::chrono::high_resolution_clock::now();
+                        duration = TIME_END - TIME_START;
+                        apply = apply+duration.count();
                     }
-                    TIME_END = std::chrono::high_resolution_clock::now();
-                    duration = TIME_END - TIME_START;
-                    apply = duration.count();
+
+
 
                 } else if (halo_type == IMPORT) {
                     TIME_START = std::chrono::high_resolution_clock::now();
@@ -383,28 +388,20 @@ void run_benchmark() {
                     duration = TIME_END - TIME_START;
                     gatherTime = duration.count();
 
-                    TIME_START = std::chrono::high_resolution_clock::now();
-
+                    apply = 0;
                     for (int i = 0; i < niterations; i++) {
+                        TIME_START = std::chrono::high_resolution_clock::now();
                         gather.apply();
+                        if  (barrier){
+                            MPI_Barrier(MPI_COMM_WORLD);
+                        }
+                        TIME_END = std::chrono::high_resolution_clock::now();
+                        duration = TIME_END - TIME_START;
+                        apply = apply+duration.count();
                     }
-                    TIME_END = std::chrono::high_resolution_clock::now();
-                    duration = TIME_END - TIME_START;
-                    apply = duration.count();
+
                 } else {
                     //error
-                    Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
-                    Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("my_aosoa", halo.numLocal() + halo.numGhost());
-                    auto slice_ranks = Cabana::slice < 0 > (aosoa);
-                    for (int i = 0; i < num_tuple; ++i) {
-                        slice_ranks(i) = i;
-                    }
-                    auto gather = Cabana::createGather(halo, aosoa, 1.0);
-
-                    for (int i = 0; i < niterations; i++) {
-
-                        gather.apply();
-                    }
                 }
             } else if (comm_type == MPIS) {
                 if (halo_type == EXPORT) {
@@ -434,16 +431,20 @@ void run_benchmark() {
                     duration = TIME_END - TIME_START;
                     gatherTime = duration.count();
 
-                    TIME_START = std::chrono::high_resolution_clock::now();
-
-
+                    apply = 0;
                     for (int i = 0; i < niterations; i++) {
+                        TIME_START = std::chrono::high_resolution_clock::now();
                         gather.apply();
+                        if  (barrier){
+                            MPI_Barrier(MPI_COMM_WORLD);
+                        }
+                        TIME_END = std::chrono::high_resolution_clock::now();
+                        duration = TIME_END - TIME_START;
+                        apply = apply+duration.count();
                     }
 
-                    TIME_END = std::chrono::high_resolution_clock::now();
-                    duration = TIME_END - TIME_START;
-                    apply = duration.count();
+
+
 
                 } else if (halo_type == IMPORT) {
 
@@ -471,28 +472,23 @@ void run_benchmark() {
                     duration = TIME_END - TIME_START;
                     gatherTime = duration.count();
 
-                    TIME_START = std::chrono::high_resolution_clock::now();
-
+                    apply = 0;
                     for (int i = 0; i < niterations; i++) {
+                        TIME_START = std::chrono::high_resolution_clock::now();
                         gather.apply();
+                        if  (barrier){
+                            MPI_Barrier(MPI_COMM_WORLD);
+                        }
+                        TIME_END = std::chrono::high_resolution_clock::now();
+                        duration = TIME_END - TIME_START;
+                        apply = apply+duration.count();
                     }
-                    TIME_END = std::chrono::high_resolution_clock::now();
-                    duration = TIME_END - TIME_START;
-                    apply = duration.count();
+
+
+
                 } else {
                     //error
-                    Cabana::Halo < MemorySpace > halo(MPI_COMM_WORLD, num_tuple, export_ids, export_ranks);
-                    Cabana::AoSoA < DataTypes, MemorySpace, VectorLength > aosoa("my_aosoa", halo.numLocal() + halo.numGhost());
-                    auto slice_ranks = Cabana::slice < 0 > (aosoa);
-                    for (int i = 0; i < num_tuple; ++i) {
-                        slice_ranks(i) = i;
-                    }
-                    auto gather = Cabana::createGather(halo, aosoa, 1.0);
 
-                    for (int i = 0; i < niterations; i++) {
-
-                        gather.apply();
-                    }
                 }
 
             }
