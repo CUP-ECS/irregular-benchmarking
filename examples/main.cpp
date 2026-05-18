@@ -770,7 +770,7 @@ void parseArgs(int argc, char ** argv) {
             alltoallv == "STANDARD") {
             alltoallv = "NEIGHBOR_ALLTOALLV_INIT_STANDARD";
             if(persistent){
-                MPIL_Set_alltoallv_neighbor_alogorithm(NEIGHBOR_ALLTOALLV_INIT_STANDARD);
+                MPIL_Set_alltoallv_neighbor_init_alogorithm(NEIGHBOR_ALLTOALLV_INIT_STANDARD);
             }else{
                 MPIL_Set_alltoallv_neighbor_alogorithm(NEIGHBOR_ALLTOALLV_STANDARD);
             }
@@ -780,7 +780,7 @@ void parseArgs(int argc, char ** argv) {
             if(persistent){
                  MPIL_Set_alltoallv_neighbor_init_alogorithm(NEIGHBOR_ALLTOALLV_INIT_LOCALITY);
             }else{
-              MPIL_Set_alltoallv_neighbor_init_alogorithm(NEIGHBOR_ALLTOALLV_LOCALITY);
+              MPIL_Set_alltoallv_neighbor_alogorithm(NEIGHBOR_ALLTOALLV_LOCALITY);
             }
 
 
