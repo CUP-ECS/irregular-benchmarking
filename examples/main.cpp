@@ -145,14 +145,15 @@ using json = nlohmann::json;
 
 // Conversion from JSON → struct
 void from_json(const json & j, Pattern & p) {
-   	j.at("pattern_count").get_to(p.pattern_count);
-    j.at("message_count").get_to(p.message_count);
 
+    int totalmessages =0
     // --- comm_partners ---
     {
         std::map < int, int > temp;
         for (auto & [k, v]: j.at("comm_partners").items()) {
-     		temp[std::stoi(k) ] =v.get < int > ();
+            int amount =v.get < int > ();
+     		temp[std::stoi(k) ] =amount;
+            totalmessages+=amount/2;
        //     temp[v.get < int > () ] = std::stoi(k);
         }
 
@@ -222,6 +223,10 @@ void from_json(const json & j, Pattern & p) {
 
         p.dist_to_neighbors[outer_key] = std::move(norm_inner);
     }
+
+    p.pattern_count = j.value("pattern_count", 1);
+    p.message_count = j.value("message_count", totalmessages);
+
 }
 // Function to run a performance benchmark
 // meat and potatos of the code
