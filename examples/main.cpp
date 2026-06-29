@@ -356,12 +356,13 @@ void run_benchmark() {
                     for (int i = 0; i < niterations; i++) {
                         TIME_START = std::chrono::high_resolution_clock::now();
                         gather.apply();
-                        if  (barrier){
-                             MPI_Barrier(MPI_COMM_WORLD);
-                        }
+
                         TIME_END = std::chrono::high_resolution_clock::now();
                         duration = TIME_END - TIME_START;
                         apply = apply+duration.count();
+					    if  (barrier){
+                             MPI_Barrier(MPI_COMM_WORLD);
+                        }
                     }
 
 
@@ -456,12 +457,13 @@ void run_benchmark() {
                     for (int i = 0; i < niterations; i++) {
                         TIME_START = std::chrono::high_resolution_clock::now();
                         gather.apply();
-                        if  (barrier){
-                            MPI_Barrier(MPI_COMM_WORLD);
-                        }
+
                         TIME_END = std::chrono::high_resolution_clock::now();
                         duration = TIME_END - TIME_START;
                         apply = apply+duration.count();
+						if  (barrier){
+                            MPI_Barrier(MPI_COMM_WORLD);
+                        }
                     }
 
 
@@ -721,7 +723,7 @@ void parseArgs(int argc, char ** argv) {
         if (split == "U" ||
             split == "u" ||
             split == "NUMA") {
-          //  MPIL_Set_split(NUMA);
+            MPIL_Set_split(NUMA);
             split = "NUMA";
         } else if (split == "N" ||
                 split == "n" ||
@@ -729,14 +731,14 @@ void parseArgs(int argc, char ** argv) {
 
 
             split = "NODE";
-            //MPIL_Set_split(NODE);
+            MPIL_Set_split(NODE);
 
         }  else if (split == "S" ||
                         split == "s" ||
                         split == "SOCKET") {
 
             split = "SOCKET";
-            //MPIL_Set_split(SOCKET);
+            MPIL_Set_split(SOCKET);
         }else {
                     exitError("ERROR: Invalid split choice [SOCKET,NODE,NUMA]\n");
         }
@@ -788,33 +790,19 @@ void parseArgs(int argc, char ** argv) {
         }
 
 
-        std::string alltoallv = ALLTOALLV.getValue();
-        if (alltoallv == "S" ||
-            alltoallv == "s" ||
-            alltoallv == "STANDARD") {
-            alltoallv = "NEIGHBOR_ALLTOALLV_INIT_STANDARD";
-            if(persistent){
-                MPIL_Set_alltoallv_neighbor_init_alogorithm(NEIGHBOR_ALLTOALLV_INIT_STANDARD);
-            }else{
-                MPIL_Set_alltoallv_neighbor_alogorithm(NEIGHBOR_ALLTOALLV_STANDARD);
-            }
-        } else if (alltoallv == "L" ||
-            alltoallv == "l" ||
-            alltoallv == "LOCALITY") {
-            if(persistent){
-                 MPIL_Set_alltoallv_neighbor_init_alogorithm(NEIGHBOR_ALLTOALLV_INIT_LOCALITY);
-            }else{
-              MPIL_Set_alltoallv_neighbor_alogorithm(NEIGHBOR_ALLTOALLV_LOCALITY);
-            }
-
-
-
-            alltoallv = "NEIGHBOR_ALLTOALLV_INIT_LOCALITY";
-
-
-        } else {
-            exitError("ERROR: Invalid alltoallv choice [LOCALITY,STANDARD]\n");
-        }
+    std::string alltoallv = ALLTOALLV.getValue();
+    if (alltoallv == "S" || alltoallv == "s" || alltoallv == "STANDARD") {
+      mpil_neighbor_alltoallv_init_implementation =
+          NEIGHBOR_ALLTOALLV_INIT_STANDARD;
+      alltoallv = "NEIGHBOR_ALLTOALLV_INIT_STANDARD";
+    } else if (alltoallv == "L" || alltoallv == "l" ||
+               alltoallv == "LOCALITY") {
+      mpil_neighbor_alltoallv_init_implementation =
+          NEIGHBOR_ALLTOALLV_INIT_LOCALITY;
+      alltoallv = "NEIGHBOR_ALLTOALLV_INIT_LOCALITY";
+    } else {
+      exitError("ERROR: Invalid alltoallv choice [LOCALITY,STANDARD]\n");
+    }
 
         int seedholder = seedArg.getValue();
         if (seed != -1 && seedholder == -1) {
