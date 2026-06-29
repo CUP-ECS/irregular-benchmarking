@@ -210,6 +210,7 @@ void from_json(const json & j, Pattern & p) {
     for (auto & [outer_k, inner_obj]: j.at("dist_to_neighbors").items()) {
         int outer_key = std::stoi(outer_k);
         std::map < int, int > temp;
+
         for (auto & [inner_k, inner_v]: inner_obj.items()) {
             int amount = inner_v.get < int > ();
             temp[std::stoi(inner_k) ] =amount;
@@ -265,7 +266,11 @@ void run_benchmark() {
 
             neighbors_data.reserve(nneighborsV);
             neighbors.reserve(nneighborsV);
-			double numberOfmessages = pattern.comm_partners[nneighborsV]*pattern.message_count/(pattern.pattern_count*1.0);
+			double numberOfmessages =nneighborsV;
+ //pattern.comm_partners[nneighborsV]*pattern.message_count/(pattern.pattern_count*1.0);
+
+
+
 
             for (int i = 0; i < numberOfmessages; ++i) {
 
