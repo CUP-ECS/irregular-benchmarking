@@ -804,6 +804,7 @@ void parseArgs(int argc, char ** argv) {
       exitError("ERROR: Invalid alltoallv choice [LOCALITY,STANDARD]\n");
     }
 
+
         int seedholder = seedArg.getValue();
         if (seed != -1 && seedholder == -1) {
             seed = time(NULL);
